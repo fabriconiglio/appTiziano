@@ -24,5 +24,7 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('products', ProductController::class);
 
     // Movimiento de stock
+    Route::get('stock-movements/create', [StockMovementController::class, 'create'])->name('stock-movements.create');
     Route::post('stock-movements', [StockMovementController::class, 'store'])->name('stock-movements.store');
+
 });

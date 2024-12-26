@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\StockMovement;
 use Illuminate\Http\Request;
 
 class StockMovementController extends Controller
@@ -18,6 +19,7 @@ class StockMovementController extends Controller
 
     public function store(Request $request)
     {
+
         // Validación de los datos
         $validated = $request->validate([
             'product_id' => 'required|exists:products,id',

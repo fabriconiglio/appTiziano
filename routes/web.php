@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\ClientController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\StockMovementController;
+use App\Http\Controllers\TechnicalRecordController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
@@ -27,4 +29,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('stock-movements/create', [StockMovementController::class, 'create'])->name('stock-movements.create');
     Route::post('stock-movements', [StockMovementController::class, 'store'])->name('stock-movements.store');
 
+    // CRUD de clientes y registros técnicos
+    Route::resource('clients', ClientController::class);
+    Route::resource('clients.technical-records', TechnicalRecordController::class);
 });

@@ -31,11 +31,42 @@
                 <!-- Left Side Of Navbar -->
                 <ul class="navbar-nav me-auto">
                     @auth
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ route('products.index') }}">{{ __('Productos') }}</a>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="inventarioDropdown" role="button"
+                               data-bs-toggle="dropdown" aria-expanded="false">
+                                {{ __('Inventario') }}
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="inventarioDropdown">
+                                <li>
+                                    <a class="dropdown-item" href="{{ route('products.index') }}">
+                                        {{ __('Productos') }}
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ route('stock-movements.create') }}">
+                                        {{ __('Registrar Movimiento') }}
+                                    </a>
+                                </li>
+                            </ul>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ route('stock-movements.create') }}">{{ __('Registrar Movimiento de Stock') }}</a>
+                        <!-- Agrega el dropdown de Clientes -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="clientesDropdown" role="button"
+                               data-bs-toggle="dropdown" aria-expanded="false">
+                                {{ __('Clientes') }}
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="clientesDropdown">
+                                <li>
+                                    <a class="dropdown-item" href="{{ route('clients.index') }}">
+                                        {{ __('Ver Clientes') }}
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ route('clients.create') }}">
+                                        {{ __('Nuevo Cliente') }}
+                                    </a>
+                                </li>
+                            </ul>
                         </li>
                     @endauth
                 </ul>

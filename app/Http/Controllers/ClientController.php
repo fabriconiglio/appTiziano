@@ -10,9 +10,22 @@ class ClientController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $clients = Client::paginate(10);
+        $query = Client::query();
+
+        if ($request->has('search')) {
+            $search = $request->get('search');
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'LIKE', "%{$search}%")
+                    ->orWhere('surname', 'LIKE', "%{$search}%")
+                    ->orWhere('phone', 'LIKE', "%{$search}%")
+                    ->orWhere('email', 'LIKE', "%{$search}%");
+            });
+        }
+
+        $clients = $query->latest()->paginate(10);
+
         return view('clients.index', compact('clients'));
     }
 
@@ -88,8 +101,10 @@ class ClientController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Client $client)
     {
-        //
+        $client->delete();
+        return redirect()->route('clients.index')
+            ->with('success', 'Cliente eliminado exitosamente.');
     }
 }

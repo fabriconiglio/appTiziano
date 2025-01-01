@@ -20,6 +20,10 @@ class Client extends Model
         'birth_date'
     ];
 
+    protected $casts = [
+        'birth_date' => 'date'
+    ];
+
     public function technicalRecords()
     {
         return $this->hasMany(TechnicalRecord::class);

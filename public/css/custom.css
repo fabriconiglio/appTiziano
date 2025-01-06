@@ -1,0 +1,98 @@
+:root {
+    --primary-color: #fcf3e4;     /* Color beige más claro */
+    --secondary-color: #ffffff;    /* Blanco */
+    --accent-color: #c9bc9d;      /* Color beige más oscuro */
+    --text-color: #333333;        /* Color texto oscuro */
+}
+
+/* Navbar */
+.navbar {
+    background-color: var(--primary-color) !important;
+    border-bottom: 1px solid var(--accent-color);
+}
+
+.navbar-light .navbar-brand,
+.navbar-light .nav-link {
+    color: var(--text-color) !important;
+}
+
+.navbar-light .nav-link:hover {
+    color: var(--accent-color) !important;
+}
+
+/* Cards */
+.card {
+    border-color: var(--accent-color);
+}
+
+.card-header {
+    background-color: var(--primary-color) !important;
+    border-bottom: 1px solid var(--accent-color);
+}
+
+/* Botones */
+.btn-primary {
+    background-color: var(--accent-color) !important;
+    border-color: var(--accent-color) !important;
+    color: var(--text-color) !important;
+}
+
+.btn-primary:hover {
+    background-color: #b5a989 !important;  /* Versión más oscura del accent-color */
+    border-color: #b5a989 !important;
+}
+
+.btn-secondary {
+    background-color: #e6e6e6 !important;
+    border-color: #d4d4d4 !important;
+    color: var(--text-color) !important;
+}
+
+/* Tablas */
+.table thead th {
+    background-color: var(--primary-color);
+    border-bottom: 2px solid var(--accent-color);
+    color: var(--text-color);
+}
+
+.table-hover tbody tr:hover {
+    background-color: #fcf9f2;
+}
+
+/* Dropdown menus */
+.dropdown-menu {
+    border-color: var(--accent-color);
+}
+
+.dropdown-item:hover {
+    background-color: var(--primary-color);
+}
+
+/* Forms */
+.form-control:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 0.2rem rgba(201, 188, 157, 0.25);
+}
+
+/* Paginación */
+.page-link {
+    color: var(--text-color);
+}
+
+.page-item.active .page-link {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+    color: var(--text-color);
+}
+
+/* Alerts */
+.alert-success {
+    background-color: #e8f3e5;
+    border-color: #c9e3c3;
+    color: #487b3e;
+}
+
+/* Body background */
+body {
+    background-color: #fcfbf8;  /* Un fondo muy suave */
+}

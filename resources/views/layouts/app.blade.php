@@ -16,6 +16,9 @@
 
     <!-- Styles -->
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
+
+    <!-- Después de los otros estilos -->
+    <link href="{{ asset('css/custom.css') }}" rel="stylesheet">
 </head>
 <body>
 <div id="app">

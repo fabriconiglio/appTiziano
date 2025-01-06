@@ -5,3 +5,25 @@ $body-bg: #f8fafc;
 $font-family-sans-serif: 'Nunito', sans-serif;
 $font-size-base: 0.9rem;
 $line-height-base: 1.6;
+
+// Override Bootstrap default variables
+$primary: #c9bc9d;
+$secondary: #ffffff;
+$light: #fcf3e4;
+$dark: #333333;
+
+$theme-colors: (
+    "primary": $primary,
+    "secondary": $secondary,
+    "light": $light,
+    "dark": $dark
+);
+
+// Border radius
+$border-radius: 0.25rem;
+$border-radius-lg: 0.3rem;
+$border-radius-sm: 0.2rem;
+
+// Font customization
+$font-family-base: 'Nunito', sans-serif;
+$headings-font-family: 'Nunito', sans-serif;

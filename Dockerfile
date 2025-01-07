@@ -1,4 +1,3 @@
-# Dockerfile
 FROM php:8.2-fpm
 
 # Instalar dependencias
@@ -10,10 +9,11 @@ RUN apt-get update && apt-get install -y \
     curl \
     unzip \
     nodejs \
-    npm
+    npm \
+    default-mysql-client
 
 # Instalar extensiones PHP
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
+RUN docker-php-ext-install pdo pdo_mysql mysqli mbstring exif pcntl bcmath gd
 
 # Instalar Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer

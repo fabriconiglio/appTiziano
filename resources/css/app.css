@@ -1,3 +1,6 @@
+@import 'bootstrap/dist/css/bootstrap.css';
+
+/* Tus estilos personalizados aquí */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

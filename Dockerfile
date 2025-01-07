@@ -27,7 +27,11 @@ COPY . .
 # Instalar dependencias de PHP y Node
 RUN composer install --no-interaction --no-dev --optimize-autoloader
 RUN npm install
+RUN npm install bootstrap @popperjs/core --save
 RUN npm run build
+RUN php artisan storage:link
+RUN chmod -R 775 storage bootstrap/cache
+RUN chown -R www-data:www-data /var/www/html
 
 # Script de inicio
 COPY docker-entrypoint.sh /usr/local/bin/

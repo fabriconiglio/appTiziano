@@ -6,9 +6,15 @@ export default defineConfig({
         laravel({
             input: [
                 'resources/css/app.css',
+                'resources/sass/app.scss', // si estás usando SASS
                 'resources/js/app.js'
             ],
             refresh: true,
         }),
     ],
+    resolve: {
+        alias: {
+            '~bootstrap': 'node_modules/bootstrap',
+        }
+    },
 });

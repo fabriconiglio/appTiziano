@@ -106,16 +106,17 @@
                             </div>
 
                             <div class="mb-3">
-                                <label class="form-label">Productos Utilizados</label>
-                                <div id="products-container">
-                                    <div class="input-group mb-2">
-                                        <input type="text" name="products_used[]"
-                                               class="form-control" placeholder="Nombre del producto">
-                                        <button type="button" class="btn btn-success add-product">
-                                            <i class="fas fa-plus"></i>
-                                        </button>
-                                    </div>
-                                </div>
+                                <label for="products_used" class="form-label">Productos Utilizados</label>
+                                <input type="text"
+                                       class="form-control @error('products_used') is-invalid @enderror"
+                                       id="products_used"
+                                       name="products_used"
+                                       value="{{ old('products_used') }}"
+                                       placeholder="Ejemplo: Shampoo; Crema; Tintura; Oxidante">
+                                <div class="form-text">Ingresa los productos separados por punto y coma (;)</div>
+                                @error('products_used')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
 
                             <div class="mb-3">
@@ -163,30 +164,4 @@
         </div>
     </div>
 
-    @push('scripts')
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                // Manejar la adición de campos de productos
-                const container = document.getElementById('products-container');
-                document.querySelectorAll('.add-product').forEach(button => {
-                    button.addEventListener('click', function() {
-                        const newRow = document.createElement('div');
-                        newRow.className = 'input-group mb-2';
-                        newRow.innerHTML = `
-                    <input type="text" name="products_used[]" class="form-control" placeholder="Nombre del producto">
-                    <button type="button" class="btn btn-danger remove-product">
-                        <i class="fas fa-minus"></i>
-                    </button>
-                `;
-                        container.appendChild(newRow);
-
-                        // Agregar evento para remover el campo
-                        newRow.querySelector('.remove-product').addEventListener('click', function() {
-                            newRow.remove();
-                        });
-                    });
-                });
-            });
-        </script>
-    @endpush
 @endsection

@@ -36,11 +36,18 @@ class TechnicalRecordController extends Controller
             'current_hair_color' => 'nullable|string',
             'desired_hair_color' => 'nullable|string',
             'hair_treatments' => 'nullable|string',
-            'products_used' => 'nullable|array',
+            'products_used' => 'nullable|string',
             'observations' => 'nullable|string',
-            'photos.*' => 'nullable|image|max:2048', // Máximo 2MB por imagen
+            'photos.*' => 'nullable|image|max:2048',
             'next_appointment_notes' => 'nullable|string'
         ]);
+
+        // Convertir el string de productos en un array
+        if (!empty($validated['products_used'])) {
+            $validated['products_used'] = array_map('trim', explode(';', $validated['products_used']));
+        } else {
+            $validated['products_used'] = [];
+        }
 
         // Procesar las fotos
         if ($request->hasFile('photos')) {
@@ -90,11 +97,18 @@ class TechnicalRecordController extends Controller
             'current_hair_color' => 'nullable|string',
             'desired_hair_color' => 'nullable|string',
             'hair_treatments' => 'nullable|string',
-            'products_used' => 'nullable|array',
+            'products_used' => 'nullable|string',
             'observations' => 'nullable|string',
             'photos.*' => 'nullable|image|max:2048',
             'next_appointment_notes' => 'nullable|string'
         ]);
+
+        // Convertir el string de productos en un array
+        if (!empty($validated['products_used'])) {
+            $validated['products_used'] = array_map('trim', explode(';', $validated['products_used']));
+        } else {
+            $validated['products_used'] = [];
+        }
 
         // Procesar nuevas fotos
         if ($request->hasFile('photos')) {

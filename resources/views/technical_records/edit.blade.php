@@ -120,16 +120,18 @@
                             </div>
 
                             @if($technicalRecord->photos)
-                                <div class="mb-3">
+                                <div id="photo-container" class="mb-3">
                                     <label class="form-label">Fotos Actuales</label>
                                     <div class="row">
                                         @foreach($technicalRecord->photos as $photo)
-                                            <div class="col-md-4 mb-2">
+                                            <div class="col-md-4 mb-2 photo-item">
                                                 <div class="card">
                                                     <img src="{{ Storage::url($photo) }}" class="card-img-top" alt="Foto del tratamiento">
                                                     <div class="card-body text-center">
-                                                        <button type="button" class="btn btn-danger btn-sm delete-photo"
-                                                                data-photo="{{ $photo }}">
+                                                        <button type="button"
+                                                                class="btn btn-danger btn-sm delete-photo"
+                                                                data-photo="{{ $photo }}"
+                                                                data-url="{{ route('clients.technical-records.delete-photo', [$client, $technicalRecord]) }}">
                                                             <i class="fas fa-trash"></i> Eliminar
                                                         </button>
                                                     </div>

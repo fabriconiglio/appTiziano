@@ -32,4 +32,8 @@ Route::middleware(['auth'])->group(function () {
     // CRUD de clientes y registros técnicos
     Route::resource('clients', ClientController::class);
     Route::resource('clients.technical-records', TechnicalRecordController::class);
+
+    Route::post('clients/{client}/technical-records/{technicalRecord}/delete-photo',
+        [TechnicalRecordController::class, 'deletePhoto'])
+        ->name('clients.technical-records.delete-photo');
 });

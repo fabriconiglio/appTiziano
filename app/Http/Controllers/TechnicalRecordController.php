@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Client;
 use App\Models\TechnicalRecord;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class TechnicalRecordController extends Controller
 {
@@ -132,5 +133,36 @@ class TechnicalRecordController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    public function deletePhoto(Request $request, Client $client, TechnicalRecord $technicalRecord)
+    {
+        try {
+            $photo = $request->input('photo');
+
+            // Verificar que la foto existe en el array
+            if (!in_array($photo, $technicalRecord->photos ?? [])) {
+                return response()->json(['message' => 'Foto no encontrada'], 404);
+            }
+
+            // Eliminar el archivo físico
+            if (Storage::exists('public/' . $photo)) {
+                Storage::delete('public/' . $photo);
+            }
+
+            // Actualizar el array de fotos
+            $photos = array_values(array_filter($technicalRecord->photos ?? [], function($p) use ($photo) {
+                return $p !== $photo;
+            }));
+
+            // Actualizar el registro
+            $technicalRecord->update(['photos' => $photos]);
+
+            return response()->json(['success' => true]);
+
+        } catch (\Exception $e) {
+            \Log::error('Error al eliminar foto: ' . $e->getMessage());
+            return response()->json(['message' => 'Error al eliminar la foto'], 500);
+        }
     }
 }

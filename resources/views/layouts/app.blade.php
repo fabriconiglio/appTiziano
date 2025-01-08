@@ -22,6 +22,12 @@
 
     <!-- Después de los otros estilos -->
     <link href="{{ asset('css/custom.css') }}" rel="stylesheet">
+
+    <!-- CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
+    <!-- JS -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
+
 </head>
 <body>
 <div id="app">

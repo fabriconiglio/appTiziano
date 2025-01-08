@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Client;
+use App\Models\Product;
 use App\Models\TechnicalRecord;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -22,7 +23,8 @@ class TechnicalRecordController extends Controller
      */
     public function create(Client $client)
     {
-        return view('technical_records.create', compact('client'));
+        $products = Product::all();
+        return view('technical_records.create', compact('client', 'products'));
     }
 
     /**
@@ -37,18 +39,11 @@ class TechnicalRecordController extends Controller
             'current_hair_color' => 'nullable|string',
             'desired_hair_color' => 'nullable|string',
             'hair_treatments' => 'nullable|string',
-            'products_used' => 'nullable|string',
+            'products_used' => 'nullable|array',
             'observations' => 'nullable|string',
             'photos.*' => 'nullable|image|max:2048',
             'next_appointment_notes' => 'nullable|string'
         ]);
-
-        // Convertir el string de productos en un array
-        if (!empty($validated['products_used'])) {
-            $validated['products_used'] = array_map('trim', explode(';', $validated['products_used']));
-        } else {
-            $validated['products_used'] = [];
-        }
 
         // Procesar las fotos
         if ($request->hasFile('photos')) {
@@ -82,7 +77,8 @@ class TechnicalRecordController extends Controller
      */
     public function edit(Client $client, TechnicalRecord $technicalRecord)
     {
-        return view('technical_records.edit', compact('client', 'technicalRecord'));
+        $products = Product::all();
+        return view('technical_records.edit', compact('client', 'technicalRecord', 'products'));
     }
 
 
@@ -98,18 +94,11 @@ class TechnicalRecordController extends Controller
             'current_hair_color' => 'nullable|string',
             'desired_hair_color' => 'nullable|string',
             'hair_treatments' => 'nullable|string',
-            'products_used' => 'nullable|string',
+            'products_used' => 'nullable|array',
             'observations' => 'nullable|string',
             'photos.*' => 'nullable|image|max:2048',
             'next_appointment_notes' => 'nullable|string'
         ]);
-
-        // Convertir el string de productos en un array
-        if (!empty($validated['products_used'])) {
-            $validated['products_used'] = array_map('trim', explode(';', $validated['products_used']));
-        } else {
-            $validated['products_used'] = [];
-        }
 
         // Procesar nuevas fotos
         if ($request->hasFile('photos')) {

@@ -107,17 +107,18 @@
 
                             <div class="mb-3">
                                 <label for="products_used" class="form-label">Productos Utilizados</label>
-                                <input type="text"
-                                       class="form-control @error('products_used') is-invalid @enderror"
-                                       id="products_used"
-                                       name="products_used"
-                                       value="{{ old('products_used') }}"
-                                       placeholder="Ejemplo: Shampoo; Crema; Tintura; Oxidante">
-                                <div class="form-text">Ingresa los productos separados por punto y coma (;)</div>
-                                @error('products_used')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
+                                <select id="products_used"
+                                        name="products_used[]"
+                                        multiple="multiple">
+                                    @foreach($products as $product)
+                                        <option value="{{ $product->id }}"
+                                            {{ in_array($product->id, old('products_used', $technicalRecord->products_used ?? [])) ? 'selected' : '' }}>
+                                            {{ $product->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
                             </div>
+
 
                             <div class="mb-3">
                                 <label for="photos" class="form-label">Fotos</label>

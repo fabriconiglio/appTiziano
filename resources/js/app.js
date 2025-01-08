@@ -1,8 +1,10 @@
 import './bootstrap';
 import 'bootstrap';
+import Choices from "choices.js";
+import "choices.js/public/assets/styles/choices.min.css";
 
 document.addEventListener('DOMContentLoaded', function () {
-
+    // Eliminar fotos
     const deleteButtons = document.querySelectorAll('.delete-photo');
 
     deleteButtons.forEach(button => {
@@ -28,6 +30,13 @@ document.addEventListener('DOMContentLoaded', function () {
                     .then(data => {
                         if (data.success) { // Suponiendo que la respuesta tenga un campo 'success'
                             card.remove(); // Eliminar la tarjeta
+
+                            // Eliminar el contenedor si ya no quedan fotos
+                            const photoContainer = document.getElementById('photo-container');
+                            if (photoContainer && photoContainer.querySelectorAll('.col-md-4').length === 0) {
+                                photoContainer.remove();
+                            }
+
                             alert('Foto eliminada correctamente');
                         } else {
                             alert('Error al eliminar la foto');
@@ -38,5 +47,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     });
             }
         });
+    });
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+    const element = document.querySelector('#products_used');
+    new Choices(element, {
+        removeItemButton: true, // Botón para eliminar opciones
+        placeholder: true,
+        placeholderValue: "Selecciona productos"
     });
 });

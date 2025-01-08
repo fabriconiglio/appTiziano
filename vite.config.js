@@ -6,7 +6,7 @@ export default defineConfig({
         laravel({
             input: [
                 'resources/css/app.css',
-                'resources/sass/app.scss', // si estás usando SASS
+                'resources/sass/app.scss',
                 'resources/js/app.js'
             ],
             refresh: true,

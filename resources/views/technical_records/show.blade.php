@@ -83,10 +83,10 @@
                                 <p class="mb-4">{{ $technicalRecord->hair_treatments ?? 'No se registraron tratamientos' }}</p>
 
                                 <h6 class="fw-bold">Productos Utilizados:</h6>
-                                @if($technicalRecord->products_used && count($technicalRecord->products_used) > 0)
+                                @if($products && $products->count() > 0)
                                     <ul class="list-group list-group-flush">
-                                        @foreach($technicalRecord->products_used as $product)
-                                            <li class="list-group-item">{{ $product }}</li>
+                                        @foreach($products as $product)
+                                            <li class="list-group-item">{{ $product->name }}</li>
                                         @endforeach
                                     </ul>
                                 @else

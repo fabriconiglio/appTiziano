@@ -36,4 +36,10 @@ class TechnicalRecord extends Model
     {
         return $this->belongsTo(User::class, 'stylist_id');
     }
+
+    public function products()
+    {
+        return $this->belongsToMany(Product::class, 'technical_record_product');
+    }
+
 }

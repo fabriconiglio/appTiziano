@@ -69,8 +69,16 @@ class TechnicalRecordController extends Controller
      */
     public function show(Client $client, TechnicalRecord $technicalRecord)
     {
-        return view('technical_records.show', compact('client', 'technicalRecord'));
+        // Convertir los IDs de productos en un array
+        $productIds = $technicalRecord->products_used ?? [];
+
+        // Obtener los nombres de los productos
+        $products = Product::whereIn('id', $productIds)->get();
+
+        return view('technical_records.show', compact('client', 'technicalRecord', 'products'));
     }
+
+
 
     /**
      * Show the form for editing the specified resource.

@@ -101,6 +101,26 @@
                                 </li>
                             </ul>
                         </li>
+
+                        <!-- Agrega el dropdown de Inventario Proveedor -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="proveedoresDropdown" role="button"
+                               data-bs-toggle="dropdown" aria-expanded="false">
+                                {{ __('Inventario Proveedor') }}
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="proveedoresDropdown">
+                                <li>
+                                    <a class="dropdown-item" href="{{ route('supplier-inventories.index') }}">
+                                        {{ __('Ver Inventario Proveedor') }}
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ route('supplier-inventories.create') }}">
+                                        {{ __('Nuevo Inventario Proveedor') }}
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
                     @endauth
                 </ul>
 

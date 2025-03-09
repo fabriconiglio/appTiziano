@@ -4,6 +4,7 @@ use App\Http\Controllers\ClientController;
 use App\Http\Controllers\DistributorClientController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\StockMovementController;
+use App\Http\Controllers\SupplierInventoryController;
 use App\Http\Controllers\TechnicalRecordController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
@@ -40,4 +41,9 @@ Route::middleware(['auth'])->group(function () {
 
     // CRUD de clientes de distribuidores
     Route::resource('distributor-clients', DistributorClientController::class);
+
+    // CRUD de inventario de proveedores
+    Route::resource('supplier-inventories', SupplierInventoryController::class);
+    Route::post('supplier-inventories/{supplierInventory}/adjust-stock', [SupplierInventoryController::class, 'adjustStock'])
+        ->name('supplier-inventories.adjust-stock');
 });

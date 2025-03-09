@@ -1,0 +1,203 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\SupplierInventory;
+use Illuminate\Http\Request;
+
+class SupplierInventoryController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     */
+    public function index(Request $request)
+    {
+        $query = SupplierInventory::query();
+
+        if ($request->has('search')) {
+            $search = $request->get('search');
+            $query->where(function($q) use ($search) {
+                $q->where('product_name', 'LIKE', "%{$search}%")
+                    ->orWhere('sku', 'LIKE', "%{$search}%")
+                    ->orWhere('supplier_name', 'LIKE', "%{$search}%")
+                    ->orWhere('category', 'LIKE', "%{$search}%")
+                    ->orWhere('brand', 'LIKE', "%{$search}%");
+            });
+        }
+
+        if ($request->has('category')) {
+            $query->where('category', $request->get('category'));
+        }
+
+        if ($request->has('status')) {
+            $query->where('status', $request->get('status'));
+        }
+
+        if ($request->has('supplier')) {
+            $query->where('supplier_name', $request->get('supplier'));
+        }
+
+        $inventories = $query->latest()->paginate(10);
+
+        // Para los filtros en la vista
+        $categories = SupplierInventory::distinct('category')->pluck('category');
+        $suppliers = SupplierInventory::distinct('supplier_name')->pluck('supplier_name');
+
+        return view('supplier-inventories.index', compact('inventories', 'categories', 'suppliers'));
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
+        return view('supplier-inventories.create');
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'product_name' => 'required|string|max:255',
+            'sku' => 'nullable|string|max:50|unique:supplier_inventories',
+            'description' => 'nullable|string',
+            'price' => 'required|numeric|min:0',
+            'stock_quantity' => 'required|integer|min:0',
+            'category' => 'nullable|string|max:100',
+            'brand' => 'nullable|string|max:100',
+            'supplier_name' => 'required|string|max:255',
+            'supplier_contact' => 'nullable|string|max:255',
+            'supplier_email' => 'nullable|email|max:255',
+            'supplier_phone' => 'nullable|string|max:20',
+            'last_restock_date' => 'nullable|date',
+            'purchase_price' => 'nullable|numeric|min:0',
+            'status' => 'nullable|string|in:available,low_stock,out_of_stock',
+            'notes' => 'nullable|string'
+        ]);
+
+        // Establecer el estado basado en el stock
+        if (!isset($validated['status'])) {
+            if ($validated['stock_quantity'] <= 0) {
+                $validated['status'] = 'out_of_stock';
+            } elseif ($validated['stock_quantity'] <= 10) {
+                $validated['status'] = 'low_stock';
+            } else {
+                $validated['status'] = 'available';
+            }
+        }
+
+        SupplierInventory::create($validated);
+
+        return redirect()->route('supplier-inventories.index')
+            ->with('success', 'Producto de inventario registrado exitosamente.');
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(SupplierInventory $supplierInventory)
+    {
+        return view('supplier-inventories.show', compact('supplierInventory'));
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(SupplierInventory $supplierInventory)
+    {
+        return view('supplier-inventories.edit', compact('supplierInventory'));
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, SupplierInventory $supplierInventory)
+    {
+        $validated = $request->validate([
+            'product_name' => 'required|string|max:255',
+            'sku' => 'nullable|string|max:50|unique:supplier_inventories,sku,' . $supplierInventory->id,
+            'description' => 'nullable|string',
+            'price' => 'required|numeric|min:0',
+            'stock_quantity' => 'required|integer|min:0',
+            'category' => 'nullable|string|max:100',
+            'brand' => 'nullable|string|max:100',
+            'supplier_name' => 'required|string|max:255',
+            'supplier_contact' => 'nullable|string|max:255',
+            'supplier_email' => 'nullable|email|max:255',
+            'supplier_phone' => 'nullable|string|max:20',
+            'last_restock_date' => 'nullable|date',
+            'purchase_price' => 'nullable|numeric|min:0',
+            'status' => 'nullable|string|in:available,low_stock,out_of_stock',
+            'notes' => 'nullable|string'
+        ]);
+
+        // Actualizar el estado basado en el stock
+        if (!isset($validated['status'])) {
+            if ($validated['stock_quantity'] <= 0) {
+                $validated['status'] = 'out_of_stock';
+            } elseif ($validated['stock_quantity'] <= 10) {
+                $validated['status'] = 'low_stock';
+            } else {
+                $validated['status'] = 'available';
+            }
+        }
+
+        $supplierInventory->update($validated);
+
+        return redirect()->route('supplier-inventories.index')
+            ->with('success', 'Producto de inventario actualizado exitosamente.');
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(SupplierInventory $supplierInventory)
+    {
+        $supplierInventory->delete();
+        return redirect()->route('supplier-inventories.index')
+            ->with('success', 'Producto de inventario eliminado exitosamente.');
+    }
+
+    /**
+     * Adjust stock quantity.
+     */
+    public function adjustStock(Request $request, SupplierInventory $supplierInventory)
+    {
+        $request->validate([
+            'adjustment' => 'required|integer',
+            'reason' => 'nullable|string'
+        ]);
+
+        $oldQuantity = $supplierInventory->stock_quantity;
+        $newQuantity = $oldQuantity + $request->adjustment;
+
+        // No permitir stock negativo
+        if ($newQuantity < 0) {
+            return back()->with('error', 'El ajuste resultaría en un stock negativo.');
+        }
+
+        $supplierInventory->stock_quantity = $newQuantity;
+
+        // Actualizar fecha de reabastecimiento si es un incremento
+        if ($request->adjustment > 0) {
+            $supplierInventory->last_restock_date = now();
+        }
+
+        // Actualizar el estado
+        if ($newQuantity <= 0) {
+            $supplierInventory->status = 'out_of_stock';
+        } elseif ($newQuantity <= 10) {
+            $supplierInventory->status = 'low_stock';
+        } else {
+            $supplierInventory->status = 'available';
+        }
+
+        $supplierInventory->save();
+
+        // Aquí podrías registrar el movimiento en una tabla de movimientos si lo necesitas
+
+        return back()->with('success', "Stock ajustado de $oldQuantity a $newQuantity unidades.");
+    }
+}

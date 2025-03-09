@@ -29,9 +29,9 @@
                                     </a>
                                 </div>
                                 <div class="col-md-4">
-                                    <a href="{{ route('clients.create') }}" class="btn btn-outline-primary w-100 mb-2">
-                                        <i class="fas fa-user-plus mb-2 d-block" style="font-size: 24px;"></i>
-                                        Nuevo Cliente
+                                    <a href="{{ route('distributor-clients.index') }}" class="btn btn-outline-primary w-100 mb-2">
+                                        <i class="fas fa-users-cog mb-2 d-block" style="font-size: 24px;"></i>
+                                        Cliente Distribuidor
                                     </a>
                                 </div>
                             </div>

@@ -81,6 +81,26 @@
                                 </li>
                             </ul>
                         </li>
+
+                        <!-- Agrega el dropdown de Clientes Distribuidores -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="distribuidoresDropdown" role="button"
+                               data-bs-toggle="dropdown" aria-expanded="false">
+                                {{ __('Clientes Distribuidores') }}
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="distribuidoresDropdown">
+                                <li>
+                                    <a class="dropdown-item" href="{{ route('distributor-clients.index') }}">
+                                        {{ __('Ver Clientes Distribuidores') }}
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ route('distributor-clients.create') }}">
+                                        {{ __('Nuevo Cliente Distribuidor') }}
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
                     @endauth
                 </ul>
 

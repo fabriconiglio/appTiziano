@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ClientController;
+use App\Http\Controllers\DistributorClientController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\StockMovementController;
 use App\Http\Controllers\TechnicalRecordController;
@@ -36,4 +37,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('clients/{client}/technical-records/{technicalRecord}/delete-photo',
         [TechnicalRecordController::class, 'deletePhoto'])
         ->name('clients.technical-records.delete-photo');
+
+    // CRUD de clientes de distribuidores
+    Route::resource('distributor-clients', DistributorClientController::class);
 });

@@ -27,7 +27,7 @@
                 <form action="{{ route('clients.index') }}" method="GET" class="row g-3">
                     <div class="col-md-4">
                         <input type="text" name="search" class="form-control"
-                               placeholder="Buscar por nombre o teléfono..."
+                               placeholder="Buscar por nombre o DNI"
                                value="{{ request('search') }}">
                     </div>
                     <div class="col-auto">
@@ -50,6 +50,7 @@
                             <th>Nombre</th>
                             <th>Teléfono</th>
                             <th>Email</th>
+                            <th>DNI</th>
                             <th>Última Visita</th>
                             <th>Acciones</th>
                         </tr>
@@ -60,6 +61,7 @@
                                 <td>{{ $client->name }} {{ $client->surname }}</td>
                                 <td>{{ $client->phone ?? 'No registrado' }}</td>
                                 <td>{{ $client->email ?? 'No registrado' }}</td>
+                                <td>{{ $client->dni ?? 'No registrado' }}</td>
                                 <td>
                                     {{ $client->technicalRecords->max('service_date')?->format('d/m/Y') ?? 'Sin visitas' }}
                                 </td>

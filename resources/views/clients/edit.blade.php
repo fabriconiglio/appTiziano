@@ -70,7 +70,8 @@
                                 </div>
                             </div>
 
-                            <div class="mb-3">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
                                 <label for="birth_date" class="form-label">Fecha de Nacimiento</label>
                                 <input type="date" class="form-control @error('birth_date') is-invalid @enderror"
                                        id="birth_date" name="birth_date"
@@ -78,6 +79,18 @@
                                 @error('birth_date')
                                 <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label for="dni" class="form-label">DNI</label>
+                                    <input type="text" class="form-control @error('dni') is-invalid @enderror"
+                                           id="dni" name="dni" value="{{ old('dni', $client->dni) }}">
+                                    @error('dni')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+
                             </div>
 
                             <div class="mb-3">

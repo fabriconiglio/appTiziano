@@ -39,6 +39,9 @@
                             <dt class="col-sm-4">Email:</dt>
                             <dd class="col-sm-8">{{ $client->email ?? 'No registrado' }}</dd>
 
+                            <dt class="col-sm-4">DNI:</dt>
+                            <dd class="col-sm-8">{{ $client->dni ?? 'No registrado' }}</dd>
+
                             <dt class="col-sm-4">Teléfono:</dt>
                             <dd class="col-sm-8">{{ $client->phone ?? 'No registrado' }}</dd>
 

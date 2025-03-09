@@ -20,7 +20,8 @@ class ClientController extends Controller
                 $q->where('name', 'LIKE', "%{$search}%")
                     ->orWhere('surname', 'LIKE', "%{$search}%")
                     ->orWhere('phone', 'LIKE', "%{$search}%")
-                    ->orWhere('email', 'LIKE', "%{$search}%");
+                    ->orWhere('email', 'LIKE', "%{$search}%")
+                    ->orWhere('dni', 'LIKE', "%{$search}%");
             });
         }
 
@@ -46,6 +47,7 @@ class ClientController extends Controller
             'name' => 'required|string|max:255',
             'surname' => 'required|string|max:255',
             'email' => 'nullable|email|unique:clients',
+            'dni' => 'nullable|string|max:20',
             'phone' => 'nullable|string|max:20',
             'birth_date' => 'nullable|date',
             'allergies' => 'nullable|string',
@@ -87,6 +89,7 @@ class ClientController extends Controller
             'name' => 'required|string|max:255',
             'surname' => 'required|string|max:255',
             'email' => 'nullable|email|unique:clients,email,' . $client->id,
+            'dni' => 'nullable|string|max:20',
             'phone' => 'nullable|string|max:20',
             'birth_date' => 'nullable|date',
             'allergies' => 'nullable|string',

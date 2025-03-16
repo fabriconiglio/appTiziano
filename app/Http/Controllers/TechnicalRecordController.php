@@ -127,9 +127,11 @@ class TechnicalRecordController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Client $client, TechnicalRecord $technicalRecord)
     {
-        //
+        $technicalRecord->delete();
+        return redirect()->route('clients.show', $client)
+            ->with('success', 'Ficha técnica eliminada exitosamente.');
     }
 
     public function deletePhoto(Request $request, Client $client, TechnicalRecord $technicalRecord)

@@ -51,7 +51,6 @@
                             <th>Teléfono</th>
                             <th>Email</th>
                             <th>DNI</th>
-                            <th>Última Visita</th>
                             <th>Acciones</th>
                         </tr>
                         </thead>

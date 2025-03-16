@@ -29,37 +29,6 @@
                                         </button>
                                     </div>
                                 </div>
-                                <div class="col-md-2 mb-2">
-                                    <select name="category" class="form-select">
-                                        <option value="">Todas las categorías</option>
-                                        @foreach($categories as $category)
-                                            <option value="{{ $category }}" {{ request('category') == $category ? 'selected' : '' }}>
-                                                {{ $category }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="col-md-2 mb-2">
-                                    <select name="supplier" class="form-select">
-                                        <option value="">Todos los proveedores</option>
-                                        @foreach($suppliers as $supplier)
-                                            <option value="{{ $supplier }}" {{ request('supplier') == $supplier ? 'selected' : '' }}>
-                                                {{ $supplier }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="col-md-2 mb-2">
-                                    <select name="status" class="form-select">
-                                        <option value="">Todos los estados</option>
-                                        <option value="available" {{ request('status') == 'available' ? 'selected' : '' }}>Disponible</option>
-                                        <option value="low_stock" {{ request('status') == 'low_stock' ? 'selected' : '' }}>Bajo stock</option>
-                                        <option value="out_of_stock" {{ request('status') == 'out_of_stock' ? 'selected' : '' }}>Sin stock</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-2 mb-2">
-                                    <button type="submit" class="btn btn-primary w-100">Filtrar</button>
-                                </div>
                             </form>
                         </div>
 

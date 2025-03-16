@@ -55,7 +55,7 @@ class DistributorClientController extends Controller
 
         DistributorClient::create($validated);
 
-        return redirect()->route('distributor_clients.index')
+        return redirect()->route('distributor-clients.index')
             ->with('success', 'Cliente distribuidor registrado exitosamente.');
     }
 
@@ -92,7 +92,7 @@ class DistributorClientController extends Controller
 
         $distributorClient->update($validated);
 
-        return redirect()->route('distributor_clients.index')
+        return redirect()->route('distributor-clients.index')
             ->with('success', 'Cliente distribuidor actualizado exitosamente.');
     }
 
@@ -102,7 +102,7 @@ class DistributorClientController extends Controller
     public function destroy(DistributorClient $distributorClient)
     {
         $distributorClient->delete();
-        return redirect()->route('distributor_clients.index')
+        return redirect()->route('distributor-clients.index')
             ->with('success', 'Cliente distribuidor eliminado exitosamente.');
     }
 }

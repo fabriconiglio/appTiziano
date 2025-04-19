@@ -3,10 +3,17 @@
 @section('title', 'Productos')
 
 @section('content')
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1>Productos</h1>
-        <a href="{{ route('products.create') }}" class="btn btn-primary">Agregar Producto</a>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>Productos</h1>
+    <div class="btn-group">
+        <a href="{{ route('products.create') }}" class="btn btn-primary me-2">
+            <i class="fas fa-plus"></i> Agregar Producto
+        </a>
+        <a href="{{ route('categories.create') }}" class="btn btn-success">
+            <i class="fas fa-folder-plus"></i> Agregar Categoría
+        </a>
     </div>
+</div>
 
     @if ($products->isEmpty())
         <div class="alert alert-warning">No hay productos registrados.</div>
@@ -16,6 +23,7 @@
             <tr>
                 <th>#</th>
                 <th>Nombre</th>
+                <th>Categoría</th>
                 <th>Precio</th>
                 <th>Descripción</th>
                 <th>Acciones</th>
@@ -26,12 +34,18 @@
                 <tr>
                     <td>{{ $loop->iteration }}</td>
                     <td>{{ $product->name }}</td>
+                    <td>
+                        @if($product->category)
+                            {{ $product->category->name }}
+                        @else
+                            <span class="text-muted">Sin categoría</span>
+                        @endif
+                    </td>
                     <td>${{ number_format($product->price, 2) }}</td>
                     <td>{{ $product->description }}</td>
                     <td>
                         <a href="{{ route('products.edit', $product) }}" class="btn btn-sm btn-warning">Editar</a>
 
-                        <!-- Botón para abrir el modal -->
                         <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal"
                                 data-id="{{ $product->id }}" data-name="{{ $product->name }}">
                             Eliminar

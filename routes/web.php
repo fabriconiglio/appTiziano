@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\DistributorClientController;
 use App\Http\Controllers\ProductController;
@@ -46,4 +47,8 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('supplier-inventories', SupplierInventoryController::class);
     Route::post('supplier-inventories/{supplierInventory}/adjust-stock', [SupplierInventoryController::class, 'adjustStock'])
         ->name('supplier-inventories.adjust-stock');
+
+    // CRUD de categorías
+    Route::resource('categories', CategoryController::class);
+
 });

@@ -3,67 +3,68 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\Category;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
     public function index()
     {
-        $products = Product::paginate(10);
+        $products = Product::with('category')->get();
         return view('products.index', compact('products'));
     }
 
     public function create()
     {
-        return view('products.create');
+        $categories = Category::where('module_type', 'peluqueria')
+                            ->where('is_active', true)
+                            ->get();
+        return view('products.create', compact('categories'));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|max:255',
-            'sku' => 'required|unique:products',
-            'current_stock' => 'required|integer|min:0',
-            'minimum_stock' => 'required|integer|min:0',
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
-            'description' => 'nullable'
+            'category_id' => 'required|exists:categories,id'
         ]);
 
         Product::create($validated);
 
         return redirect()->route('products.index')
-            ->with('success', 'Producto creado exitosamente.');
+            ->with('success', 'Producto creado exitosamente');
     }
 
     public function edit(Product $product)
     {
-        return view('products.edit', compact('product'));
+        $categories = Category::where('module_type', 'peluqueria')
+                            ->where('is_active', true)
+                            ->get();
+        return view('products.edit', compact('product', 'categories'));
     }
 
     public function update(Request $request, Product $product)
     {
         $validated = $request->validate([
-            'name' => 'required|max:255',
-            'sku' => 'required|unique:products,sku,' . $product->id,
-            'current_stock' => 'required|integer|min:0',
-            'minimum_stock' => 'required|integer|min:0',
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
-            'description' => 'nullable'
+            'category_id' => 'required|exists:categories,id'
         ]);
 
         $product->update($validated);
 
         return redirect()->route('products.index')
-            ->with('success', 'Producto actualizado exitosamente.');
+            ->with('success', 'Producto actualizado exitosamente');
     }
-
 
     public function destroy(Product $product)
     {
-        $product->delete(); // Elimina el producto de la base de datos
+        $product->delete();
 
         return redirect()->route('products.index')
-            ->with('success', 'Producto eliminado exitosamente.');
+            ->with('success', 'Producto eliminado exitosamente');
     }
-
 }

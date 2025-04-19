@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
 
 class Product extends Model
 {
@@ -12,11 +14,18 @@ class Product extends Model
         'sku',
         'current_stock',
         'minimum_stock',
-        'price'
+        'price',
+        'category_id',
+
     ];
 
     public function stockMovements()
     {
         return $this->hasMany(StockMovement::class);
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
     }
 }

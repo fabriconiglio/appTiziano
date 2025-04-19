@@ -59,6 +59,11 @@
                                 <li class="dropdown-submenu">
                                     <a class="dropdown-item" href="{{ route('clients.index') }}">{{ __('Clientes') }}</a>
                                 </li>
+
+                                <!-- Submenú Categorías Peluquería -->
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item" href="{{ route('categories.index') }}">{{ __('Categorías') }}</a>
+                                </li>
                             </ul>
                         </li>
 

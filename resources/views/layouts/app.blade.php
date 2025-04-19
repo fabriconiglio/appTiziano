@@ -44,80 +44,38 @@
                 <!-- Left Side Of Navbar -->
                 <ul class="navbar-nav me-auto">
                     @auth
+                        <!-- Módulo de Peluquería -->
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="inventarioDropdown" role="button"
+                            <a class="nav-link dropdown-toggle" href="#" id="peluqueriaDropdown" role="button"
                                data-bs-toggle="dropdown" aria-expanded="false">
-                                {{ __('Inventario') }}
+                                {{ __('Peluquería') }}
                             </a>
-                            <ul class="dropdown-menu" aria-labelledby="inventarioDropdown">
-                                <li>
-                                    <a class="dropdown-item" href="{{ route('products.index') }}">
-                                        {{ __('Productos') }}
-                                    </a>
+                            <ul class="dropdown-menu" aria-labelledby="peluqueriaDropdown">
+                                <!-- Submenú Inventario Peluquería -->
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item" href="{{ route('products.index') }}">{{ __('Inventario') }}</a>
                                 </li>
-                                <li>
-                                    <a class="dropdown-item" href="{{ route('stock-movements.create') }}">
-                                        {{ __('Registrar Movimiento') }}
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
-                        <!-- Agrega el dropdown de Clientes -->
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="clientesDropdown" role="button"
-                               data-bs-toggle="dropdown" aria-expanded="false">
-                                {{ __('Clientes') }}
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="clientesDropdown">
-                                <li>
-                                    <a class="dropdown-item" href="{{ route('clients.index') }}">
-                                        {{ __('Ver Clientes') }}
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="{{ route('clients.create') }}">
-                                        {{ __('Nuevo Cliente') }}
-                                    </a>
+                                <!-- Submenú Clientes Peluquería -->
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item" href="{{ route('clients.index') }}">{{ __('Clientes') }}</a>
                                 </li>
                             </ul>
                         </li>
 
-                        <!-- Agrega el dropdown de Clientes Distribuidores -->
+                        <!-- Módulo de Distribuidora -->
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="distribuidoresDropdown" role="button"
+                            <a class="nav-link dropdown-toggle" href="#" id="distribuidoraDropdown" role="button"
                                data-bs-toggle="dropdown" aria-expanded="false">
-                                {{ __('Clientes Distribuidores') }}
+                                {{ __('Distribuidora') }}
                             </a>
-                            <ul class="dropdown-menu" aria-labelledby="distribuidoresDropdown">
-                                <li>
-                                    <a class="dropdown-item" href="{{ route('distributor-clients.index') }}">
-                                        {{ __('Ver Clientes Distribuidores') }}
-                                    </a>
+                            <ul class="dropdown-menu" aria-labelledby="distribuidoraDropdown">
+                                <!-- Submenú Clientes Distribuidora -->
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item" href="{{ route('distributor-clients.index') }}">{{ __('Clientes Distribuidores') }}</a>
                                 </li>
-                                <li>
-                                    <a class="dropdown-item" href="{{ route('distributor-clients.create') }}">
-                                        {{ __('Nuevo Cliente Distribuidor') }}
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
-
-                        <!-- Agrega el dropdown de Inventario Proveedor -->
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="proveedoresDropdown" role="button"
-                               data-bs-toggle="dropdown" aria-expanded="false">
-                                {{ __('Inventario Proveedor') }}
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="proveedoresDropdown">
-                                <li>
-                                    <a class="dropdown-item" href="{{ route('supplier-inventories.index') }}">
-                                        {{ __('Ver Inventario Proveedor') }}
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="{{ route('supplier-inventories.create') }}">
-                                        {{ __('Nuevo Inventario Proveedor') }}
-                                    </a>
+                                <!-- Submenú Inventario Proveedor -->
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item" href="{{ route('supplier-inventories.index') }}">{{ __('Inventario Proveedor') }}</a>
                                 </li>
                             </ul>
                         </li>

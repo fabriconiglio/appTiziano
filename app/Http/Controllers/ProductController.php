@@ -4,13 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Models\Category;
+use App\Models\Brand;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
     public function index()
     {
-        $products = Product::with('category')->get();
+        $products = Product::with(['category', 'brand'])->get();
         return view('products.index', compact('products'));
     }
 
@@ -18,8 +19,14 @@ class ProductController extends Controller
     {
         $categories = Category::where('module_type', 'peluqueria')
                             ->where('is_active', true)
+                            ->orderBy('name')
                             ->get();
-        return view('products.create', compact('categories'));
+
+        $brands = Brand::where('is_active', true)
+                      ->orderBy('name')
+                      ->get();
+
+        return view('products.create', compact('categories', 'brands'));
     }
 
     public function store(Request $request)
@@ -28,7 +35,11 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
-            'category_id' => 'required|exists:categories,id'
+            'category_id' => 'required|exists:categories,id',
+            'brand_id' => 'nullable|exists:brands,id', // Agregamos validación para brand_id
+            'sku' => 'nullable|string|max:50|unique:products',
+            'current_stock' => 'nullable|integer|min:0',
+            'minimum_stock' => 'nullable|integer|min:0',
         ]);
 
         Product::create($validated);
@@ -41,8 +52,14 @@ class ProductController extends Controller
     {
         $categories = Category::where('module_type', 'peluqueria')
                             ->where('is_active', true)
+                            ->orderBy('name')
                             ->get();
-        return view('products.edit', compact('product', 'categories'));
+
+        $brands = Brand::where('is_active', true)
+                      ->orderBy('name')
+                      ->get();
+
+        return view('products.edit', compact('product', 'categories', 'brands'));
     }
 
     public function update(Request $request, Product $product)
@@ -51,7 +68,11 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
-            'category_id' => 'required|exists:categories,id'
+            'category_id' => 'required|exists:categories,id',
+            'brand_id' => 'nullable|exists:brands,id', // Agregamos validación para brand_id
+            'sku' => 'nullable|string|max:50|unique:products,sku,' . $product->id,
+            'current_stock' => 'nullable|integer|min:0',
+            'minimum_stock' => 'nullable|integer|min:0',
         ]);
 
         $product->update($validated);
@@ -66,5 +87,17 @@ class ProductController extends Controller
 
         return redirect()->route('products.index')
             ->with('success', 'Producto eliminado exitosamente');
+    }
+
+    // Método opcional para obtener marcas por categoría vía AJAX
+    public function getBrandsByCategory($categoryId)
+    {
+        $brands = Brand::whereHas('categories', function($query) use ($categoryId) {
+            $query->where('categories.id', $categoryId);
+        })->where('is_active', true)
+          ->orderBy('name')
+          ->get();
+
+        return response()->json($brands);
     }
 }

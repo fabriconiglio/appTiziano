@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BrandController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\DistributorClientController;
@@ -28,6 +29,9 @@ Route::middleware(['auth'])->group(function () {
     // CRUD de productos
     Route::resource('products', ProductController::class);
 
+    Route::get('/products/brands-by-category/{category}', [ProductController::class, 'getBrandsByCategory'])
+        ->name('products.brands-by-category');
+
     // Movimiento de stock
     Route::get('stock-movements/create', [StockMovementController::class, 'create'])->name('stock-movements.create');
     Route::post('stock-movements', [StockMovementController::class, 'store'])->name('stock-movements.store');
@@ -50,5 +54,8 @@ Route::middleware(['auth'])->group(function () {
 
     // CRUD de categorías
     Route::resource('categories', CategoryController::class);
+
+    // CRUD de marcas
+    Route::resource('brands', BrandController::class);
 
 });

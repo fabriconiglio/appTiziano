@@ -28,6 +28,11 @@
     <!-- JS -->
     <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
 
+    <!-- CSS de Select2 -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+    @stack('styles')
+
 </head>
 <body>
 <div id="app">
@@ -64,6 +69,12 @@
                                 <li class="dropdown-submenu">
                                     <a class="dropdown-item" href="{{ route('categories.index') }}">{{ __('Categorías') }}</a>
                                 </li>
+
+                                <!-- Submenú Marcas Peluquería -->
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item" href="{{ route('brands.index') }}">{{ __('Marcas') }}</a>
+                                </li>
+
                             </ul>
                         </li>
 
@@ -131,5 +142,14 @@
         </div>
     </main>
 </div>
+
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+<!-- Luego Select2 -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+@stack('scripts')
+
 </body>
 </html>

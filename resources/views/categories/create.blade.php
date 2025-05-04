@@ -41,3 +41,22 @@
     </div>
 
 @endsection
+
+@push('scripts')
+    <script>
+        $(document).ready(function() {
+            $('#brands').select2({
+                placeholder: 'Selecciona las marcas',
+                allowClear: true,
+                language: {
+                    noResults: function() {
+                        return "No se encontraron resultados";
+                    },
+                    searching: function() {
+                        return "Buscando...";
+                    }
+                }
+            });
+        });
+    </script>
+@endpush

@@ -3,7 +3,6 @@
 @section('title', 'Editar Categoría')
 
 @section('content')
-
     <div class="container mx-auto px-4 py-6">
         <div class="bg-white shadow-sm rounded-lg">
             <div class="p-4 border-b border-gray-200">
@@ -29,6 +28,7 @@
                 <form action="{{ route('categories.update', $category) }}" method="POST">
                     @csrf
                     @method('PUT')
+
                     @include('categories.form')
 
                     <div class="mt-4">
@@ -40,5 +40,28 @@
             </div>
         </div>
     </div>
-
 @endsection
+
+@push('styles')
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+@endpush
+
+@push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#brands').select2({
+                placeholder: 'Selecciona las marcas',
+                allowClear: true,
+                language: {
+                    noResults: function() {
+                        return "No se encontraron resultados";
+                    },
+                    searching: function() {
+                        return "Buscando...";
+                    }
+                }
+            });
+        });
+    </script>
+@endpush

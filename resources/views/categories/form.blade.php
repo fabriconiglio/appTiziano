@@ -42,6 +42,26 @@
     @enderror
 </div>
 
+<!-- Nuevo campo para selección de marcas -->
+<div class="mb-3">
+    <label for="brands" class="form-label">Marcas Asociadas</label>
+    <select class="form-select @error('brands') is-invalid @enderror"
+            id="brands"
+            name="brands[]"
+            multiple>
+        @foreach($brands as $brand)
+            <option value="{{ $brand->id }}"
+                {{ in_array($brand->id, old('brands', $category->brands->pluck('id')->toArray() ?? [])) ? 'selected' : '' }}>
+                {{ $brand->name }}
+            </option>
+        @endforeach
+    </select>
+    @error('brands')
+        <div class="invalid-feedback">{{ $message }}</div>
+    @enderror
+    <div class="form-text">Puedes seleccionar múltiples marcas manteniendo presionada la tecla Ctrl/Cmd</div>
+</div>
+
 <div class="mb-3">
     <div class="form-check">
         <input type="checkbox"

@@ -49,4 +49,9 @@ class Category extends Model
     {
         return $query->where('is_active', true);
     }
+
+    public function brands()
+    {
+        return $this->belongsToMany(Brand::class);
+    }
 }

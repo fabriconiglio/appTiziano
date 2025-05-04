@@ -16,7 +16,7 @@ class Product extends Model
         'minimum_stock',
         'price',
         'category_id',
-
+        'brand_id', // Agregamos el brand_id a los campos fillable
     ];
 
     public function stockMovements()
@@ -24,8 +24,13 @@ class Product extends Model
         return $this->hasMany(StockMovement::class);
     }
 
-    public function category()
+    public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function brand(): BelongsTo
+    {
+        return $this->belongsTo(Brand::class);
     }
 }

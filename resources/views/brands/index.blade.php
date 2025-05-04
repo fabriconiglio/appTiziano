@@ -1,15 +1,15 @@
 @extends('layouts.app')
 
-@section('title', 'Categorías')
+@section('title', 'Marcas')
 
 @section('content')
     <div class="container mx-auto px-4 py-6">
         <div class="bg-white shadow-sm rounded-lg">
             <div class="p-4 border-b border-gray-200">
                 <div class="d-flex justify-content-between align-items-center">
-                    <h2 class="fs-4 fw-bold">Categorías</h2>
-                    <a href="{{ route('categories.create') }}" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Nueva Categoría
+                    <h2 class="fs-4 fw-bold">Marcas</h2>
+                    <a href="{{ route('brands.create') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Nueva Marca
                     </a>
                 </div>
             </div>
@@ -28,48 +28,36 @@
                                 <th>ID</th>
                                 <th>Nombre</th>
                                 <th>Descripción</th>
-                                <th>Tipo de Módulo</th>
-                                <th>Marcas</th>
+                                <th>Categorías</th>
                                 <th>Estado</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($categories as $category)
+                            @forelse($brands as $brand)
                                 <tr>
-                                    <td>{{ $category->id }}</td>
-                                    <td>{{ $category->name }}</td>
-                                    <td>{{ Str::limit($category->description, 50) }}</td>
-                                    <td>{{ ucfirst($category->module_type) }}</td>
+                                    <td>{{ $brand->id }}</td>
                                     <td>
-                                        @if($category->brands->count() > 0)
-                                            <span class="badge bg-info">
-                                                {{ $category->brands->count() }}
-                                                {{ Str::plural('marca', $category->brands->count()) }}
-                                            </span>
-                                            <div class="small text-muted">
-                                                {{ $category->brands->pluck('name')->take(3)->implode(', ') }}
-                                                @if($category->brands->count() > 3)
-                                                    ...
-                                                @endif
-                                            </div>
-                                        @else
-                                            <span class="badge bg-secondary">Sin marcas</span>
+                                        @if($brand->logo_url)
+                                            <img src="{{ $brand->logo_url }}" alt="{{ $brand->name }}" class="img-thumbnail" width="50">
                                         @endif
+                                        {{ $brand->name }}
                                     </td>
+                                    <td>{{ Str::limit($brand->description, 50) }}</td>
+                                    <td>{{ $brand->categories->pluck('name')->implode(', ') }}</td>
                                     <td>
-                                        <span class="badge {{ $category->is_active ? 'bg-success' : 'bg-danger' }}">
-                                            {{ $category->is_active ? 'Activo' : 'Inactivo' }}
+                                        <span class="badge {{ $brand->is_active ? 'bg-success' : 'bg-danger' }}">
+                                            {{ $brand->is_active ? 'Activo' : 'Inactivo' }}
                                         </span>
                                     </td>
                                     <td class="d-flex gap-2">
-                                        <a href="{{ route('categories.edit', $category) }}"
+                                        <a href="{{ route('brands.edit', $brand) }}"
                                            class="btn btn-sm btn-primary">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        <form action="{{ route('categories.destroy', $category) }}"
+                                        <form action="{{ route('brands.destroy', $brand) }}"
                                               method="POST"
-                                              onsubmit="return confirm('¿Estás seguro de eliminar esta categoría?');">
+                                              onsubmit="return confirm('¿Estás seguro de eliminar esta marca?');">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-sm btn-danger">
@@ -80,7 +68,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="text-center">No hay categorías registradas</td>
+                                    <td colspan="6" class="text-center">No hay marcas registradas</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -88,7 +76,7 @@
                 </div>
 
                 <div class="mt-4">
-                    {{ $categories->links() }}
+                    {{ $brands->links() }}
                 </div>
             </div>
         </div>

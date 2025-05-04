@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Brand;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -13,7 +14,7 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        $categories = Category::latest()->paginate(10);
+        $categories = Category::with('brands')->latest()->paginate(10);
         return view('categories.index', compact('categories'));
     }
 
@@ -22,7 +23,8 @@ class CategoryController extends Controller
      */
     public function create()
     {
-        return view('categories.create');
+        $brands = Brand::where('is_active', true)->orderBy('name')->get();
+        return view('categories.create', compact('brands'));
     }
 
     /**
@@ -34,11 +36,20 @@ class CategoryController extends Controller
             'name' => 'required|max:255|unique:categories',
             'description' => 'nullable|max:1000',
             'module_type' => 'required|in:peluqueria,distribuidora',
+            'is_active' => 'boolean',
+            'brands' => 'nullable|array',
+            'brands.*' => 'exists:brands,id'
         ]);
 
         $validated['slug'] = Str::slug($validated['name']);
+        $validated['is_active'] = $request->boolean('is_active', true);
 
-        Category::create($validated);
+        $category = Category::create($validated);
+
+        // Asociar las marcas seleccionadas
+        if ($request->has('brands')) {
+            $category->brands()->attach($request->brands);
+        }
 
         return redirect()
             ->route('categories.index')
@@ -50,6 +61,7 @@ class CategoryController extends Controller
      */
     public function show(Category $category)
     {
+        $category->load('brands');
         return view('categories.show', compact('category'));
     }
 
@@ -58,7 +70,8 @@ class CategoryController extends Controller
      */
     public function edit(Category $category)
     {
-        return view('categories.edit', compact('category'));
+        $brands = Brand::where('is_active', true)->orderBy('name')->get();
+        return view('categories.edit', compact('category', 'brands'));
     }
 
     /**
@@ -70,12 +83,18 @@ class CategoryController extends Controller
             'name' => 'required|max:255|unique:categories,name,' . $category->id,
             'description' => 'nullable|max:1000',
             'module_type' => 'required|in:peluqueria,distribuidora',
-            'is_active' => 'boolean'
+            'is_active' => 'boolean',
+            'brands' => 'nullable|array',
+            'brands.*' => 'exists:brands,id'
         ]);
 
         $validated['slug'] = Str::slug($validated['name']);
+        $validated['is_active'] = $request->boolean('is_active', true);
 
         $category->update($validated);
+
+        // Sincronizar las marcas
+        $category->brands()->sync($request->brands ?? []);
 
         return redirect()
             ->route('categories.index')
@@ -92,6 +111,8 @@ class CategoryController extends Controller
             return back()->with('error', 'No se puede eliminar la categoría porque tiene productos asociados.');
         }
 
+        // Desasociar todas las marcas antes de eliminar
+        $category->brands()->detach();
         $category->delete();
 
         return redirect()

@@ -58,4 +58,10 @@ Route::middleware(['auth'])->group(function () {
     // CRUD de marcas
     Route::resource('brands', BrandController::class);
 
+    // CRUD de distributor brands
+    Route::resource('distributor_brands', \App\Http\Controllers\DistributorBrandController::class);
+
+    // CRUD de distributor categories
+    Route::resource('distributor_categories', \App\Http\Controllers\DistributorCategoryController::class);
+
 });

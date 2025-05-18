@@ -40,13 +40,13 @@
                                     </div>
 
                                     <div class="col-md-4 mb-3">
-                                        <strong>Categoría:</strong>
-                                        <p>{{ $supplierInventory->category ?? 'No disponible' }}</p>
+                                        <strong>Categoría Distribuidora:</strong>
+                                        <p>{{ $supplierInventory->distributorCategory ? $supplierInventory->distributorCategory->name : 'No disponible' }}</p>
                                     </div>
 
                                     <div class="col-md-4 mb-3">
-                                        <strong>Marca:</strong>
-                                        <p>{{ $supplierInventory->brand ?? 'No disponible' }}</p>
+                                        <strong>Marca Distribuidora:</strong>
+                                        <p>{{ $supplierInventory->distributorBrand ? $supplierInventory->distributorBrand->name : 'No disponible' }}</p>
                                     </div>
 
                                     <div class="col-md-4 mb-3">

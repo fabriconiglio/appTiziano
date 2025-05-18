@@ -21,7 +21,9 @@ class SupplierInventory extends Model
         'last_restock_date',
         'purchase_price',
         'status',
-        'notes'
+        'notes',
+        'distributor_category_id',
+        'distributor_brand_id'
     ];
 
     protected $dates = [
@@ -58,5 +60,15 @@ class SupplierInventory extends Model
         }
 
         return $this->save();
+    }
+
+    public function distributorCategory()
+    {
+        return $this->belongsTo(DistributorCategory::class);
+    }
+
+    public function distributorBrand()
+    {
+        return $this->belongsTo(DistributorBrand::class);
     }
 }

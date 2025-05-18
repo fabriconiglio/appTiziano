@@ -7,9 +7,17 @@
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <span>Inventario de Proveedores</span>
-                        <a href="{{ route('supplier-inventories.create') }}" class="btn btn-primary btn-sm">
-                            <i class="fas fa-plus"></i> Nuevo Producto
-                        </a>
+                        <div>
+                            <a href="{{ route('distributor_brands.create') }}" class="btn btn-outline-primary btn-sm me-2">
+                                <i class="fas fa-plus"></i> Nueva Marca Distribuidora
+                            </a>
+                            <a href="{{ route('distributor_categories.create') }}" class="btn btn-outline-primary btn-sm me-2">
+                                <i class="fas fa-plus"></i> Nueva Categoría Distribuidora
+                            </a>
+                            <a href="{{ route('supplier-inventories.create') }}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-plus"></i> Nuevo Producto
+                            </a>
+                        </div>
                     </div>
 
                     <div class="card-body">
@@ -39,6 +47,8 @@
                                     <th>Producto</th>
                                     <th>SKU</th>
                                     <th>Proveedor</th>
+                                    <th>Categoría Distribuidora</th>
+                                    <th>Marca Distribuidora</th>
                                     <th>Precio</th>
                                     <th>Stock</th>
                                     <th>Estado</th>
@@ -51,6 +61,8 @@
                                         <td>{{ $item->product_name }}</td>
                                         <td>{{ $item->sku }}</td>
                                         <td>{{ $item->supplier_name }}</td>
+                                        <td>{{ $item->distributorCategory ? $item->distributorCategory->name : '-' }}</td>
+                                        <td>{{ $item->distributorBrand ? $item->distributorBrand->name : '-' }}</td>
                                         <td>${{ number_format($item->price, 2) }}</td>
                                         <td>{{ $item->stock_quantity }}</td>
                                         <td>
@@ -134,7 +146,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="7" class="text-center">No hay productos en el inventario</td>
+                                        <td colspan="9" class="text-center">No hay productos en el inventario</td>
                                     </tr>
                                 @endforelse
                                 </tbody>

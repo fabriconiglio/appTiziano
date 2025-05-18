@@ -47,17 +47,27 @@
                                 </div>
 
                                 <div class="col-md-6 mb-3">
-                                    <label for="category" class="form-label">Categoría</label>
-                                    <input type="text" class="form-control @error('category') is-invalid @enderror" id="category" name="category" value="{{ old('category', $supplierInventory->category) }}">
-                                    @error('category')
+                                    <label for="distributor_category_id" class="form-label">Categoría Distribuidora</label>
+                                    <select class="form-select @error('distributor_category_id') is-invalid @enderror" id="distributor_category_id" name="distributor_category_id">
+                                        <option value="">Selecciona una categoría</option>
+                                        @foreach($categories as $category)
+                                            <option value="{{ $category->id }}" {{ old('distributor_category_id', $supplierInventory->distributor_category_id) == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('distributor_category_id')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
 
                                 <div class="col-md-6 mb-3">
-                                    <label for="brand" class="form-label">Marca</label>
-                                    <input type="text" class="form-control @error('brand') is-invalid @enderror" id="brand" name="brand" value="{{ old('brand', $supplierInventory->brand) }}">
-                                    @error('brand')
+                                    <label for="distributor_brand_id" class="form-label">Marca Distribuidora</label>
+                                    <select class="form-select @error('distributor_brand_id') is-invalid @enderror" id="distributor_brand_id" name="distributor_brand_id">
+                                        <option value="">Selecciona una marca</option>
+                                        @foreach($brands as $brand)
+                                            <option value="{{ $brand->id }}" {{ old('distributor_brand_id', $supplierInventory->distributor_brand_id) == $brand->id ? 'selected' : '' }}>{{ $brand->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('distributor_brand_id')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
@@ -162,7 +172,7 @@
                                 <hr>
                                 <div class="col-md-12 mb-3">
                                     <label for="notes" class="form-label">Notas</label>
-                                    <textarea class="form-control @error('notes') is-invalid @enderror" id="notes" name="notes" rows="3">{{ old('notes', $supplierInventory->notes) }}</textarea>
+                                    <textarea class="form-control @error('notes') is-invalid @enderror" id="notes" name="notes" rows="6">{{ old('notes', $supplierInventory->notes) }}</textarea>
                                     @error('notes')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
@@ -180,3 +190,30 @@
         </div>
     </div>
 @endsection
+
+@push('styles')
+    <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.css" rel="stylesheet">
+@endpush
+@push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#notes').summernote({
+                placeholder: 'Agrega aquí información adicional como en un blog de notas...',
+                tabsize: 2,
+                height: 200,
+                lang: 'es-ES',
+                toolbar: [
+                    ['style', ['style']],
+                    ['font', ['bold', 'italic', 'underline', 'clear']],
+                    ['fontname', ['fontname']],
+                    ['color', ['color']],
+                    ['para', ['ul', 'ol', 'paragraph']],
+                    ['table', ['table']],
+                    ['insert', ['link', 'picture', 'video']],
+                    ['view', ['fullscreen', 'codeview', 'help']]
+                ]
+            });
+        });
+    </script>
+@endpush

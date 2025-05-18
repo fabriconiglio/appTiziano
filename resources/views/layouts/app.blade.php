@@ -93,6 +93,14 @@
                                 <li class="dropdown-submenu">
                                     <a class="dropdown-item" href="{{ route('supplier-inventories.index') }}">{{ __('Inventario Proveedor') }}</a>
                                 </li>
+                                <!-- Submenú Categorías Distribuidora -->
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item" href="{{ route('distributor_categories.index') }}">{{ __('Categorías Distribuidora') }}</a>
+                                </li>
+                                <!-- Submenú Marcas Distribuidora -->
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item" href="{{ route('distributor_brands.index') }}">{{ __('Marcas Distribuidora') }}</a>
+                                </li>
                             </ul>
                         </li>
                     @endauth

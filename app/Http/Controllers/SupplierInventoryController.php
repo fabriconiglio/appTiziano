@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\SupplierInventory;
+use App\Models\DistributorCategory;
+use App\Models\DistributorBrand;
 use Illuminate\Http\Request;
 
 class SupplierInventoryController extends Controller
@@ -51,7 +53,9 @@ class SupplierInventoryController extends Controller
      */
     public function create()
     {
-        return view('supplier-inventories.create');
+        $categories = DistributorCategory::where('is_active', true)->orderBy('name')->get();
+        $brands = DistributorBrand::where('is_active', true)->orderBy('name')->get();
+        return view('supplier-inventories.create', compact('categories', 'brands'));
     }
 
     /**
@@ -74,7 +78,9 @@ class SupplierInventoryController extends Controller
             'last_restock_date' => 'nullable|date',
             'purchase_price' => 'nullable|numeric|min:0',
             'status' => 'nullable|string|in:available,low_stock,out_of_stock',
-            'notes' => 'nullable|string'
+            'notes' => 'nullable|string',
+            'distributor_category_id' => 'nullable|exists:distributor_categories,id',
+            'distributor_brand_id' => 'nullable|exists:distributor_brands,id',
         ]);
 
         // Establecer el estado basado en el stock
@@ -107,7 +113,9 @@ class SupplierInventoryController extends Controller
      */
     public function edit(SupplierInventory $supplierInventory)
     {
-        return view('supplier-inventories.edit', compact('supplierInventory'));
+        $categories = DistributorCategory::where('is_active', true)->orderBy('name')->get();
+        $brands = DistributorBrand::where('is_active', true)->orderBy('name')->get();
+        return view('supplier-inventories.edit', compact('supplierInventory', 'categories', 'brands'));
     }
 
     /**
@@ -130,7 +138,9 @@ class SupplierInventoryController extends Controller
             'last_restock_date' => 'nullable|date',
             'purchase_price' => 'nullable|numeric|min:0',
             'status' => 'nullable|string|in:available,low_stock,out_of_stock',
-            'notes' => 'nullable|string'
+            'notes' => 'nullable|string',
+            'distributor_category_id' => 'nullable|exists:distributor_categories,id',
+            'distributor_brand_id' => 'nullable|exists:distributor_brands,id',
         ]);
 
         // Actualizar el estado basado en el stock

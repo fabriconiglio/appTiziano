@@ -86,7 +86,7 @@ class DistributorCategoryController extends Controller
     {
         // Desasociar todas las marcas antes de eliminar
         $distributorCategory->brands()->detach();
-        $distributorCategory->delete();
+        $distributorCategory->forceDelete();
 
         return redirect()
             ->route('distributor_categories.index')

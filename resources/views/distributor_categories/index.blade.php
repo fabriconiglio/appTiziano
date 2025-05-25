@@ -1,15 +1,15 @@
 @extends('layouts.app')
 
-@section('title', 'Distributor Categories')
+@section('title', 'Categorías de Distribuidora')
 
 @section('content')
     <div class="container mx-auto px-4 py-6">
         <div class="bg-white shadow-sm rounded-lg">
             <div class="p-4 border-b border-gray-200">
                 <div class="d-flex justify-content-between align-items-center">
-                    <h2 class="fs-4 fw-bold">Distributor Categories</h2>
+                    <h2 class="fs-4 fw-bold">Categorías de Distribuidora</h2>
                     <a href="{{ route('distributor_categories.create') }}" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> New Distributor Category
+                        <i class="fas fa-plus"></i> Nueva Categoría de Distribuidora
                     </a>
                 </div>
             </div>
@@ -26,11 +26,11 @@
                         <thead>
                             <tr>
                                 <th>ID</th>
-                                <th>Name</th>
-                                <th>Description</th>
-                                <th>Brands</th>
-                                <th>Status</th>
-                                <th>Actions</th>
+                                <th>Nombre</th>
+                                <th>Descripción</th>
+                                <th>Marcas</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -43,7 +43,7 @@
                                         @if($category->brands->count() > 0)
                                             <span class="badge bg-info">
                                                 {{ $category->brands->count() }}
-                                                {{ Str::plural('brand', $category->brands->count()) }}
+                                                {{ Str::plural('marca', $category->brands->count()) }}
                                             </span>
                                             <div class="small text-muted">
                                                 {{ $category->brands->pluck('name')->take(3)->implode(', ') }}
@@ -52,12 +52,12 @@
                                                 @endif
                                             </div>
                                         @else
-                                            <span class="badge bg-secondary">No brands</span>
+                                            <span class="badge bg-secondary">Sin marcas</span>
                                         @endif
                                     </td>
                                     <td>
                                         <span class="badge {{ $category->is_active ? 'bg-success' : 'bg-danger' }}">
-                                            {{ $category->is_active ? 'Active' : 'Inactive' }}
+                                            {{ $category->is_active ? 'Activa' : 'Inactiva' }}
                                         </span>
                                     </td>
                                     <td class="d-flex gap-2">
@@ -67,7 +67,7 @@
                                         </a>
                                         <form action="{{ route('distributor_categories.destroy', $category) }}"
                                               method="POST"
-                                              onsubmit="return confirm('Are you sure you want to delete this distributor category?');">
+                                              onsubmit="return confirm('¿Estás seguro de eliminar esta categoría de distribuidora?');">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-sm btn-danger">
@@ -78,7 +78,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="text-center">No distributor categories registered</td>
+                                    <td colspan="6" class="text-center">No hay categorías de distribuidora registradas</td>
                                 </tr>
                             @endforelse
                         </tbody>

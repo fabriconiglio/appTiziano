@@ -1,15 +1,15 @@
 @extends('layouts.app')
 
-@section('title', 'Edit Distributor Category')
+@section('title', 'Editar Categoría de Distribuidora')
 
 @section('content')
     <div class="container mx-auto px-4 py-6">
         <div class="bg-white shadow-sm rounded-lg">
             <div class="p-4 border-b border-gray-200">
                 <div class="d-flex justify-content-between align-items-center">
-                    <h2 class="fs-4 fw-bold">Edit Distributor Category</h2>
+                    <h2 class="fs-4 fw-bold">Editar Categoría de Distribuidora</h2>
                     <a href="{{ route('distributor_categories.index') }}" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left"></i> Back
+                        <i class="fas fa-arrow-left"></i> Volver
                     </a>
                 </div>
             </div>
@@ -33,7 +33,7 @@
 
                     <div class="mt-4">
                         <button type="submit" class="btn btn-primary">
-                            Update Distributor Category
+                            Actualizar Categoría de Distribuidora
                         </button>
                     </div>
                 </form>
@@ -51,14 +51,14 @@
     <script>
         $(document).ready(function() {
             $('#brands').select2({
-                placeholder: 'Select brands',
+                placeholder: 'Selecciona las marcas',
                 allowClear: true,
                 language: {
                     noResults: function() {
-                        return "No results found";
+                        return "No se encontraron resultados";
                     },
                     searching: function() {
-                        return "Searching...";
+                        return "Buscando...";
                     }
                 }
             });

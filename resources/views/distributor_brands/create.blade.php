@@ -1,12 +1,12 @@
 @extends('layouts.app')
 
-@section('title', 'Create Distributor Brand')
+@section('title', 'Crear Marca de Distribuidora')
 
 @section('content')
     <div class="container mx-auto px-4 py-6">
         <div class="bg-white shadow-sm rounded-lg">
             <div class="p-4 border-b border-gray-200">
-                <h2 class="fs-4 fw-bold">Create New Distributor Brand</h2>
+                <h2 class="fs-4 fw-bold">Nueva Marca de Distribuidora</h2>
             </div>
 
             <div class="p-4">
@@ -14,7 +14,7 @@
                     @csrf
 
                     <div class="mb-3">
-                        <label for="name" class="form-label">Name</label>
+                        <label for="name" class="form-label">Nombre</label>
                         <input type="text" class="form-control @error('name') is-invalid @enderror"
                                id="name" name="name" value="{{ old('name') }}" required>
                         @error('name')
@@ -23,7 +23,7 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="description" class="form-label">Description</label>
+                        <label for="description" class="form-label">Descripción</label>
                         <textarea class="form-control @error('description') is-invalid @enderror"
                                   id="description" name="description" rows="3">{{ old('description') }}</textarea>
                         @error('description')
@@ -32,7 +32,7 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="logo_url" class="form-label">Logo URL</label>
+                        <label for="logo_url" class="form-label">URL del Logo</label>
                         <input type="url" class="form-control @error('logo_url') is-invalid @enderror"
                                id="logo_url" name="logo_url" value="{{ old('logo_url') }}">
                         @error('logo_url')
@@ -41,7 +41,7 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="categories" class="form-label">Categories</label>
+                        <label for="categories" class="form-label">Categorías</label>
                         <select class="form-select select2 @error('categories') is-invalid @enderror"
                                 id="categories" name="categories[]" multiple>
                             @foreach($categories as $category)
@@ -54,17 +54,18 @@
                         @error('categories')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
-                        <div class="form-text">You can select multiple categories</div>
+                        <div class="form-text">Puedes seleccionar múltiples categorías</div>
                     </div>
 
                     <div class="mb-3 form-check">
+                        <input type="hidden" name="is_active" value="0">
                         <input type="checkbox" class="form-check-input" id="is_active"
-                               name="is_active" value="1" {{ old('is_active') ? 'checked' : '' }}>
-                        <label class="form-check-label" for="is_active">Active</label>
+                               name="is_active" value="1" {{ old('is_active', true) ? 'checked' : '' }}>
+                        <label class="form-check-label" for="is_active">Marca Activa</label>
                     </div>
 
                     <div class="d-flex justify-content-end">
-                        <button type="submit" class="btn btn-primary">Create Distributor Brand</button>
+                        <button type="submit" class="btn btn-primary">Crear Marca de Distribuidora</button>
                     </div>
                 </form>
             </div>
@@ -90,15 +91,15 @@
     <script>
         $(document).ready(function() {
             $('#categories').select2({
-                placeholder: 'Select categories',
+                placeholder: 'Selecciona las categorías',
                 allowClear: true,
                 width: '100%',
                 language: {
                     noResults: function() {
-                        return "No results found";
+                        return "No se encontraron resultados";
                     },
                     searching: function() {
-                        return "Searching...";
+                        return "Buscando...";
                     }
                 },
                 theme: 'bootstrap-5'

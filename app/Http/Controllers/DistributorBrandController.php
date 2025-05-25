@@ -35,7 +35,6 @@ class DistributorBrandController extends Controller
         ]);
 
         $validated['slug'] = Str::slug($validated['name']);
-        $validated['is_active'] = $request->boolean('is_active', true);
 
         $brand = DistributorBrand::create($validated);
 
@@ -77,7 +76,6 @@ class DistributorBrandController extends Controller
         ]);
 
         $validated['slug'] = Str::slug($validated['name']);
-        $validated['is_active'] = $request->boolean('is_active', true);
 
         $distributorBrand->update($validated);
 
@@ -93,7 +91,7 @@ class DistributorBrandController extends Controller
     {
         // Detach categories before deleting
         $distributorBrand->categories()->detach();
-        $distributorBrand->delete();
+        $distributorBrand->forceDelete();
 
         return redirect()
             ->route('distributor_brands.index')

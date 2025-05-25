@@ -1,15 +1,15 @@
 @extends('layouts.app')
 
-@section('title', 'Distributor Brands')
+@section('title', 'Marcas de Distribuidora')
 
 @section('content')
     <div class="container mx-auto px-4 py-6">
         <div class="bg-white shadow-sm rounded-lg">
             <div class="p-4 border-b border-gray-200">
                 <div class="d-flex justify-content-between align-items-center">
-                    <h2 class="fs-4 fw-bold">Distributor Brands</h2>
+                    <h2 class="fs-4 fw-bold">Marcas de Distribuidora</h2>
                     <a href="{{ route('distributor_brands.create') }}" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> New Distributor Brand
+                        <i class="fas fa-plus"></i> Nueva Marca de Distribuidora
                     </a>
                 </div>
             </div>
@@ -26,11 +26,11 @@
                         <thead>
                             <tr>
                                 <th>ID</th>
-                                <th>Name</th>
-                                <th>Description</th>
-                                <th>Categories</th>
-                                <th>Status</th>
-                                <th>Actions</th>
+                                <th>Nombre</th>
+                                <th>Descripción</th>
+                                <th>Categorías</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -44,10 +44,10 @@
                                         {{ $brand->name }}
                                     </td>
                                     <td>{{ Str::limit($brand->description, 50) }}</td>
-                                    <td>{{ $brand->categories->pluck('name')->implode(', ') }}</td>
+                                    <td>{{ $brand->categories->pluck('name')->implode(', ') ?: 'Sin categorías' }}</td>
                                     <td>
                                         <span class="badge {{ $brand->is_active ? 'bg-success' : 'bg-danger' }}">
-                                            {{ $brand->is_active ? 'Active' : 'Inactive' }}
+                                            {{ $brand->is_active ? 'Activa' : 'Inactiva' }}
                                         </span>
                                     </td>
                                     <td class="d-flex gap-2">
@@ -57,7 +57,7 @@
                                         </a>
                                         <form action="{{ route('distributor_brands.destroy', $brand) }}"
                                               method="POST"
-                                              onsubmit="return confirm('Are you sure you want to delete this distributor brand?');">
+                                              onsubmit="return confirm('¿Estás seguro de eliminar esta marca de distribuidora?');">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-sm btn-danger">
@@ -68,7 +68,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="text-center">No distributor brands registered</td>
+                                    <td colspan="6" class="text-center">No hay marcas de distribuidora registradas</td>
                                 </tr>
                             @endforelse
                         </tbody>

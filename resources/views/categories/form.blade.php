@@ -51,7 +51,7 @@
             multiple>
         @foreach($brands as $brand)
             <option value="{{ $brand->id }}"
-                {{ in_array($brand->id, old('brands', $category->brands->pluck('id')->toArray() ?? [])) ? 'selected' : '' }}>
+                {{ in_array($brand->id, old('brands', isset($category) ? $category->brands->pluck('id')->toArray() : [])) ? 'selected' : '' }}>
                 {{ $brand->name }}
             </option>
         @endforeach
@@ -63,6 +63,7 @@
 </div>
 
 <div class="mb-3">
+    <input type="hidden" name="is_active" value="0">
     <div class="form-check">
         <input type="checkbox"
                class="form-check-input @error('is_active') is-invalid @enderror"

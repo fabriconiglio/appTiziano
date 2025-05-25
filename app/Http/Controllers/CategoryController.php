@@ -113,7 +113,7 @@ class CategoryController extends Controller
 
         // Desasociar todas las marcas antes de eliminar
         $category->brands()->detach();
-        $category->delete();
+        $category->forceDelete();
 
         return redirect()
             ->route('categories.index')

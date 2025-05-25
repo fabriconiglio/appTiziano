@@ -36,7 +36,7 @@ class BrandController extends Controller
         ]);
 
         $validated['slug'] = Str::slug($validated['name']);
-        $validated['is_active'] = $request->boolean('is_active', true);
+        $validated['is_active'] = (int) ($request->input('is_active', 0) == 1);
 
         $brand = Brand::create($validated);
 
@@ -79,7 +79,7 @@ class BrandController extends Controller
         ]);
 
         $validated['slug'] = Str::slug($validated['name']);
-        $validated['is_active'] = $request->boolean('is_active', true);
+        $validated['is_active'] = (int) ($request->input('is_active', 0) == 1);
 
         $brand->update($validated);
 
@@ -95,7 +95,7 @@ class BrandController extends Controller
     {
         // Desasociar las categorías antes de eliminar
         $brand->categories()->detach();
-        $brand->delete();
+        $brand->forceDelete();
 
         return redirect()
             ->route('brands.index')

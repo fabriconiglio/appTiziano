@@ -82,12 +82,13 @@
                                            title="Nueva ficha técnica">
                                             <i class="fas fa-file-medical"></i>
                                         </a>
-                                        <button type="button"
-                                                class="btn btn-danger btn-sm"
-                                                onclick="deleteClient({{ $client->id }})"
-                                                title="Eliminar">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
+                                        <form action="{{ route('clients.destroy', $client) }}" method="POST" style="display:inline-block;" onsubmit="return confirm('¿Estás seguro de eliminar este cliente?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-danger btn-sm" title="Eliminar">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
                                     </div>
                                 </td>
                             </tr>

@@ -73,12 +73,13 @@
                                            title="Editar">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        <button type="button"
-                                                class="btn btn-danger btn-sm"
-                                                onclick="deleteClient({{ $distributorClient->id }})"
-                                                title="Eliminar">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
+                                        <form action="{{ route('distributor-clients.destroy', $distributorClient) }}" method="POST" style="display:inline-block;" onsubmit="return confirm('¿Estás seguro de eliminar este cliente distribuidor?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-danger btn-sm" title="Eliminar">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
                                     </div>
                                 </td>
                             </tr>

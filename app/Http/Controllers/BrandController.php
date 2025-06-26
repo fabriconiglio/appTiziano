@@ -30,6 +30,7 @@ class BrandController extends Controller
             'name' => 'required|max:255|unique:brands',
             'description' => 'nullable',
             'logo_url' => 'nullable|url',
+            'logo_file' => 'nullable|image|max:2048',
             'is_active' => 'boolean',
             'categories' => 'required|array',
             'categories.*' => 'exists:categories,id'
@@ -37,6 +38,12 @@ class BrandController extends Controller
 
         $validated['slug'] = Str::slug($validated['name']);
         $validated['is_active'] = (int) ($request->input('is_active', 0) == 1);
+
+        // Si se sube un archivo, guardarlo y usar esa ruta
+        if ($request->hasFile('logo_file')) {
+            $path = $request->file('logo_file')->store('brand_logos', 'public');
+            $validated['logo_url'] = '/storage/' . $path;
+        }
 
         $brand = Brand::create($validated);
 
@@ -73,6 +80,7 @@ class BrandController extends Controller
             'name' => 'required|max:255|unique:brands,name,' . $brand->id,
             'description' => 'nullable',
             'logo_url' => 'nullable|url',
+            'logo_file' => 'nullable|image|max:2048',
             'is_active' => 'boolean',
             'categories' => 'required|array',
             'categories.*' => 'exists:categories,id'
@@ -80,6 +88,12 @@ class BrandController extends Controller
 
         $validated['slug'] = Str::slug($validated['name']);
         $validated['is_active'] = (int) ($request->input('is_active', 0) == 1);
+
+        // Si se sube un archivo, guardarlo y usar esa ruta
+        if ($request->hasFile('logo_file')) {
+            $path = $request->file('logo_file')->store('brand_logos', 'public');
+            $validated['logo_url'] = '/storage/' . $path;
+        }
 
         $brand->update($validated);
 

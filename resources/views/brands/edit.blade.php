@@ -10,7 +10,7 @@
             </div>
 
             <div class="p-4">
-                <form action="{{ route('brands.update', $brand) }}" method="POST">
+                <form action="{{ route('brands.update', $brand) }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
 
@@ -39,6 +39,21 @@
                         @error('logo_url')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
+                        <div class="form-text">Puedes ingresar una URL o subir una imagen desde tu computadora.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="logo_file" class="form-label">Subir Logo</label>
+                        <input type="file" class="form-control @error('logo_file') is-invalid @enderror" id="logo_file" name="logo_file" accept="image/*">
+                        @error('logo_file')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                        @if($brand->logo_url)
+                            <div class="mt-2">
+                                <strong>Logo actual:</strong><br>
+                                <img src="{{ $brand->logo_url }}" alt="Logo actual" style="max-height: 80px;">
+                            </div>
+                        @endif
                     </div>
 
                     <div class="mb-3">

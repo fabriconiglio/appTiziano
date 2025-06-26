@@ -100,6 +100,50 @@
                 </div>
             </div>
         </div>
+
+        @php
+            $trashedClients = \App\Models\DistributorClient::onlyTrashed()->get();
+        @endphp
+        @if($trashedClients->count())
+            <div class="card mt-4">
+                <div class="card-header bg-warning text-dark">
+                    <strong>Clientes Distribuidores Desactivados</strong>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover">
+                            <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Teléfono</th>
+                                <th>Email</th>
+                                <th>DNI</th>
+                                <th>Acciones</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            @foreach($trashedClients as $client)
+                                <tr>
+                                    <td>{{ $client->name }} {{ $client->surname }}</td>
+                                    <td>{{ $client->phone ?? 'No registrado' }}</td>
+                                    <td>{{ $client->email ?? 'No registrado' }}</td>
+                                    <td>{{ $client->dni ?? 'No registrado' }}</td>
+                                    <td>
+                                        <form action="{{ route('distributor-clients.restore', $client->id) }}" method="POST" style="display:inline-block;">
+                                            @csrf
+                                            <button type="submit" class="btn btn-success btn-sm" title="Reactivar">
+                                                <i class="fas fa-undo"></i> Reactivar
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        @endif
     </div>
 
     <!-- Modal de confirmación de eliminación -->

@@ -46,6 +46,7 @@ Route::middleware(['auth'])->group(function () {
 
     // CRUD de clientes de distribuidores
     Route::resource('distributor-clients', DistributorClientController::class);
+    Route::post('distributor-clients/{id}/restore', [App\Http\Controllers\DistributorClientController::class, 'restore'])->name('distributor-clients.restore');
 
     // CRUD de inventario de proveedores
     Route::resource('supplier-inventories', SupplierInventoryController::class);

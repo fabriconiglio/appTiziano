@@ -23,6 +23,7 @@ class CreateDistributorClientsTable extends Migration
             $table->date('birth_date')->nullable();
             $table->text('observations')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

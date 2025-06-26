@@ -105,4 +105,15 @@ class DistributorClientController extends Controller
         return redirect()->route('distributor-clients.index')
             ->with('success', 'Cliente distribuidor eliminado exitosamente.');
     }
+
+    /**
+     * Restaurar un cliente distribuidor desactivado.
+     */
+    public function restore($id)
+    {
+        $client = DistributorClient::withTrashed()->findOrFail($id);
+        $client->restore();
+        return redirect()->route('distributor-clients.index')
+            ->with('success', 'Cliente distribuidor reactivado exitosamente.');
+    }
 }

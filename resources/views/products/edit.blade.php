@@ -164,50 +164,29 @@
 @endsection
 
 @push('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Inicializar Select2 para categorías y marcas
-    $('#category_id, #brand_id').select2({
-        theme: 'bootstrap-5',
-        width: '100%'
-    });
-
-    // Cargar marcas cuando cambia la categoría
-    $('#category_id').on('change', function() {
-        let categoryId = $(this).val();
-        if (categoryId) {
-            $.get(`/products/brands-by-category/${categoryId}`, function(brands) {
-                let brandSelect = $('#brand_id');
-                let currentBrandId = brandSelect.val();
-
-                brandSelect.empty();
-                brandSelect.append('<option value="">Selecciona una marca</option>');
-
-                brands.forEach(function(brand) {
-                    brandSelect.append(`<option value="${brand.id}">${brand.name}</option>`);
-                });
-
-                // Restaurar la marca seleccionada si todavía está disponible
-                if (currentBrandId) {
-                    brandSelect.val(currentBrandId);
-                }
-
-                brandSelect.trigger('change');
+    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#description').summernote({
+                placeholder: 'Agrega aquí la descripción del producto...',
+                tabsize: 2,
+                height: 200,
+                lang: 'es-ES',
+                toolbar: [
+                    ['style', ['style']],
+                    ['font', ['bold', 'italic', 'underline', 'clear']],
+                    ['fontname', ['fontname']],
+                    ['color', ['color']],
+                    ['para', ['ul', 'ol', 'paragraph']],
+                    ['table', ['table']],
+                    ['insert', ['link', 'picture', 'video']],
+                    ['view', ['fullscreen', 'codeview', 'help']]
+                ]
             });
-        }
-    });
-});
-</script>
+        });
+    </script>
 @endpush
 
 @push('styles')
-<style>
-    .select2-container--bootstrap-5 .select2-selection {
-        height: calc(3.5rem + 2px);
-        padding: 1rem 0.75rem;
-        font-size: 1rem;
-        border: 1px solid #dee2e6;
-        border-radius: 0.375rem;
-    }
-</style>
+    <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.css" rel="stylesheet">
 @endpush

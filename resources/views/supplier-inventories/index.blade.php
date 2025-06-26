@@ -14,9 +14,9 @@
                             <a href="{{ route('distributor_categories.create') }}" class="btn btn-outline-primary btn-sm me-2">
                                 <i class="fas fa-plus"></i> Nueva Categoría Distribuidora
                             </a>
-                            <a href="{{ route('supplier-inventories.create') }}" class="btn btn-primary btn-sm">
-                                <i class="fas fa-plus"></i> Nuevo Producto
-                            </a>
+                        <a href="{{ route('supplier-inventories.create') }}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-plus"></i> Nuevo Producto
+                        </a>
                         </div>
                     </div>
 

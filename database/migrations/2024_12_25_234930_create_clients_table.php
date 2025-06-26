@@ -21,6 +21,7 @@ return new class extends Migration
             $table->text('allergies')->nullable();
             $table->text('observations')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

@@ -110,4 +110,15 @@ class ClientController extends Controller
         return redirect()->route('clients.index')
             ->with('success', 'Cliente eliminado exitosamente.');
     }
+
+    /**
+     * Restaurar un cliente desactivado.
+     */
+    public function restore($id)
+    {
+        $client = Client::withTrashed()->findOrFail($id);
+        $client->restore();
+        return redirect()->route('clients.index')
+            ->with('success', 'Cliente reactivado exitosamente.');
+    }
 }

@@ -64,4 +64,6 @@ Route::middleware(['auth'])->group(function () {
     // CRUD de distributor categories
     Route::resource('distributor_categories', \App\Http\Controllers\DistributorCategoryController::class);
 
+    Route::post('clients/{id}/restore', [App\Http\Controllers\ClientController::class, 'restore'])->name('clients.restore');
+
 });

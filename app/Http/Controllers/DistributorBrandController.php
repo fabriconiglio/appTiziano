@@ -29,6 +29,7 @@ class DistributorBrandController extends Controller
             'name' => 'required|max:255|unique:distributor_brands',
             'description' => 'nullable',
             'logo_url' => 'nullable|url',
+            'logo_file' => 'nullable|image|max:2048',
             'is_active' => 'boolean',
             'categories' => 'required|array',
             'categories.*' => 'exists:distributor_categories,id'
@@ -36,16 +37,22 @@ class DistributorBrandController extends Controller
 
         $validated['slug'] = Str::slug($validated['name']);
 
+        // Si se sube un archivo, guardarlo y usar esa ruta
+        if ($request->hasFile('logo_file')) {
+            $path = $request->file('logo_file')->store('distributor_brand_logos', 'public');
+            $validated['logo_url'] = '/storage/' . $path;
+        }
+
         $brand = DistributorBrand::create($validated);
 
-        // Associate categories
+        // Asociar categorías
         if ($request->has('categories')) {
             $brand->categories()->sync($request->categories);
         }
 
         return redirect()
             ->route('distributor_brands.index')
-            ->with('success', 'Distributor brand created successfully');
+            ->with('success', 'Marca de distribuidora creada exitosamente');
     }
 
     public function show(DistributorBrand $distributorBrand)
@@ -70,6 +77,7 @@ class DistributorBrandController extends Controller
             'name' => 'required|max:255|unique:distributor_brands,name,' . $distributorBrand->id,
             'description' => 'nullable',
             'logo_url' => 'nullable|url',
+            'logo_file' => 'nullable|image|max:2048',
             'is_active' => 'boolean',
             'categories' => 'required|array',
             'categories.*' => 'exists:distributor_categories,id'
@@ -77,14 +85,20 @@ class DistributorBrandController extends Controller
 
         $validated['slug'] = Str::slug($validated['name']);
 
+        // Si se sube un archivo, guardarlo y usar esa ruta
+        if ($request->hasFile('logo_file')) {
+            $path = $request->file('logo_file')->store('distributor_brand_logos', 'public');
+            $validated['logo_url'] = '/storage/' . $path;
+        }
+
         $distributorBrand->update($validated);
 
-        // Update categories
+        // Actualizar categorías
         $distributorBrand->categories()->sync($request->categories ?? []);
 
         return redirect()
             ->route('distributor_brands.index')
-            ->with('success', 'Distributor brand updated successfully');
+            ->with('success', 'Marca de distribuidora actualizada exitosamente');
     }
 
     public function destroy(DistributorBrand $distributorBrand)

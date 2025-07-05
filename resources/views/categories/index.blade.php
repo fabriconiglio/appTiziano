@@ -3,26 +3,22 @@
 @section('title', 'Categorías')
 
 @section('content')
-    <div class="container mx-auto px-4 py-6">
-        <div class="bg-white shadow-sm rounded-lg">
-            <div class="p-4 border-b border-gray-200">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h2 class="fs-4 fw-bold">Categorías</h2>
-                    <a href="{{ route('categories.create') }}" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Nueva Categoría
-                    </a>
-                </div>
+    <div class="container py-4">
+        <div class="card shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h2 class="fs-4 fw-bold mb-0">Categorías</h2>
+                <a href="{{ route('categories.create') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Nueva Categoría
+                </a>
             </div>
-
-            <div class="p-4">
+            <div class="card-body">
                 @if(session('success'))
                     <div class="alert alert-success" role="alert">
                         {{ session('success') }}
                     </div>
                 @endif
-
                 <div class="table-responsive">
-                    <table class="table table-striped">
+                    <table class="table table-striped align-middle">
                         <thead>
                             <tr>
                                 <th>ID</th>
@@ -43,15 +39,11 @@
                                     <td>{{ ucfirst($category->module_type) }}</td>
                                     <td>
                                         @if($category->brands->count() > 0)
-                                            <span class="badge bg-info">
-                                                {{ $category->brands->count() }}
-                                                {{ Str::plural('marca', $category->brands->count()) }}
+                                            <span class="badge bg-info text-white mb-1">
+                                                {{ $category->brands->count() }} {{ Str::plural('marca', $category->brands->count()) }}
                                             </span>
-                                            <div class="small text-muted">
-                                                {{ $category->brands->pluck('name')->take(3)->implode(', ') }}
-                                                @if($category->brands->count() > 3)
-                                                    ...
-                                                @endif
+                                            <div class="text-muted small">
+                                                {{ $category->brands->pluck('name')->take(3)->implode(', ') }}@if($category->brands->count() > 3)...@endif
                                             </div>
                                         @else
                                             <span class="badge bg-secondary">Sin marcas</span>
@@ -62,20 +54,19 @@
                                             {{ $category->is_active ? 'Activo' : 'Inactivo' }}
                                         </span>
                                     </td>
-                                    <td class="d-flex gap-2">
-                                        <a href="{{ route('categories.edit', $category) }}"
-                                           class="btn btn-sm btn-primary">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <form action="{{ route('categories.destroy', $category) }}"
-                                              method="POST"
-                                              onsubmit="return confirm('¿Estás seguro de eliminar esta categoría?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-danger">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <a href="{{ route('categories.edit', $category) }}" class="btn btn-sm btn-primary" title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <form action="{{ route('categories.destroy', $category) }}" method="POST" onsubmit="return confirm('¿Estás seguro de eliminar esta categoría?');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-sm btn-danger" title="Eliminar">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                             @empty
@@ -86,7 +77,6 @@
                         </tbody>
                     </table>
                 </div>
-
                 <div class="mt-4">
                     {{ $categories->links() }}
                 </div>

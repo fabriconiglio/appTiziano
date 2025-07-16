@@ -7,10 +7,10 @@
         <div class="card shadow-sm">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h2 class="fs-4 fw-bold mb-0">Categorías</h2>
-                <a href="{{ route('categories.create') }}" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> Nueva Categoría
-                </a>
-            </div>
+                    <a href="{{ route('categories.create') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Nueva Categoría
+                    </a>
+                </div>
             <div class="card-body">
                 @if(session('success'))
                     <div class="alert alert-success" role="alert">
@@ -57,15 +57,15 @@
                                     <td>
                                         <div class="d-flex align-items-center gap-2">
                                             <a href="{{ route('categories.edit', $category) }}" class="btn btn-sm btn-primary" title="Editar">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
+                                            <i class="fas fa-edit"></i>
+                                        </a>
                                             <form action="{{ route('categories.destroy', $category) }}" method="POST" onsubmit="return confirm('¿Estás seguro de eliminar esta categoría?');">
-                                                @csrf
-                                                @method('DELETE')
+                                            @csrf
+                                            @method('DELETE')
                                                 <button type="submit" class="btn btn-sm btn-danger" title="Eliminar">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </form>
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
                                         </div>
                                     </td>
                                 </tr>

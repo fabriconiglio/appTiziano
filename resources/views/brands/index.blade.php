@@ -7,10 +7,10 @@
         <div class="card shadow-sm">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h2 class="fs-4 fw-bold mb-0">Marcas</h2>
-                <a href="{{ route('brands.create') }}" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> Nueva Marca
-                </a>
-            </div>
+                    <a href="{{ route('brands.create') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Nueva Marca
+                    </a>
+                </div>
             <div class="card-body">
                 @if(session('success'))
                     <div class="alert alert-success" role="alert">
@@ -60,15 +60,15 @@
                                     <td>
                                         <div class="d-flex align-items-center gap-2">
                                             <a href="{{ route('brands.edit', $brand) }}" class="btn btn-sm btn-primary" title="Editar">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
+                                            <i class="fas fa-edit"></i>
+                                        </a>
                                             <form action="{{ route('brands.destroy', $brand) }}" method="POST" onsubmit="return confirm('¿Estás seguro de eliminar esta marca?');">
-                                                @csrf
-                                                @method('DELETE')
+                                            @csrf
+                                            @method('DELETE')
                                                 <button type="submit" class="btn btn-sm btn-danger" title="Eliminar">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </form>
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
                                         </div>
                                     </td>
                                 </tr>

@@ -165,7 +165,7 @@
 
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.js"></script>
-    <script>
+<script>
         $(document).ready(function() {
             $('#description').summernote({
                 placeholder: 'Agrega aquí la descripción del producto...',
@@ -182,28 +182,28 @@
                     ['insert', ['link', 'picture', 'video']],
                     ['view', ['fullscreen', 'codeview', 'help']]
                 ]
-            });
-        });
-    </script>
+    });
+});
+</script>
 @endpush
 
 @push('styles')
     <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.css" rel="stylesheet">
-    <style>
-        .select2-container--bootstrap-5 .select2-selection {
-            height: calc(3.5rem + 2px);
-            padding: 1rem 0.75rem;
-            font-size: 1rem;
-            border: 1px solid #dee2e6;
-            border-radius: 0.375rem;
-        }
+<style>
+    .select2-container--bootstrap-5 .select2-selection {
+        height: calc(3.5rem + 2px);
+        padding: 1rem 0.75rem;
+        font-size: 1rem;
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+    }
 
-        .form-label {
-            font-weight: 500;
-        }
+    .form-label {
+        font-weight: 500;
+    }
 
-        .card {
-            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-        }
-    </style>
+    .card {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+</style>
 @endpush

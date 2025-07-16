@@ -165,7 +165,7 @@
 
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.js"></script>
-    <script>
+<script>
         $(document).ready(function() {
             $('#description').summernote({
                 placeholder: 'Agrega aquí la descripción del producto...',
@@ -182,9 +182,9 @@
                     ['insert', ['link', 'picture', 'video']],
                     ['view', ['fullscreen', 'codeview', 'help']]
                 ]
-            });
-        });
-    </script>
+    });
+});
+</script>
 @endpush
 
 @push('styles')

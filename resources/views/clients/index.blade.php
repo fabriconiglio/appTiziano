@@ -45,28 +45,32 @@
             <div class="card-body">
                 <div class="table-responsive">
                     <table class="table table-striped table-hover">
-                        <thead>
+                        <thead class="table-dark">
                         <tr>
                             <th>Nombre</th>
                             <th>Teléfono</th>
                             <th>Email</th>
                             <th>DNI</th>
                             <th>Última Visita</th>
-                            <th>Acciones</th>
+                            <th width="200">Acciones</th>
                         </tr>
                         </thead>
                         <tbody>
                         @forelse($clients as $client)
                             <tr>
-                                <td>{{ $client->name }} {{ $client->surname }}</td>
+                                <td><strong>{{ $client->name }} {{ $client->surname }}</strong></td>
                                 <td>{{ $client->phone ?? 'No registrado' }}</td>
                                 <td>{{ $client->email ?? 'No registrado' }}</td>
                                 <td>{{ $client->dni ?? 'No registrado' }}</td>
                                 <td>
-                                    {{ $client->technicalRecords->max('service_date')?->format('d/m/Y') ?? 'Sin visitas' }}
+                                    @if($client->technicalRecords->count() > 0)
+                                        <span class="badge bg-success">{{ $client->technicalRecords->max('service_date')?->format('d/m/Y') }}</span>
+                                    @else
+                                        <span class="badge bg-secondary">Sin visitas</span>
+                                    @endif
                                 </td>
                                 <td>
-                                    <div class="btn-group" role="group">
+                                    <div class="d-flex gap-1">
                                         <a href="{{ route('clients.show', $client) }}"
                                            class="btn btn-info btn-sm"
                                            title="Ver detalles">
@@ -86,16 +90,19 @@
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-danger btn-sm" title="Eliminar">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
+                                                <i class="fas fa-trash"></i>
+                                            </button>
                                         </form>
                                     </div>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="text-center py-4">
-                                    No se encontraron clientes
+                                <td colspan="6" class="text-center py-4">
+                                    <div class="text-muted">
+                                        <i class="fas fa-users fa-3x mb-3"></i>
+                                        <p>No se encontraron clientes</p>
+                                    </div>
                                 </td>
                             </tr>
                         @endforelse
@@ -110,85 +117,56 @@
             </div>
         </div>
 
-        @if($clients instanceof \Illuminate\Pagination\LengthAwarePaginator)
-            @php
-                $trashedClients = \App\Models\Client::onlyTrashed()->get();
-            @endphp
-            @if($trashedClients->count())
-                <div class="card mt-4">
-                    <div class="card-header bg-warning text-dark">
-                        <strong>Clientes Desactivados</strong>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-bordered table-hover">
-                                <thead>
+        <!-- Clientes Desactivados -->
+        @php
+            $trashedClients = \App\Models\Client::onlyTrashed()->get();
+        @endphp
+        @if($trashedClients->count() > 0)
+            <div class="card mt-4">
+                <div class="card-header bg-warning text-dark">
+                    <i class="fas fa-archive"></i> <strong>Clientes Desactivados ({{ $trashedClients->count() }})</strong>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover">
+                            <thead class="table-warning">
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Teléfono</th>
+                                <th>Email</th>
+                                <th>DNI</th>
+                                <th>Fecha de Desactivación</th>
+                                <th width="150">Acciones</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            @foreach($trashedClients as $client)
                                 <tr>
-                                    <th>Nombre</th>
-                                    <th>Teléfono</th>
-                                    <th>Email</th>
-                                    <th>DNI</th>
-                                    <th>Acciones</th>
+                                    <td><strong>{{ $client->name }} {{ $client->surname }}</strong></td>
+                                    <td>{{ $client->phone ?? 'No registrado' }}</td>
+                                    <td>{{ $client->email ?? 'No registrado' }}</td>
+                                    <td>{{ $client->dni ?? 'No registrado' }}</td>
+                                    <td>{{ $client->deleted_at->format('d/m/Y H:i') }}</td>
+                                    <td>
+                                        <form action="{{ route('clients.restore', $client->id) }}" method="POST" style="display:inline-block;">
+                                            @csrf
+                                            <button type="submit" class="btn btn-success btn-sm" title="Reactivar">
+                                                <i class="fas fa-undo"></i> Reactivar
+                                            </button>
+                                        </form>
+                                    </td>
                                 </tr>
-                                </thead>
-                                <tbody>
-                                @foreach($trashedClients as $client)
-                                    <tr>
-                                        <td>{{ $client->name }} {{ $client->surname }}</td>
-                                        <td>{{ $client->phone ?? 'No registrado' }}</td>
-                                        <td>{{ $client->email ?? 'No registrado' }}</td>
-                                        <td>{{ $client->dni ?? 'No registrado' }}</td>
-                                        <td>
-                                            <form action="{{ route('clients.restore', $client->id) }}" method="POST" style="display:inline-block;">
-                                                @csrf
-                                                <button type="submit" class="btn btn-success btn-sm" title="Reactivar">
-                                                    <i class="fas fa-undo"></i> Reactivar
-                                                </button>
-                                            </form>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                                </tbody>
-                            </table>
-                        </div>
+                            @endforeach
+                            </tbody>
+                        </table>
                     </div>
-                </div>
-            @endif
-        @endif
-    </div>
-
-    <!-- Modal de confirmación de eliminación -->
-    <div class="modal fade" id="deleteModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Confirmar Eliminación</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    ¿Está seguro que desea eliminar este cliente? Esta acción no se puede deshacer.
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <form id="deleteForm" method="POST" style="display: inline-block;">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn-danger">Eliminar</button>
-                    </form>
                 </div>
             </div>
-        </div>
+        @endif
     </div>
 
     @push('scripts')
         <script>
-            function deleteClient(clientId) {
-                const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
-                const form = document.getElementById('deleteForm');
-                form.action = `/clients/${clientId}`;
-                modal.show();
-            }
-
             // Auto-cerrar alertas después de 5 segundos
             document.addEventListener('DOMContentLoaded', function() {
                 setTimeout(function() {

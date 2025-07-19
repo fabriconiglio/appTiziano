@@ -75,7 +75,20 @@
 }
 
 /* Paginación */
+.pagination {
+    margin-bottom: 0;
+}
+
 .page-link {
+    color: var(--text-color);
+    border-color: var(--accent-color);
+    padding: 0.5rem 0.75rem;
+    font-weight: 500;
+}
+
+.page-link:hover {
+    background-color: var(--primary-color);
+    border-color: var(--accent-color);
     color: var(--text-color);
 }
 
@@ -83,6 +96,18 @@
     background-color: var(--accent-color);
     border-color: var(--accent-color);
     color: var(--text-color);
+    font-weight: bold;
+}
+
+.page-item.disabled .page-link {
+    color: #6c757d;
+    background-color: #fff;
+    border-color: #dee2e6;
+}
+
+/* Mejorar espaciado de paginación */
+.pagination .page-item:not(:first-child) .page-link {
+    margin-left: -1px;
 }
 
 /* Alerts */

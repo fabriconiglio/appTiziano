@@ -75,8 +75,13 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="mt-4">
-                    {{ $categories->links() }}
+                <div class="d-flex justify-content-between align-items-center mt-4">
+                    <div class="text-muted">
+                        Mostrando {{ $categories->firstItem() ?? 0 }} a {{ $categories->lastItem() ?? 0 }} de {{ $categories->total() }} resultados
+                    </div>
+                    <div>
+                        {{ $categories->links() }}
+                    </div>
                 </div>
             </div>
         </div>

@@ -80,8 +80,13 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="mt-4">
-                    {{ $brands->links() }}
+                <div class="d-flex justify-content-between align-items-center mt-4">
+                    <div class="text-muted">
+                        Mostrando {{ $brands->firstItem() ?? 0 }} a {{ $brands->lastItem() ?? 0 }} de {{ $brands->total() }} resultados
+                    </div>
+                    <div>
+                        {{ $brands->links() }}
+                    </div>
                 </div>
             </div>
         </div>

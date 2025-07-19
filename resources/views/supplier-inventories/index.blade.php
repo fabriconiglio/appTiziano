@@ -153,8 +153,13 @@
                             </table>
                         </div>
 
-                        <div class="d-flex justify-content-center mt-4">
-                            {{ $inventories->links() }}
+                        <div class="d-flex justify-content-between align-items-center mt-4">
+                            <div class="text-muted">
+                                Mostrando {{ $inventories->firstItem() ?? 0 }} a {{ $inventories->lastItem() ?? 0 }} de {{ $inventories->total() }} resultados
+                            </div>
+                            <div>
+                                {{ $inventories->links() }}
+                            </div>
                         </div>
                     </div>
                 </div>

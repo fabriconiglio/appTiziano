@@ -95,8 +95,13 @@
                 </div>
 
                 <!-- Paginación -->
-                <div class="mt-4">
-                    {{ $distributorClients->links() }}
+                <div class="d-flex justify-content-between align-items-center mt-4">
+                    <div class="text-muted">
+                        Mostrando {{ $distributorClients->firstItem() ?? 0 }} a {{ $distributorClients->lastItem() ?? 0 }} de {{ $distributorClients->total() }} resultados
+                    </div>
+                    <div>
+                        {{ $distributorClients->links() }}
+                    </div>
                 </div>
             </div>
         </div>

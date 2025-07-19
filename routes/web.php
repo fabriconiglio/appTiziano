@@ -57,7 +57,7 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('categories', CategoryController::class);
 
     // CRUD de marcas
-    Route::resource('brands', BrandController::class);
+    Route::resource('brands', BrandController::class); 
 
     // CRUD de distributor brands
     Route::resource('distributor_brands', \App\Http\Controllers\DistributorBrandController::class);

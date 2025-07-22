@@ -16,6 +16,7 @@ class DistributorClient extends Model
         'dni',
         'phone',
         'birth_date',
+        'domicilio',
         'observations'
     ];
 

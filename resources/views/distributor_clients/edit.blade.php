@@ -94,6 +94,14 @@
                                     @enderror
                                 </div>
 
+                                <div class="col-md-12">
+                                    <label for="domicilio" class="form-label">Domicilio</label>
+                                    <input type="text" class="form-control @error('domicilio') is-invalid @enderror" id="domicilio" name="domicilio" value="{{ old('domicilio', $distributorClient->domicilio) }}">
+                                    @error('domicilio')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
 
                             </div>
 

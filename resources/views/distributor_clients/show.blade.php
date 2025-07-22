@@ -58,6 +58,8 @@
                         <dl class="row">
                             <dt class="col-sm-4">Observaciones:</dt>
                             <dd class="col-sm-8">{!! $distributorClient->observations ?? 'Sin observaciones' !!}</dd>
+                            <dt class="col-sm-4">Domicilio:</dt>
+                            <dd class="col-sm-8">{{ $distributorClient->domicilio ?? 'No registrado' }}</dd>
                         </dl>
                     </div>
                 </div>

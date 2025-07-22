@@ -49,6 +49,7 @@ class DistributorClientController extends Controller
             'email' => 'nullable|email|unique:distributor_clients',
             'dni' => 'nullable|string|max:20',
             'phone' => 'nullable|string|max:20',
+            'domicilio' => 'nullable|string',
             'birth_date' => 'nullable|date',
             'observations' => 'nullable|string'
         ]);
@@ -86,6 +87,7 @@ class DistributorClientController extends Controller
             'email' => 'nullable|email|unique:distributor_clients,email,' . $distributorClient->id,
             'dni' => 'nullable|string|max:20',
             'phone' => 'nullable|string|max:20',
+            'domicilio' => 'nullable|string',
             'birth_date' => 'nullable|date',
             'observations' => 'nullable|string'
         ]);

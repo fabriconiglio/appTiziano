@@ -59,8 +59,8 @@
                     <div class="col-md-6">
                         <h6 class="border-bottom pb-2 mb-3">Información Adicional</h6>
                         <dl class="row">
-                            <dt class="col-sm-4">Alergias:</dt>
-                            <dd class="col-sm-8">{{ $client->allergies ?? 'Ninguna registrada' }}</dd>
+                            <dt class="col-sm-4">Domicilio:</dt>
+                            <dd class="col-sm-8">{{ $client->domicilio ?? 'No registrado' }}</dd>
 
                             <dt class="col-sm-4">Observaciones:</dt>
                             <dd class="col-sm-8">{{ $client->observations ?? 'Sin observaciones' }}</dd>

@@ -50,7 +50,7 @@ class ClientController extends Controller
             'dni' => 'nullable|string|max:20',
             'phone' => 'nullable|string|max:20',
             'birth_date' => 'nullable|date',
-            'allergies' => 'nullable|string',
+            'domicilio' => 'nullable|string',
             'observations' => 'nullable|string'
         ]);
 
@@ -92,7 +92,7 @@ class ClientController extends Controller
             'dni' => 'nullable|string|max:20',
             'phone' => 'nullable|string|max:20',
             'birth_date' => 'nullable|date',
-            'allergies' => 'nullable|string',
+            'domicilio' => 'nullable|string',
             'observations' => 'nullable|string'
         ]);
 

@@ -98,13 +98,11 @@
                             </div>
 
                             <div class="mb-3">
-                                <label for="allergies" class="form-label">Alergias</label>
-                                <textarea class="form-control @error('allergies') is-invalid @enderror"
-                                          id="allergies" name="allergies" rows="2">{{ old('allergies', $client->allergies) }}</textarea>
-                                @error('allergies')
-                                <div class="invalid-feedback">{{ $message }}</div>
+                                <label for="domicilio" class="form-label">Domicilio</label>
+                                <input type="text" class="form-control @error('domicilio') is-invalid @enderror" id="domicilio" name="domicilio" value="{{ old('domicilio', $client->domicilio) }}">
+                                @error('domicilio')
+                                    <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                                <div class="form-text">Indique si el cliente tiene alguna alergia o sensibilidad conocida.</div>
                             </div>
 
                             <div class="mb-3">

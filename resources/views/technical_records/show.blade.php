@@ -124,7 +124,7 @@
                             </div>
                             <div class="card-body">
                                 <h6 class="fw-bold">Observaciones:</h6>
-                                <p class="mb-4">{{ $technicalRecord->observations ?? 'Sin observaciones' }}</p>
+                                <p class="mb-4">{!! $technicalRecord->observations ?? 'Sin observaciones' !!}</p>
 
                                 <h6 class="fw-bold">Notas para Próxima Cita:</h6>
                                 <p class="mb-0">{{ $technicalRecord->next_appointment_notes ?? 'Sin notas para próxima cita' }}</p>

@@ -63,7 +63,7 @@
                             <dd class="col-sm-8">{{ $client->domicilio ?? 'No registrado' }}</dd>
 
                             <dt class="col-sm-4">Observaciones:</dt>
-                            <dd class="col-sm-8">{{ $client->observations ?? 'Sin observaciones' }}</dd>
+                            <dd class="col-sm-8">{!! $client->observations ?? 'Sin observaciones' !!}</dd>
                         </dl>
                     </div>
                 </div>

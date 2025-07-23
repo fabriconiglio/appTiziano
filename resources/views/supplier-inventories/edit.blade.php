@@ -38,6 +38,7 @@
                                     @enderror
                                 </div>
 
+                                {{--
                                 <div class="col-md-6 mb-3">
                                     <label for="sku" class="form-label">SKU</label>
                                     <input type="text" class="form-control @error('sku') is-invalid @enderror" id="sku" name="sku" value="{{ old('sku', $supplierInventory->sku) }}">
@@ -45,6 +46,7 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
+                                --}}
 
                                 <div class="col-md-6 mb-3">
                                     <label for="distributor_category_id" class="form-label">Categoría Distribuidora</label>
@@ -89,6 +91,27 @@
                                         <span class="input-group-text">$</span>
                                         <input type="number" step="0.01" class="form-control @error('purchase_price') is-invalid @enderror" id="purchase_price" name="purchase_price" value="{{ old('purchase_price', $supplierInventory->purchase_price) }}">
                                         @error('purchase_price')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label for="precio_mayor" class="form-label">Precio al Mayor</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" step="0.01" class="form-control @error('precio_mayor') is-invalid @enderror" id="precio_mayor" name="precio_mayor" value="{{ old('precio_mayor', $supplierInventory->precio_mayor) }}">
+                                        @error('precio_mayor')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="precio_menor" class="form-label">Precio al Menor</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" step="0.01" class="form-control @error('precio_menor') is-invalid @enderror" id="precio_menor" name="precio_menor" value="{{ old('precio_menor', $supplierInventory->precio_menor) }}">
+                                        @error('precio_menor')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </div>
@@ -164,31 +187,6 @@
                                     @error('supplier_phone')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
-                                </div>
-                            </div>
-
-                            <div class="row mb-4">
-                                <h5>Precios de Venta</h5>
-                                <hr>
-                                <div class="col-md-6 mb-3">
-                                    <label for="precio_mayor" class="form-label">Precio al Mayor</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text">$</span>
-                                        <input type="number" step="0.01" class="form-control @error('precio_mayor') is-invalid @enderror" id="precio_mayor" name="precio_mayor" value="{{ old('precio_mayor', $supplierInventory->precio_mayor) }}">
-                                        @error('precio_mayor')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="precio_menor" class="form-label">Precio al Menor</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text">$</span>
-                                        <input type="number" step="0.01" class="form-control @error('precio_menor') is-invalid @enderror" id="precio_menor" name="precio_menor" value="{{ old('precio_menor', $supplierInventory->precio_menor) }}">
-                                        @error('precio_menor')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                    </div>
                                 </div>
                             </div>
 

@@ -6,14 +6,14 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h1>Productos</h1>
     <div class="btn-group">
-        <a href="{{ route('products.create') }}" class="btn btn-primary me-2">
-            <i class="fas fa-plus"></i> Agregar Producto
-        </a>
         <a href="{{ route('categories.create') }}" class="btn btn-success me-2">
             <i class="fas fa-folder-plus"></i> Agregar Categoría
         </a>
-        <a href="{{ route('brands.create') }}" class="btn btn-info">
+        <a href="{{ route('brands.create') }}" class="btn btn-info me-2">
             <i class="fas fa-trademark"></i> Agregar Marca
+        </a>
+        <a href="{{ route('products.create') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Agregar Producto
         </a>
     </div>
 </div>
@@ -67,7 +67,7 @@
                         <td class="text-end">${{ number_format($product->price, 2) }}</td>
                         <td>
                             @if($product->description)
-                                {{ Str::limit($product->description, 50) }}
+                                {{ strip_tags(Str::limit($product->description, 50)) }}
                             @else
                                 <span class="text-muted">Sin descripción</span>
                             @endif

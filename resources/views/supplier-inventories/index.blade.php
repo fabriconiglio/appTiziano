@@ -45,9 +45,9 @@
                                 <thead>
                                 <tr>
                                     <th>Producto</th>
-                                    <th>Proveedor</th>
                                     <th>Categoría Distribuidora</th>
                                     <th>Marca Distribuidora</th>
+                                    <th>Descripción</th>
                                     <th>Precio</th>
                                     <th>Stock</th>
                                     <th>Estado</th>
@@ -58,9 +58,9 @@
                                 @forelse ($inventories as $item)
                                     <tr>
                                         <td>{{ $item->product_name }}</td>
-                                        <td>{{ $item->supplier_name }}</td>
                                         <td>{{ $item->distributorCategory ? $item->distributorCategory->name : '-' }}</td>
                                         <td>{{ $item->distributorBrand ? $item->distributorBrand->name : '-' }}</td>
+                                        <td>{{ $item->description }}</td>
                                         <td>${{ number_format($item->price, 2) }}</td>
                                         <td>{{ $item->stock_quantity }}</td>
                                         <td>

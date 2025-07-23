@@ -8,15 +8,15 @@
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <span>Inventario de Proveedores</span>
                         <div>
-                            <a href="{{ route('distributor_brands.create') }}" class="btn btn-outline-primary btn-sm me-2">
-                                <i class="fas fa-plus"></i> Nueva Marca Distribuidora
-                            </a>
                             <a href="{{ route('distributor_categories.create') }}" class="btn btn-outline-primary btn-sm me-2">
                                 <i class="fas fa-plus"></i> Nueva Categoría Distribuidora
                             </a>
-                        <a href="{{ route('supplier-inventories.create') }}" class="btn btn-primary btn-sm">
-                            <i class="fas fa-plus"></i> Nuevo Producto
-                        </a>
+                            <a href="{{ route('distributor_brands.create') }}" class="btn btn-outline-primary btn-sm me-2">
+                                <i class="fas fa-plus"></i> Nueva Marca Distribuidora
+                            </a>
+                            <a href="{{ route('supplier-inventories.create') }}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-plus"></i> Nuevo Producto
+                            </a>
                         </div>
                     </div>
 
@@ -58,7 +58,6 @@
                                 @forelse ($inventories as $item)
                                     <tr>
                                         <td>{{ $item->product_name }}</td>
-                                        <td>{{ $item->sku }}</td>
                                         <td>{{ $item->supplier_name }}</td>
                                         <td>{{ $item->distributorCategory ? $item->distributorCategory->name : '-' }}</td>
                                         <td>{{ $item->distributorBrand ? $item->distributorBrand->name : '-' }}</td>

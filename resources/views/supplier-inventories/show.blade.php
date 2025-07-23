@@ -35,11 +35,6 @@
                                     </div>
 
                                     <div class="col-md-4 mb-3">
-                                        <strong>SKU:</strong>
-                                        <p>{{ $supplierInventory->sku ?? 'No disponible' }}</p>
-                                    </div>
-
-                                    <div class="col-md-4 mb-3">
                                         <strong>Categoría Distribuidora:</strong>
                                         <p>{{ $supplierInventory->distributorCategory ? $supplierInventory->distributorCategory->name : 'No disponible' }}</p>
                                     </div>
@@ -125,7 +120,7 @@
                                 <div class="row">
                                     <div class="col-md-12 mb-3">
                                         <strong>Notas:</strong>
-                                        <p>{{ $supplierInventory->notes ?? 'Sin notas adicionales' }}</p>
+                                        <p>{{ strip_tags($supplierInventory->notes ?? 'Sin observaciones') }}</p>
                                     </div>
                                 </div>
                             </div>

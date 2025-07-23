@@ -23,7 +23,9 @@ class SupplierInventory extends Model
         'status',
         'notes',
         'distributor_category_id',
-        'distributor_brand_id'
+        'distributor_brand_id',
+        'precio_mayor',
+        'precio_menor'
     ];
 
     protected $dates = [
@@ -33,6 +35,8 @@ class SupplierInventory extends Model
     protected $casts = [
         'price' => 'decimal:2',
         'purchase_price' => 'decimal:2',
+        'precio_mayor' => 'decimal:2',
+        'precio_menor' => 'decimal:2',
         'stock_quantity' => 'integer',
         'last_restock_date' => 'date'
     ];

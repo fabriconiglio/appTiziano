@@ -111,6 +111,27 @@
                                     @enderror
                                 </div>
 
+                                <div class="col-md-6 mb-3">
+                                    <label for="precio_mayor" class="form-label">Precio al Mayor</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" step="0.01" class="form-control @error('precio_mayor') is-invalid @enderror" id="precio_mayor" name="precio_mayor" value="{{ old('precio_mayor') }}">
+                                        @error('precio_mayor')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="precio_menor" class="form-label">Precio al Menor</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" step="0.01" class="form-control @error('precio_menor') is-invalid @enderror" id="precio_menor" name="precio_menor" value="{{ old('precio_menor') }}">
+                                        @error('precio_menor')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+
                                 <div class="col-md-12 mb-3">
                                     <label for="description" class="form-label">Descripción</label>
                                     <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description" rows="3">{{ old('description') }}</textarea>

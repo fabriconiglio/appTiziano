@@ -4,7 +4,7 @@
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-10 text-center">
-                <img src="{{ asset('images/tiziano-logo.jpeg') }}"
+                <img src="{{ asset('images/tiziano-logo-final.jpeg') }}"
                      alt="Tiziano - Artículos de Peluquería"
                      class="img-fluid mb-4"
                      style="max-width: 300px;">

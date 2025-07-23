@@ -27,7 +27,6 @@
                 <tr>
                     <th>#</th>
                     <th>Nombre</th>
-                    <th>SKU</th>
                     <th>Categoría</th>
                     <th>Marca</th>
                     <th>Stock</th>
@@ -41,9 +40,6 @@
                     <tr>
                         <td>{{ $loop->iteration }}</td>
                         <td>{{ $product->name }}</td>
-                        <td>
-                            <code>{{ $product->sku ?: 'N/A' }}</code>
-                        </td>
                         <td>
                             @if($product->category)
                                 <span class="badge bg-primary">{{ $product->category->name }}</span>

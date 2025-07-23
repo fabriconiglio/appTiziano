@@ -45,7 +45,6 @@
                                 <thead>
                                 <tr>
                                     <th>Producto</th>
-                                    <th>SKU</th>
                                     <th>Proveedor</th>
                                     <th>Categoría Distribuidora</th>
                                     <th>Marca Distribuidora</th>

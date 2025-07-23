@@ -40,6 +40,7 @@
                                     @enderror
                                 </div>
 
+                                {{--
                                 <div class="col-md-6 mb-3">
                                     <label for="sku" class="form-label">SKU</label>
                                     <input type="text"
@@ -51,6 +52,7 @@
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
+                                --}}
                             </div>
 
                             <div class="row">

@@ -6,15 +6,9 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h1>Productos</h1>
     <div class="btn-group">
-        <a href="{{ route('categories.create') }}" class="btn btn-success me-2">
-            <i class="fas fa-folder-plus"></i> Agregar Categoría
-        </a>
-        <a href="{{ route('brands.create') }}" class="btn btn-info me-2">
-            <i class="fas fa-trademark"></i> Agregar Marca
-        </a>
-        <a href="{{ route('products.create') }}" class="btn btn-primary">
-            <i class="fas fa-plus"></i> Agregar Producto
-        </a>
+        <a href="{{ route('categories.create') }}" class="btn btn-success me-2">1. Agregar Categoría</a>
+        <a href="{{ route('brands.create') }}" class="btn btn-info me-2">2. Agregar Marca</a>
+        <a href="{{ route('products.create') }}" class="btn btn-primary">3. Agregar Producto</a>
     </div>
 </div>
 

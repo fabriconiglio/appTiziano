@@ -8,15 +8,9 @@
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <span>Inventario de Proveedores</span>
                         <div>
-                            <a href="{{ route('distributor_categories.create') }}" class="btn btn-outline-primary btn-sm me-2">
-                                <i class="fas fa-plus"></i> Nueva Categoría Distribuidora
-                            </a>
-                            <a href="{{ route('distributor_brands.create') }}" class="btn btn-outline-primary btn-sm me-2">
-                                <i class="fas fa-plus"></i> Nueva Marca Distribuidora
-                            </a>
-                            <a href="{{ route('supplier-inventories.create') }}" class="btn btn-primary btn-sm">
-                                <i class="fas fa-plus"></i> Nuevo Producto
-                            </a>
+                            <a href="{{ route('distributor_categories.create') }}" class="btn btn-outline-primary btn-sm me-2">1. Nueva Categoría Distribuidora</a>
+                            <a href="{{ route('distributor_brands.create') }}" class="btn btn-outline-primary btn-sm me-2">2. Nueva Marca Distribuidora</a>
+                            <a href="{{ route('supplier-inventories.create') }}" class="btn btn-primary btn-sm">3. Nuevo Producto</a>
                         </div>
                     </div>
 

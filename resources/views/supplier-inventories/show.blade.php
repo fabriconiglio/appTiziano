@@ -87,34 +87,6 @@
 
                         <div class="row mb-4">
                             <div class="col-md-12">
-                                <h5>Información del Proveedor</h5>
-                                <hr>
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <strong>Nombre del Proveedor:</strong>
-                                        <p>{{ $supplierInventory->supplier_name }}</p>
-                                    </div>
-
-                                    <div class="col-md-6 mb-3">
-                                        <strong>Contacto del Proveedor:</strong>
-                                        <p>{{ $supplierInventory->supplier_contact ?? 'No disponible' }}</p>
-                                    </div>
-
-                                    <div class="col-md-6 mb-3">
-                                        <strong>Email del Proveedor:</strong>
-                                        <p>{{ $supplierInventory->supplier_email ?? 'No disponible' }}</p>
-                                    </div>
-
-                                    <div class="col-md-6 mb-3">
-                                        <strong>Teléfono del Proveedor:</strong>
-                                        <p>{{ $supplierInventory->supplier_phone ?? 'No disponible' }}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row mb-4">
-                            <div class="col-md-12">
                                 <h5>Información Adicional</h5>
                                 <hr>
                                 <div class="row">

@@ -154,42 +154,6 @@
                                 </div>
                             </div>
 
-                            <div class="row mb-4">
-                                <h5>Información del Proveedor</h5>
-                                <hr>
-                                <div class="col-md-6 mb-3">
-                                    <label for="supplier_name" class="form-label">Nombre del Proveedor *</label>
-                                    <input type="text" class="form-control @error('supplier_name') is-invalid @enderror" id="supplier_name" name="supplier_name" value="{{ old('supplier_name', $supplierInventory->supplier_name) }}" required>
-                                    @error('supplier_name')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-
-                                <div class="col-md-6 mb-3">
-                                    <label for="supplier_contact" class="form-label">Contacto del Proveedor</label>
-                                    <input type="text" class="form-control @error('supplier_contact') is-invalid @enderror" id="supplier_contact" name="supplier_contact" value="{{ old('supplier_contact', $supplierInventory->supplier_contact) }}">
-                                    @error('supplier_contact')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-
-                                <div class="col-md-6 mb-3">
-                                    <label for="supplier_email" class="form-label">Email del Proveedor</label>
-                                    <input type="email" class="form-control @error('supplier_email') is-invalid @enderror" id="supplier_email" name="supplier_email" value="{{ old('supplier_email', $supplierInventory->supplier_email) }}">
-                                    @error('supplier_email')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-
-                                <div class="col-md-6 mb-3">
-                                    <label for="supplier_phone" class="form-label">Teléfono del Proveedor</label>
-                                    <input type="text" class="form-control @error('supplier_phone') is-invalid @enderror" id="supplier_phone" name="supplier_phone" value="{{ old('supplier_phone', $supplierInventory->supplier_phone) }}">
-                                    @error('supplier_phone')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-
                             <div class="row mb-3">
                                 <h5>Información Adicional</h5>
                                 <hr>

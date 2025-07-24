@@ -42,10 +42,9 @@
                                     <th>Categoría Distribuidora</th>
                                     <th>Marca Distribuidora</th>
                                     <th>Descripción</th>
-                                    <th>Precio</th>
+                                    <th>Stock</th>
                                     <th>Precio al Mayor</th>
                                     <th>Precio al Menor</th>
-                                    <th>Stock</th>
                                     <th>Estado</th>
                                     <th>Acciones</th>
                                 </tr>
@@ -57,10 +56,9 @@
                                         <td>{{ $item->distributorCategory ? $item->distributorCategory->name : '-' }}</td>
                                         <td>{{ $item->distributorBrand ? $item->distributorBrand->name : '-' }}</td>
                                         <td>{{ $item->description }}</td>
-                                        <td>${{ number_format($item->price, 2) }}</td>
+                                        <td>{{ $item->stock_quantity }}</td>
                                         <td>${{ number_format($item->precio_mayor, 2) }}</td>
                                         <td>${{ number_format($item->precio_menor, 2) }}</td>
-                                        <td>{{ $item->stock_quantity }}</td>
                                         <td>
                                             @if ($item->status == 'available')
                                                 <span class="badge bg-success">Disponible</span>
@@ -142,7 +140,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="9" class="text-center">No hay productos en el inventario</td>
+                                        <td colspan="6" class="text-center">No hay productos en el inventario</td>
                                     </tr>
                                 @endforelse
                                 </tbody>

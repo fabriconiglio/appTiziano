@@ -23,7 +23,6 @@
                             <tr>
                                 <th>Nombre</th>
                                 <th>Descripción</th>
-                                <th>Tipo de Módulo</th>
                                 <th>Marcas</th>
                                 <th>Estado</th>
                                 <th>Acciones</th>
@@ -34,7 +33,6 @@
                                 <tr>
                                     <td>{{ $category->name }}</td>
                                     <td>{{ Str::limit($category->description, 50) }}</td>
-                                    <td>{{ ucfirst($category->module_type) }}</td>
                                     <td>
                                         @if($category->brands->count() > 0)
                                             <span class="badge bg-info text-white mb-1">

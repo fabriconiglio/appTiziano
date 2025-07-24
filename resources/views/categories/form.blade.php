@@ -23,24 +23,7 @@
     @enderror
 </div>
 
-<div class="mb-3">
-    <label for="module_type" class="form-label">Tipo de Módulo</label>
-    <select class="form-select @error('module_type') is-invalid @enderror"
-            id="module_type"
-            name="module_type"
-            required>
-        <option value="">Selecciona un tipo</option>
-        <option value="peluqueria" {{ old('module_type', $category->module_type ?? '') == 'peluqueria' ? 'selected' : '' }}>
-            Peluquería
-        </option>
-        <option value="distribuidora" {{ old('module_type', $category->module_type ?? '') == 'distribuidora' ? 'selected' : '' }}>
-            Distribuidora
-        </option>
-    </select>
-    @error('module_type')
-        <div class="invalid-feedback">{{ $message }}</div>
-    @enderror
-</div>
+<input type="hidden" name="module_type" value="peluqueria">
 
 <!-- Nuevo campo para selección de marcas -->
 <div class="mb-3">

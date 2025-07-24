@@ -33,7 +33,7 @@ class CategoryController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|max:255|unique:categories',
+            'name' => 'required|max:255',
             'description' => 'nullable|max:1000',
             'module_type' => 'required|in:peluqueria,distribuidora',
             'is_active' => 'boolean',
@@ -80,7 +80,7 @@ class CategoryController extends Controller
     public function update(Request $request, Category $category)
     {
         $validated = $request->validate([
-            'name' => 'required|max:255|unique:categories,name,' . $category->id,
+            'name' => 'required|max:255',
             'description' => 'nullable|max:1000',
             'module_type' => 'required|in:peluqueria,distribuidora',
             'is_active' => 'boolean',

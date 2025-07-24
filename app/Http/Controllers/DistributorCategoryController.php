@@ -24,7 +24,7 @@ class DistributorCategoryController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|max:255|unique:distributor_categories',
+            'name' => 'required|max:255',
             'description' => 'nullable|max:1000',
             'is_active' => 'boolean',
             'brands' => 'nullable|array',
@@ -62,7 +62,7 @@ class DistributorCategoryController extends Controller
     public function update(Request $request, DistributorCategory $distributorCategory)
     {
         $validated = $request->validate([
-            'name' => 'required|max:255|unique:distributor_categories,name,' . $distributorCategory->id,
+            'name' => 'required|max:255',
             'description' => 'nullable|max:1000',
             'is_active' => 'boolean',
             'brands' => 'nullable|array',

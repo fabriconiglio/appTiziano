@@ -21,7 +21,6 @@
                     <table class="table table-striped align-middle">
                         <thead>
                             <tr>
-                                <th>ID</th>
                                 <th>Nombre</th>
                                 <th>Descripción</th>
                                 <th>Marcas</th>
@@ -32,7 +31,6 @@
                         <tbody>
                             @forelse($categories as $category)
                                 <tr>
-                                    <td>{{ $category->id }}</td>
                                     <td>{{ $category->name }}</td>
                                     <td>{{ Str::limit($category->description, 50) }}</td>
                                     <td>

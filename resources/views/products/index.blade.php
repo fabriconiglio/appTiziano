@@ -19,7 +19,6 @@
             <table class="table table-bordered table-hover">
                 <thead class="table-dark">
                 <tr>
-                    <th>#</th>
                     <th>Nombre</th>
                     <th>Categoría</th>
                     <th>Marca</th>
@@ -32,7 +31,6 @@
                 <tbody>
                 @foreach ($products as $product)
                     <tr>
-                        <td>{{ $loop->iteration }}</td>
                         <td>{{ $product->name }}</td>
                         <td>
                             @if($product->category)

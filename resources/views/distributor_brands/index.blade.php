@@ -21,7 +21,6 @@
                     <table class="table table-striped align-middle">
                         <thead>
                             <tr>
-                                <th>ID</th>
                                 <th>Nombre</th>
                                 <th>Descripción</th>
                                 <th>Categorías</th>
@@ -32,7 +31,6 @@
                         <tbody>
                             @forelse($brands as $brand)
                                 <tr>
-                                    <td>{{ $brand->id }}</td>
                                     <td>
                                         @if($brand->logo_url)
                                             <img src="{{ $brand->logo_url }}" alt="{{ $brand->name }}" class="img-thumbnail me-2" width="50">

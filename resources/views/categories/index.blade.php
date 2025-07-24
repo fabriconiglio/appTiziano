@@ -21,7 +21,6 @@
                     <table class="table table-striped align-middle">
                         <thead>
                             <tr>
-                                <th>ID</th>
                                 <th>Nombre</th>
                                 <th>Descripción</th>
                                 <th>Tipo de Módulo</th>
@@ -33,7 +32,6 @@
                         <tbody>
                             @forelse($categories as $category)
                                 <tr>
-                                    <td>{{ $category->id }}</td>
                                     <td>{{ $category->name }}</td>
                                     <td>{{ Str::limit($category->description, 50) }}</td>
                                     <td>{{ ucfirst($category->module_type) }}</td>
@@ -71,7 +69,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="text-center">No hay categorías registradas</td>
+                                    <td colspan="6" class="text-center">No hay categorías registradas</td>
                                 </tr>
                             @endforelse
                         </tbody>

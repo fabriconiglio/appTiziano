@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\StockAlert;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
@@ -23,6 +24,16 @@ class HomeController extends Controller
      */
     public function index()
     {
-        return view('home');
+        // Obtener alertas de stock no leídas para peluquería
+        $peluqueriaAlerts = StockAlert::where('is_read', false)
+            ->where('inventory_type', 'peluqueria')
+            ->count();
+
+        // Obtener alertas de stock no leídas para distribuidora
+        $distribuidoraAlerts = StockAlert::where('is_read', false)
+            ->where('inventory_type', 'distribuidora')
+            ->count();
+
+        return view('home', compact('peluqueriaAlerts', 'distribuidoraAlerts'));
     }
 }

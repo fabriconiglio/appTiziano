@@ -9,14 +9,13 @@ use App\Http\Controllers\StockMovementController;
 use App\Http\Controllers\SupplierInventoryController;
 use App\Http\Controllers\TechnicalRecordController;
 use App\Http\Controllers\DistributorTechnicalRecordController;
+use App\Http\Controllers\StockAlertController;
 use App\Models\DistributorTechnicalRecord;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
 // Ruta principal
-Route::get('/', function () {
-    return view('home');
-});
+Route::get('/', [App\Http\Controllers\HomeController::class, 'index']);
 
 // Rutas de autenticación con verificación de correo habilitada
 Auth::routes(['verify' => true]);
@@ -74,5 +73,16 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('distributor_categories', \App\Http\Controllers\DistributorCategoryController::class);
 
     Route::post('clients/{id}/restore', [App\Http\Controllers\ClientController::class, 'restore'])->name('clients.restore');
+
+    // Alertas de stock
+    Route::resource('stock-alerts', StockAlertController::class)->only(['index', 'destroy']);
+    Route::get('stock-alerts/peluqueria', [StockAlertController::class, 'peluqueria'])->name('stock-alerts.peluqueria');
+    Route::get('stock-alerts/distribuidora', [StockAlertController::class, 'distribuidora'])->name('stock-alerts.distribuidora');
+    Route::post('stock-alerts/{alert}/mark-read', [StockAlertController::class, 'markAsRead'])->name('stock-alerts.mark-read');
+    Route::post('stock-alerts/mark-all-read', [StockAlertController::class, 'markAllAsRead'])->name('stock-alerts.mark-all-read');
+    Route::post('stock-alerts/mark-all-read-by-type', [StockAlertController::class, 'markAllAsReadByType'])->name('stock-alerts.mark-all-read-by-type');
+    Route::get('stock-alerts/unread-count', [StockAlertController::class, 'getUnreadCount'])->name('stock-alerts.unread-count');
+    Route::get('stock-alerts/unread-count-peluqueria', [StockAlertController::class, 'getUnreadCountPeluqueria'])->name('stock-alerts.unread-count-peluqueria');
+    Route::get('stock-alerts/unread-count-distribuidora', [StockAlertController::class, 'getUnreadCountDistribuidora'])->name('stock-alerts.unread-count-distribuidora');
 
 });

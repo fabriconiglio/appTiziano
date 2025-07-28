@@ -80,6 +80,15 @@
                                     <a class="dropdown-item" href="{{ route('brands.index') }}">{{ __('Marcas') }}</a>
                                 </li>
 
+                                <!-- Submenú Alertas de Stock -->
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item" href="{{ route('stock-alerts.peluqueria') }}">
+                                        <i class="fas fa-exclamation-triangle text-warning"></i>
+                                        {{ __('Alertas de Stock') }}
+                                        <span class="badge bg-danger ms-1" id="alert-count">0</span>
+                                    </a>
+                                </li>
+
                             </ul>
                         </li>
 
@@ -105,6 +114,14 @@
                                 <!-- Submenú Marcas Distribuidora -->
                                 <li class="dropdown-submenu">
                                     <a class="dropdown-item" href="{{ route('distributor_brands.index') }}">{{ __('Marcas Distribuidora') }}</a>
+                                </li>
+                                <!-- Submenú Alertas de Stock -->
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item" href="{{ route('stock-alerts.distribuidora') }}">
+                                        <i class="fas fa-exclamation-triangle text-warning"></i>
+                                        {{ __('Alertas de Stock') }}
+                                        <span class="badge bg-danger ms-1" id="alert-count-distribuidora">0</span>
+                                    </a>
                                 </li>
                             </ul>
                         </li>
@@ -163,6 +180,55 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 @stack('scripts')
+
+@auth
+<script>
+// Actualizar contador de alertas de peluquería
+function updatePeluqueriaAlertCount() {
+    $.get('{{ route("stock-alerts.unread-count-peluqueria") }}')
+        .done(function(data) {
+            $('#alert-count').text(data.count);
+            if (data.count > 0) {
+                $('#alert-count').removeClass('d-none');
+            } else {
+                $('#alert-count').addClass('d-none');
+            }
+        })
+        .fail(function(xhr, status, error) {
+            console.error('Error al obtener alertas de peluquería:', error);
+        });
+}
+
+// Actualizar contador de alertas de distribuidora
+function updateDistribuidoraAlertCount() {
+    $.get('{{ route("stock-alerts.unread-count-distribuidora") }}')
+        .done(function(data) {
+            $('#alert-count-distribuidora').text(data.count);
+            if (data.count > 0) {
+                $('#alert-count-distribuidora').removeClass('d-none');
+            } else {
+                $('#alert-count-distribuidora').addClass('d-none');
+            }
+        })
+        .fail(function(xhr, status, error) {
+            console.error('Error al obtener alertas de distribuidora:', error);
+        });
+}
+
+// Función para actualizar ambos contadores
+function updateAllAlertCounts() {
+    updatePeluqueriaAlertCount();
+    updateDistribuidoraAlertCount();
+}
+
+// Actualizar al cargar la página
+console.log('Página cargada, iniciando actualización de alertas...');
+updateAllAlertCounts();
+
+// Actualizar cada 30 segundos
+setInterval(updateAllAlertCounts, 30000);
+</script>
+@endauth
 
 </body>
 </html>

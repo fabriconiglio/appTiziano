@@ -119,5 +119,15 @@
     .shadow-sm {
         box-shadow: 0 .125rem .25rem rgba(0,0,0,.075) !important;
     }
+
+    /* Estilos para las alertas de stock */
+    .badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+    }
+
+    .position-relative {
+        overflow: visible;
+    }
 </style>
 @endpush

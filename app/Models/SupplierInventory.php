@@ -43,9 +43,9 @@ class SupplierInventory extends Model
 
     // Puedes añadir métodos personalizados según necesites
 
-    public function isLowStock($threshold = 10)
+    public function isLowStock($threshold = 5)
     {
-        return $this->stock_quantity <= $threshold;
+        return $this->stock_quantity <= $threshold && $this->stock_quantity > 0;
     }
 
     public function isOutOfStock()
@@ -57,13 +57,35 @@ class SupplierInventory extends Model
     {
         if ($this->isOutOfStock()) {
             $this->status = 'out_of_stock';
-        } elseif ($this->isLowStock()) {
+        } elseif ($this->isLowStock(5)) {
             $this->status = 'low_stock';
         } else {
             $this->status = 'available';
         }
 
         return $this->save();
+    }
+
+    public function getStatusTextAttribute()
+    {
+        if ($this->isOutOfStock()) {
+            return 'Sin stock';
+        } elseif ($this->isLowStock(5)) {
+            return 'Bajo stock';
+        } else {
+            return 'Disponible';
+        }
+    }
+
+    public function getStatusBadgeClassAttribute()
+    {
+        if ($this->isOutOfStock()) {
+            return 'bg-danger';
+        } elseif ($this->isLowStock(5)) {
+            return 'bg-warning text-dark';
+        } else {
+            return 'bg-success';
+        }
     }
 
     public function distributorCategory()

@@ -87,7 +87,7 @@ class SupplierInventoryController extends Controller
         if (!isset($validated['status'])) {
             if ($validated['stock_quantity'] <= 0) {
                 $validated['status'] = 'out_of_stock';
-            } elseif ($validated['stock_quantity'] <= 10) {
+            } elseif ($validated['stock_quantity'] <= 5) {
                 $validated['status'] = 'low_stock';
             } else {
                 $validated['status'] = 'available';
@@ -147,7 +147,7 @@ class SupplierInventoryController extends Controller
         if (!isset($validated['status'])) {
             if ($validated['stock_quantity'] <= 0) {
                 $validated['status'] = 'out_of_stock';
-            } elseif ($validated['stock_quantity'] <= 10) {
+            } elseif ($validated['stock_quantity'] <= 5) {
                 $validated['status'] = 'low_stock';
             } else {
                 $validated['status'] = 'available';
@@ -198,7 +198,7 @@ class SupplierInventoryController extends Controller
         // Actualizar el estado
         if ($newQuantity <= 0) {
             $supplierInventory->status = 'out_of_stock';
-        } elseif ($newQuantity <= 10) {
+        } elseif ($newQuantity <= 5) {
             $supplierInventory->status = 'low_stock';
         } else {
             $supplierInventory->status = 'available';

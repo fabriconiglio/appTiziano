@@ -60,13 +60,7 @@
                                         <td>${{ number_format($item->precio_mayor, 2) }}</td>
                                         <td>${{ number_format($item->precio_menor, 2) }}</td>
                                         <td>
-                                            @if ($item->status == 'available')
-                                                <span class="badge bg-success">Disponible</span>
-                                            @elseif ($item->status == 'low_stock')
-                                                <span class="badge bg-warning">Bajo stock</span>
-                                            @else
-                                                <span class="badge bg-danger">Sin stock</span>
-                                            @endif
+                                            <span class="badge {{ $item->status_badge_class }}">{{ $item->status_text }}</span>
                                         </td>
                                         <td>
                                             <div class="btn-group" role="group">

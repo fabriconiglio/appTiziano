@@ -8,6 +8,8 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\StockMovementController;
 use App\Http\Controllers\SupplierInventoryController;
 use App\Http\Controllers\TechnicalRecordController;
+use App\Http\Controllers\DistributorTechnicalRecordController;
+use App\Models\DistributorTechnicalRecord;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
@@ -47,6 +49,12 @@ Route::middleware(['auth'])->group(function () {
     // CRUD de clientes de distribuidores
     Route::resource('distributor-clients', DistributorClientController::class);
     Route::post('distributor-clients/{id}/restore', [App\Http\Controllers\DistributorClientController::class, 'restore'])->name('distributor-clients.restore');
+    
+    // CRUD de fichas técnicas de distribuidores
+    Route::resource('distributor-clients.technical-records', DistributorTechnicalRecordController::class);
+    Route::post('distributor-clients/{distributorClient}/technical-records/{distributorTechnicalRecord}/delete-photo',
+        [DistributorTechnicalRecordController::class, 'deletePhoto'])
+        ->name('distributor-clients.technical-records.delete-photo');
 
     // CRUD de inventario de proveedores
     Route::resource('supplier-inventories', SupplierInventoryController::class);

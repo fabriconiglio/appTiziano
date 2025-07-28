@@ -73,6 +73,11 @@
                                            title="Editar">
                                             <i class="fas fa-edit"></i>
                                         </a>
+                                        <a href="{{ route('distributor-clients.technical-records.create', $distributorClient) }}"
+                                           class="btn btn-success btn-sm"
+                                           title="Nueva ficha técnica">
+                                            <i class="fas fa-file-medical"></i>
+                                        </a>
                                         <form action="{{ route('distributor-clients.destroy', $distributorClient) }}" method="POST" style="display:inline-block;" onsubmit="return confirm('¿Estás seguro de eliminar este cliente distribuidor?');">
                                             @csrf
                                             @method('DELETE')

@@ -27,4 +27,9 @@ class DistributorClient extends Model
     protected $casts = [
         'birth_date' => 'date'
     ];
+
+    public function distributorTechnicalRecords()
+    {
+        return $this->hasMany(DistributorTechnicalRecord::class);
+    }
 }

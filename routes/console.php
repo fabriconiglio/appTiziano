@@ -8,8 +8,8 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote')->hourly();
 
 // Comando para verificar alertas de stock bajo automáticamente
-Artisan::command('stock:check-cron', function () {
-    $threshold = $this->option('threshold') ?? 5;
+Artisan::command('stock:check-cron {--threshold=5}', function () {
+    $threshold = $this->option('threshold');
     
     $this->info("Ejecutando verificación automática de stock bajo (umbral: {$threshold})...");
     

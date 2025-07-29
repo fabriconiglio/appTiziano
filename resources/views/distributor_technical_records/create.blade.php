@@ -200,9 +200,13 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <label class="form-label">Producto</label>
                                 <input type="text" class="form-control product-name-display" readonly>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Marca</label>
+                                <input type="text" class="form-control brand-display" readonly>
                             </div>
                             <div class="col-md-2">
                                 <label class="form-label">Cantidad</label>
@@ -210,8 +214,8 @@
                                        name="products_purchased[${productIndex}][quantity]" 
                                        min="1" required>
                             </div>
-                            <div class="col-md-2">
-                                <label class="form-label">Stock Disponible</label>
+                            <div class="col-md-1">
+                                <label class="form-label">Stock</label>
                                 <input type="text" class="form-control stock-display" readonly>
                             </div>
                             <div class="col-md-1">
@@ -250,7 +254,8 @@
                                         text: item.description || item.product_name,
                                         stock: item.stock_quantity,
                                         productName: item.product_name,
-                                        description: item.description
+                                        description: item.description,
+                                        brand: item.distributor_brand ? item.distributor_brand.name : ''
                                     };
                                 }),
                                 pagination: {
@@ -276,10 +281,12 @@
                     const data = e.params.data;
                     const stock = data.stock || 0;
                     const productName = data.productName || '';
+                    const brand = data.brand || '';
                     
                     // Actualizar campos automáticamente
                     $(this).closest('.product-row').find('.stock-display').val(stock);
                     $(this).closest('.product-row').find('.product-name-display').val(productName);
+                    $(this).closest('.product-row').find('.brand-display').val(brand);
                     
                     // Limpiar cantidad si no hay stock
                     if (stock <= 0) {

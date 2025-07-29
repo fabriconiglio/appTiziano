@@ -74,11 +74,12 @@ class SupplierInventoryController extends Controller
             return response()->json([]);
         }
 
-        $products = SupplierInventory::where('description', 'LIKE', "%{$query}%")
+        $products = SupplierInventory::with('distributorBrand')
+            ->where('description', 'LIKE', "%{$query}%")
             ->orWhere('product_name', 'LIKE', "%{$query}%")
             ->orWhere('sku', 'LIKE', "%{$query}%")
             ->limit(10)
-            ->get(['id', 'product_name', 'description', 'stock_quantity', 'sku']);
+            ->get(['id', 'product_name', 'description', 'stock_quantity', 'sku', 'distributor_brand_id']);
 
         return response()->json($products);
     }

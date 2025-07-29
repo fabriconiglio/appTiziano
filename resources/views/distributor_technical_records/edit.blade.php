@@ -136,29 +136,37 @@
                                         @foreach($distributorTechnicalRecord->products_purchased as $index => $productData)
                                             <div class="product-row" data-index="{{ $index }}">
                                                 <div class="row">
-                                                    <div class="col-md-5">
-                                                        <label class="form-label">Producto</label>
-                                                        <select class="form-select product-select" name="products_purchased[{{ $index }}][product_id]" required>
-                                                            <option value="">Seleccionar producto</option>
+                                                    <div class="col-md-4">
+                                                        <label class="form-label">Descripción del Producto</label>
+                                                        <select class="form-select product-description-select" name="products_purchased[{{ $index }}][product_id]" required>
+                                                            <option value="">Buscar por descripción...</option>
                                                             @foreach($supplierInventories as $product)
                                                                 <option value="{{ $product->id }}" 
                                                                         data-stock="{{ $product->stock_quantity }}"
+                                                                        data-product-name="{{ $product->product_name }}"
+                                                                        data-description="{{ $product->description }}"
                                                                         {{ $productData['product_id'] == $product->id ? 'selected' : '' }}>
-                                                                    {{ $product->product_name }} (Stock: {{ $product->stock_quantity }})
+                                                                    {{ $product->description ?: $product->product_name }}
                                                                 </option>
                                                             @endforeach
                                                         </select>
                                                     </div>
                                                     <div class="col-md-3">
+                                                        <label class="form-label">Producto</label>
+                                                        <input type="text" class="form-control product-name-display" readonly 
+                                                               value="{{ $supplierInventories->firstWhere('id', $productData['product_id'])->product_name ?? '' }}">
+                                                    </div>
+                                                    <div class="col-md-2">
                                                         <label class="form-label">Cantidad</label>
                                                         <input type="number" class="form-control quantity-input" 
                                                                name="products_purchased[{{ $index }}][quantity]" 
                                                                value="{{ $productData['quantity'] }}"
                                                                min="1" required>
                                                     </div>
-                                                    <div class="col-md-3">
+                                                    <div class="col-md-2">
                                                         <label class="form-label">Stock Disponible</label>
-                                                        <input type="text" class="form-control stock-display" readonly>
+                                                        <input type="text" class="form-control stock-display" readonly 
+                                                               value="{{ $supplierInventories->firstWhere('id', $productData['product_id'])->stock_quantity ?? '' }}">
                                                     </div>
                                                     <div class="col-md-1">
                                                         <label class="form-label">&nbsp;</label>
@@ -262,14 +270,66 @@
                 ]
             });
 
-            // Inicializar Select2 para productos existentes
-            $('.product-select').select2();
+            // Inicializar Select2 para productos existentes con búsqueda por descripción
+            $('.product-description-select').select2({
+                placeholder: 'Buscar por descripción...',
+                allowClear: true,
+                ajax: {
+                    url: '{{ route("api.supplier-inventories.search") }}',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function(params) {
+                        return {
+                            q: params.term,
+                            page: params.page
+                        };
+                    },
+                    processResults: function(data, params) {
+                        params.page = params.page || 1;
+                        return {
+                            results: data.map(function(item) {
+                                return {
+                                    id: item.id,
+                                    text: item.description || item.product_name,
+                                    stock: item.stock_quantity,
+                                    productName: item.product_name,
+                                    description: item.description
+                                };
+                            }),
+                            pagination: {
+                                more: false
+                            }
+                        };
+                    },
+                    cache: true
+                },
+                templateResult: function(data) {
+                    if (data.loading) return data.text;
+                    if (!data.id) return data.text;
+                    return $(`<span>${data.text}</span>`);
+                },
+                templateSelection: function(data) {
+                    if (!data.id) return data.text;
+                    return data.text;
+                }
+            });
 
             // Event listeners para productos existentes
-            $('.product-select').on('change', function() {
-                const selectedOption = $(this).find('option:selected');
-                const stock = selectedOption.data('stock') || 0;
+            $('.product-description-select').on('select2:select', function(e) {
+                const data = e.params.data;
+                const stock = data.stock || 0;
+                const productName = data.productName || '';
+                
+                // Actualizar campos automáticamente
                 $(this).closest('.product-row').find('.stock-display').val(stock);
+                $(this).closest('.product-row').find('.product-name-display').val(productName);
+                
+                // Limpiar cantidad si no hay stock
+                if (stock <= 0) {
+                    $(this).closest('.product-row').find('.quantity-input').val('').addClass('is-invalid');
+                } else {
+                    $(this).closest('.product-row').find('.quantity-input').removeClass('is-invalid');
+                }
             });
 
             $('.quantity-input').on('input', function() {
@@ -298,24 +358,23 @@
                 const productRow = `
                     <div class="product-row" data-index="${productIndex}">
                         <div class="row">
-                            <div class="col-md-5">
-                                <label class="form-label">Producto</label>
-                                <select class="form-select product-select" name="products_purchased[${productIndex}][product_id]" required>
-                                    <option value="">Seleccionar producto</option>
-                                    @foreach($supplierInventories as $product)
-                                        <option value="{{ $product->id }}" data-stock="{{ $product->stock_quantity }}">
-                                            {{ $product->product_name }} (Stock: {{ $product->stock_quantity }})
-                                        </option>
-                                    @endforeach
+                            <div class="col-md-4">
+                                <label class="form-label">Descripción del Producto</label>
+                                <select class="form-select product-description-select" name="products_purchased[${productIndex}][product_id]" required>
+                                    <option value="">Buscar por descripción...</option>
                                 </select>
                             </div>
                             <div class="col-md-3">
+                                <label class="form-label">Producto</label>
+                                <input type="text" class="form-control product-name-display" readonly>
+                            </div>
+                            <div class="col-md-2">
                                 <label class="form-label">Cantidad</label>
                                 <input type="number" class="form-control quantity-input" 
                                        name="products_purchased[${productIndex}][quantity]" 
                                        min="1" required>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <label class="form-label">Stock Disponible</label>
                                 <input type="text" class="form-control stock-display" readonly>
                             </div>
@@ -332,24 +391,66 @@
                 
                 $('#products-container').append(productRow);
                 
-                // Inicializar Select2 para el nuevo select
-                $(`.product-row[data-index="${productIndex}"] .product-select`).select2({
+                // Inicializar Select2 para el nuevo select de descripción
+                $(`.product-row[data-index="${productIndex}"] .product-description-select`).select2({
+                    placeholder: 'Buscar por descripción...',
+                    allowClear: true,
+                    ajax: {
+                        url: '{{ route("api.supplier-inventories.search") }}',
+                        dataType: 'json',
+                        delay: 250,
+                        data: function(params) {
+                            return {
+                                q: params.term,
+                                page: params.page
+                            };
+                        },
+                        processResults: function(data, params) {
+                            params.page = params.page || 1;
+                            return {
+                                results: data.map(function(item) {
+                                    return {
+                                        id: item.id,
+                                        text: item.description || item.product_name,
+                                        stock: item.stock_quantity,
+                                        productName: item.product_name,
+                                        description: item.description
+                                    };
+                                }),
+                                pagination: {
+                                    more: false
+                                }
+                            };
+                        },
+                        cache: true
+                    },
                     templateResult: function(data) {
                         if (data.loading) return data.text;
                         if (!data.id) return data.text;
-                        return $(`<span>${data.text.split(' (Stock:')[0]}</span>`);
+                        return $(`<span>${data.text}</span>`);
                     },
                     templateSelection: function(data) {
                         if (!data.id) return data.text;
-                        return data.text.split(' (Stock:')[0];
+                        return data.text;
                     }
                 });
                 
                 // Event listeners para el nuevo producto
-                $(`.product-row[data-index="${productIndex}"] .product-select`).on('change', function() {
-                    const selectedOption = $(this).find('option:selected');
-                    const stock = selectedOption.data('stock') || 0;
+                $(`.product-row[data-index="${productIndex}"] .product-description-select`).on('select2:select', function(e) {
+                    const data = e.params.data;
+                    const stock = data.stock || 0;
+                    const productName = data.productName || '';
+                    
+                    // Actualizar campos automáticamente
                     $(this).closest('.product-row').find('.stock-display').val(stock);
+                    $(this).closest('.product-row').find('.product-name-display').val(productName);
+                    
+                    // Limpiar cantidad si no hay stock
+                    if (stock <= 0) {
+                        $(this).closest('.product-row').find('.quantity-input').val('').addClass('is-invalid');
+                    } else {
+                        $(this).closest('.product-row').find('.quantity-input').removeClass('is-invalid');
+                    }
                 });
                 
                 $(`.product-row[data-index="${productIndex}"] .quantity-input`).on('input', function() {

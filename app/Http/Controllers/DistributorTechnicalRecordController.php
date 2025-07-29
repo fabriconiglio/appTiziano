@@ -127,7 +127,10 @@ class DistributorTechnicalRecordController extends Controller
     public function edit(DistributorClient $distributorClient, $technical_record)
     {
         $distributorTechnicalRecord = DistributorTechnicalRecord::findOrFail($technical_record);
-        $supplierInventories = SupplierInventory::all();
+        $supplierInventories = SupplierInventory::with(['distributorCategory', 'distributorBrand'])
+            ->orderBy('description', 'asc')
+            ->orderBy('product_name', 'asc')
+            ->get();
         return view('distributor_technical_records.edit', compact('distributorClient', 'distributorTechnicalRecord', 'supplierInventories'));
     }
 

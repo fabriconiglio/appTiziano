@@ -25,7 +25,7 @@
                             <form action="{{ route('supplier-inventories.index') }}" method="GET" class="row">
                                 <div class="col-md-4 mb-2">
                                     <div class="input-group">
-                                        <input type="text" name="search" class="form-control" placeholder="Buscar..." value="{{ request('search') }}">
+                                        <input type="text" name="search" class="form-control" placeholder="Buscar por producto, categoría, marca, descripción..." value="{{ request('search') }}">
                                         <button class="btn btn-outline-secondary" type="submit">
                                             <i class="fas fa-search"></i>
                                         </button>
@@ -34,23 +34,32 @@
                             </form>
                         </div>
 
-                        <div class="table-responsive">
-                            <table class="table table-striped">
-                                <thead>
-                                <tr>
-                                    <th>Producto</th>
-                                    <th>Categoría Distribuidora</th>
-                                    <th>Marca Distribuidora</th>
-                                    <th>Descripción</th>
-                                    <th>Stock</th>
-                                    <th>Precio al Mayor</th>
-                                    <th>Precio al Menor</th>
-                                    <th>Estado</th>
-                                    <th>Acciones</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                @forelse ($inventories as $item)
+                        @if ($inventories->isEmpty())
+                            <div class="text-center py-5">
+                                <div class="text-muted">
+                                    <i class="fas fa-box-open fa-4x mb-3"></i>
+                                    <h5>No hay productos en el inventario</h5>
+                                    <p class="mb-0">Comienza agregando tu primer producto usando el botón "Nuevo Producto"</p>
+                                </div>
+                            </div>
+                        @else
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th>Categoría Distribuidora</th>
+                                        <th>Marca Distribuidora</th>
+                                        <th>Descripción</th>
+                                        <th>Stock</th>
+                                        <th>Precio al Mayor</th>
+                                        <th>Precio al Menor</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    @foreach ($inventories as $item)
                                     <tr>
                                         <td>{{ $item->product_name }}</td>
                                         <td>{{ $item->distributorCategory ? $item->distributorCategory->name : '-' }}</td>
@@ -132,14 +141,11 @@
                                             </div>
                                         </td>
                                     </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="6" class="text-center">No hay productos en el inventario</td>
-                                    </tr>
-                                @endforelse
-                                </tbody>
-                            </table>
-                        </div>
+                                    @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @endif
 
                         <div class="d-flex justify-content-between align-items-center mt-4">
                             <div class="text-muted">

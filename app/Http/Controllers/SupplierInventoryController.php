@@ -14,16 +14,31 @@ class SupplierInventoryController extends Controller
      */
     public function index(Request $request)
     {
-        $query = SupplierInventory::query();
+        $query = SupplierInventory::with(['distributorCategory', 'distributorBrand']);
 
-        if ($request->has('search')) {
-            $search = $request->get('search');
-            $query->where(function($q) use ($search) {
-                $q->where('product_name', 'LIKE', "%{$search}%")
-                    ->orWhere('sku', 'LIKE', "%{$search}%")
-                    ->orWhere('supplier_name', 'LIKE', "%{$search}%")
-                    ->orWhere('category', 'LIKE', "%{$search}%")
-                    ->orWhere('brand', 'LIKE', "%{$search}%");
+        if ($request->has('search') && !empty($request->get('search'))) {
+            $searchTerms = explode(' ', trim($request->get('search')));
+            
+            $query->where(function($q) use ($searchTerms) {
+                foreach ($searchTerms as $term) {
+                    if (!empty($term)) {
+                        $q->where(function($subQuery) use ($term) {
+                            $subQuery->where('product_name', 'LIKE', "%{$term}%")
+                                ->orWhere('sku', 'LIKE', "%{$term}%")
+                                ->orWhere('description', 'LIKE', "%{$term}%")
+                                ->orWhere('supplier_name', 'LIKE', "%{$term}%")
+                                ->orWhere('category', 'LIKE', "%{$term}%")
+                                ->orWhere('brand', 'LIKE', "%{$term}%")
+                                ->orWhere('notes', 'LIKE', "%{$term}%")
+                                ->orWhereHas('distributorCategory', function($catQuery) use ($term) {
+                                    $catQuery->where('name', 'LIKE', "%{$term}%");
+                                })
+                                ->orWhereHas('distributorBrand', function($brandQuery) use ($term) {
+                                    $brandQuery->where('name', 'LIKE', "%{$term}%");
+                                });
+                        });
+                    }
+                }
             });
         }
 

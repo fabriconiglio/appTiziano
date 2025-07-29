@@ -64,6 +64,26 @@ class SupplierInventoryController extends Controller
     }
 
     /**
+     * Buscar productos para AJAX
+     */
+    public function search(Request $request)
+    {
+        $query = $request->get('q');
+        
+        if (empty($query)) {
+            return response()->json([]);
+        }
+
+        $products = SupplierInventory::where('description', 'LIKE', "%{$query}%")
+            ->orWhere('product_name', 'LIKE', "%{$query}%")
+            ->orWhere('sku', 'LIKE', "%{$query}%")
+            ->limit(10)
+            ->get(['id', 'product_name', 'description', 'stock_quantity', 'sku']);
+
+        return response()->json($products);
+    }
+
+    /**
      * Show the form for creating a new resource.
      */
     public function create()

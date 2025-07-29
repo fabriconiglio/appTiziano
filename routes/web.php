@@ -51,6 +51,7 @@ Route::middleware(['auth'])->group(function () {
     
     // CRUD de fichas técnicas de distribuidores
     Route::resource('distributor-clients.technical-records', DistributorTechnicalRecordController::class);
+Route::get('/api/supplier-inventories/search', [App\Http\Controllers\SupplierInventoryController::class, 'search'])->name('api.supplier-inventories.search');
     Route::post('distributor-clients/{distributorClient}/technical-records/{distributorTechnicalRecord}/delete-photo',
         [DistributorTechnicalRecordController::class, 'deletePhoto'])
         ->name('distributor-clients.technical-records.delete-photo');

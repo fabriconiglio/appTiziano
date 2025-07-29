@@ -24,7 +24,10 @@ class DistributorTechnicalRecordController extends Controller
      */
     public function create(DistributorClient $distributorClient)
     {
-        $supplierInventories = SupplierInventory::all();
+        $supplierInventories = SupplierInventory::with(['distributorCategory', 'distributorBrand'])
+            ->orderBy('description', 'asc')
+            ->orderBy('product_name', 'asc')
+            ->get();
         return view('distributor_technical_records.create', compact('distributorClient', 'supplierInventories'));
     }
 

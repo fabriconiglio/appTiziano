@@ -81,6 +81,21 @@ class SupplierInventoryController extends Controller
             ->limit(10)
             ->get(['id', 'product_name', 'description', 'stock_quantity', 'sku', 'distributor_brand_id']);
 
+        // Modificar los productos para incluir la descripción concatenada con la marca
+        $products->transform(function ($product) {
+            $description = $product->description ?: $product->product_name;
+            $brand = $product->distributorBrand ? $product->distributorBrand->name : '';
+            
+            // Concatenar descripción con marca si existe
+            if (!empty($brand)) {
+                $product->display_text = $description . ' - ' . $brand;
+            } else {
+                $product->display_text = $description;
+            }
+            
+            return $product;
+        });
+
         return response()->json($products);
     }
 

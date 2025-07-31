@@ -251,7 +251,7 @@
                                 results: data.map(function(item) {
                                     return {
                                         id: item.id,
-                                        text: item.description || item.product_name,
+                                        text: item.display_text || item.description || item.product_name,
                                         stock: item.stock_quantity,
                                         productName: item.product_name,
                                         description: item.description,

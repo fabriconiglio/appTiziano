@@ -75,9 +75,14 @@ class SupplierInventoryController extends Controller
         }
 
         $products = SupplierInventory::with('distributorBrand')
-            ->where('description', 'LIKE', "%{$query}%")
-            ->orWhere('product_name', 'LIKE', "%{$query}%")
-            ->orWhere('sku', 'LIKE', "%{$query}%")
+            ->where(function($q) use ($query) {
+                $q->where('description', 'LIKE', "%{$query}%")
+                  ->orWhere('product_name', 'LIKE', "%{$query}%")
+                  ->orWhere('sku', 'LIKE', "%{$query}%")
+                  ->orWhereHas('distributorBrand', function($brandQuery) use ($query) {
+                      $brandQuery->where('name', 'LIKE', "%{$query}%");
+                  });
+            })
             ->limit(10)
             ->get(['id', 'product_name', 'description', 'stock_quantity', 'sku', 'distributor_brand_id']);
 

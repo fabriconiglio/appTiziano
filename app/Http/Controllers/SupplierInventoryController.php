@@ -6,6 +6,7 @@ use App\Models\SupplierInventory;
 use App\Models\DistributorCategory;
 use App\Models\DistributorBrand;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class SupplierInventoryController extends Controller
 {
@@ -355,5 +356,57 @@ class SupplierInventoryController extends Controller
         
         // Descargar el archivo
         return response()->download($filepath, $filename)->deleteFileAfterSend();
+    }
+
+    /**
+     * Export inventory to PDF with 3 sections
+     */
+    public function exportToPdf()
+    {
+        // Obtener todos los productos con sus relaciones
+        $products = SupplierInventory::with(['distributorBrand', 'distributorCategory'])
+            ->orderBy('product_name')
+            ->get();
+
+        // Preparar los datos para cada sección
+        $completeInventory = [];
+        $mayorPrices = [];
+        $menorPrices = [];
+
+        foreach ($products as $product) {
+            $description = $product->description ?: $product->product_name;
+            $brand = $product->distributorBrand ? $product->distributorBrand->name : '';
+            $displayText = !empty($brand) ? $description . ' - ' . $brand : $description;
+            
+            $completeInventory[] = [
+                'name' => $product->product_name,
+                'description' => $displayText,
+                'precio_mayor' => $product->precio_mayor ? '$' . number_format($product->precio_mayor, 2) : 'N/A',
+                'precio_menor' => $product->precio_menor ? '$' . number_format($product->precio_menor, 2) : 'N/A'
+            ];
+
+            $mayorPrices[] = [
+                'name' => $product->product_name,
+                'description' => $displayText,
+                'precio_mayor' => $product->precio_mayor ? '$' . number_format($product->precio_mayor, 2) : 'N/A'
+            ];
+
+            $menorPrices[] = [
+                'name' => $product->product_name,
+                'description' => $displayText,
+                'precio_menor' => $product->precio_menor ? '$' . number_format($product->precio_menor, 2) : 'N/A'
+            ];
+        }
+
+        $data = [
+            'completeInventory' => $completeInventory,
+            'mayorPrices' => $mayorPrices,
+            'menorPrices' => $menorPrices,
+            'exportDate' => now()->format('d/m/Y H:i:s')
+        ];
+
+        $pdf = Pdf::loadView('supplier-inventories.pdf', $data);
+        
+        return $pdf->download('inventario_' . date('Y-m-d_H-i-s') . '.pdf');
     }
 }

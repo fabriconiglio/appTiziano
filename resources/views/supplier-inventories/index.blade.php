@@ -11,8 +11,11 @@
                             <a href="{{ route('distributor_categories.create') }}" class="btn btn-outline-primary btn-sm me-2">1. Nueva Categoría Distribuidora</a>
                             <a href="{{ route('distributor_brands.create') }}" class="btn btn-outline-primary btn-sm me-2">2. Nueva Marca Distribuidora</a>
                             <a href="{{ route('supplier-inventories.create') }}" class="btn btn-primary btn-sm me-2">3. Nuevo Producto</a>
-                            <a href="{{ route('supplier-inventories.export-excel') }}" class="btn btn-success btn-sm">
+                            <a href="{{ route('supplier-inventories.export-excel') }}" class="btn btn-success btn-sm me-2">
                                 <i class="fas fa-file-excel"></i> Exportar a Excel
+                            </a>
+                            <a href="{{ route('supplier-inventories.export-pdf') }}" class="btn btn-danger btn-sm">
+                                <i class="fas fa-file-pdf"></i> Exportar a PDF
                             </a>
                         </div>
                     </div>

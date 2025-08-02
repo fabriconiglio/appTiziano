@@ -12,9 +12,9 @@
         }
         .header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 15px;
             border-bottom: 2px solid #333;
-            padding-bottom: 10px;
+            padding-bottom: 5px;
         }
         .header h1 {
             margin: 0;
@@ -26,13 +26,13 @@
             color: #666;
         }
         .section {
-            margin-bottom: 40px;
+            margin-bottom: 20px;
             page-break-inside: avoid;
         }
         .section-title {
             background-color: #f8f9fa;
-            padding: 10px;
-            margin-bottom: 15px;
+            padding: 8px;
+            margin-bottom: 10px;
             border-left: 4px solid #007bff;
             font-size: 16px;
             font-weight: bold;
@@ -40,17 +40,17 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
         th {
             background-color: #007bff;
             color: white;
-            padding: 8px;
+            padding: 6px;
             text-align: left;
             font-weight: bold;
         }
         td {
-            padding: 8px;
+            padding: 6px;
             border-bottom: 1px solid #ddd;
         }
         tr:nth-child(even) {
@@ -67,6 +67,9 @@
             border-top: 1px solid #ddd;
             padding-top: 10px;
         }
+        .first-section {
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
@@ -76,7 +79,7 @@
     </div>
 
     <!-- Sección 1: Inventario Completo -->
-    <div class="section">
+    <div class="section first-section">
         <div class="section-title">1. Inventario Completo</div>
         <table>
             <thead>

@@ -122,6 +122,10 @@
                                                        class="btn btn-outline-warning btn-sm">
                                                         <i class="fas fa-edit"></i>
                                                     </a>
+                                                    <a href="{{ route('distributor-clients.technical-records.remito', [$distributorClient, $record]) }}"
+                                                       class="btn btn-outline-danger btn-sm" target="_blank">
+                                                        <i class="fas fa-file-pdf"></i>
+                                                    </a>
                                                 </div>
                                             </td>
                                         </tr>

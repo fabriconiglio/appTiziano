@@ -8,6 +8,7 @@ use App\Models\DistributorTechnicalRecord;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class DistributorTechnicalRecordController extends Controller
 {
@@ -272,5 +273,53 @@ class DistributorTechnicalRecordController extends Controller
             \Log::error('Error al eliminar foto: ' . $e->getMessage());
             return response()->json(['message' => 'Error al eliminar la foto'], 500);
         }
+    }
+
+    /**
+     * Generate PDF remito for the technical record
+     */
+    public function generateRemito(DistributorClient $distributorClient, $technical_record)
+    {
+        $distributorTechnicalRecord = DistributorTechnicalRecord::with(['distributorClient', 'user'])
+            ->findOrFail($technical_record);
+
+        // Obtener los productos con sus detalles
+        $products = [];
+        $total = 0;
+
+        if (!empty($distributorTechnicalRecord->products_purchased)) {
+            foreach ($distributorTechnicalRecord->products_purchased as $productData) {
+                $supplierInventory = SupplierInventory::with('distributorBrand')
+                    ->find($productData['product_id']);
+                
+                if ($supplierInventory) {
+                    $description = $supplierInventory->description ?: $supplierInventory->product_name;
+                    $brand = $supplierInventory->distributorBrand ? $supplierInventory->distributorBrand->name : '';
+                    $displayText = !empty($brand) ? $description . ' - ' . $brand : $description;
+                    
+                    $products[] = [
+                        'name' => $supplierInventory->product_name,
+                        'description' => $displayText,
+                        'quantity' => $productData['quantity'],
+                        'unit_price' => $supplierInventory->precio_menor ?: 0,
+                        'total_price' => ($supplierInventory->precio_menor ?: 0) * $productData['quantity']
+                    ];
+                    
+                    $total += ($supplierInventory->precio_menor ?: 0) * $productData['quantity'];
+                }
+            }
+        }
+
+        $data = [
+            'technicalRecord' => $distributorTechnicalRecord,
+            'distributorClient' => $distributorTechnicalRecord->distributorClient,
+            'products' => $products,
+            'total' => $total,
+            'generatedDate' => now()->format('d/m/Y H:i:s')
+        ];
+
+        $pdf = Pdf::loadView('distributor_technical_records.remito', $data);
+        
+        return $pdf->download('remito_' . $distributorTechnicalRecord->id . '_' . date('Y-m-d_H-i-s') . '.pdf');
     }
 }

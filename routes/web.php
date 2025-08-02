@@ -55,6 +55,9 @@ Route::get('/api/supplier-inventories/search', [App\Http\Controllers\SupplierInv
     Route::post('distributor-clients/{distributorClient}/technical-records/{distributorTechnicalRecord}/delete-photo',
         [DistributorTechnicalRecordController::class, 'deletePhoto'])
         ->name('distributor-clients.technical-records.delete-photo');
+    Route::get('distributor-clients/{distributorClient}/technical-records/{distributorTechnicalRecord}/remito',
+        [DistributorTechnicalRecordController::class, 'generateRemito'])
+        ->name('distributor-clients.technical-records.remito');
 
     // CRUD de inventario de proveedores
     Route::resource('supplier-inventories', SupplierInventoryController::class);

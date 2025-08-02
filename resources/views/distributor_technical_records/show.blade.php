@@ -11,6 +11,7 @@
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">Ficha Técnica de Compra - {{ $distributorClient->name }} {{ $distributorClient->surname }}</h5>
                         <div>
+
                             <a href="{{ route('distributor-clients.technical-records.edit', [$distributorClient, $distributorTechnicalRecord]) }}"
                                class="btn btn-primary btn-sm me-2">
                                 <i class="fas fa-edit"></i> Editar

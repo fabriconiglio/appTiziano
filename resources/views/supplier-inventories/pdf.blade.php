@@ -10,21 +10,7 @@
             line-height: 1.4;
             color: #333;
         }
-        .header {
-            text-align: center;
-            margin-bottom: 15px;
-            border-bottom: 2px solid #333;
-            padding-bottom: 5px;
-        }
-        .header h1 {
-            margin: 0;
-            color: #333;
-            font-size: 24px;
-        }
-        .header p {
-            margin: 5px 0;
-            color: #666;
-        }
+
         .section {
             margin-bottom: 20px;
             page-break-inside: avoid;
@@ -68,19 +54,14 @@
             padding-top: 10px;
         }
         .first-section {
-            margin-top: 5px;
+            margin-top: 0;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>Inventario de Proveedores</h1>
-        <p>Fecha de exportación: {{ $exportDate }}</p>
-    </div>
-
     <!-- Sección 1: Inventario Completo -->
     <div class="section first-section">
-        <div class="section-title">1. Inventario Completo</div>
+        <div class="section-title">Inventario de Proveedores - {{ $exportDate }}</div>
         <table>
             <thead>
                 <tr>

@@ -266,4 +266,94 @@ class SupplierInventoryController extends Controller
 
         return back()->with('success', "Stock ajustado de $oldQuantity a $newQuantity unidades.");
     }
+
+    /**
+     * Export inventory to Excel with 3 sheets
+     */
+    public function exportToExcel()
+    {
+        // Obtener todos los productos con sus relaciones
+        $products = SupplierInventory::with(['distributorBrand', 'distributorCategory'])
+            ->orderBy('product_name')
+            ->get();
+
+        // Crear el archivo Excel
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        
+        // Hoja 1: Nombre, Descripción - Marca, Precio Mayor y Menor
+        $sheet1 = $spreadsheet->getActiveSheet();
+        $sheet1->setTitle('Inventario Completo');
+        $sheet1->setCellValue('A1', 'Nombre del Producto');
+        $sheet1->setCellValue('B1', 'Descripción - Marca');
+        $sheet1->setCellValue('C1', 'Precio por Mayor');
+        $sheet1->setCellValue('D1', 'Precio por Menor');
+        
+        $row = 2;
+        foreach ($products as $product) {
+            $description = $product->description ?: $product->product_name;
+            $brand = $product->distributorBrand ? $product->distributorBrand->name : '';
+            $displayText = !empty($brand) ? $description . ' - ' . $brand : $description;
+            
+            $sheet1->setCellValue('A' . $row, $product->product_name);
+            $sheet1->setCellValue('B' . $row, $displayText);
+            $sheet1->setCellValue('C' . $row, $product->precio_mayor ? '$' . number_format($product->precio_mayor, 2) : 'N/A');
+            $sheet1->setCellValue('D' . $row, $product->precio_menor ? '$' . number_format($product->precio_menor, 2) : 'N/A');
+            $row++;
+        }
+        
+        // Hoja 2: Nombre, Descripción - Marca, Precio Mayor
+        $sheet2 = $spreadsheet->createSheet();
+        $sheet2->setTitle('Precios por Mayor');
+        $sheet2->setCellValue('A1', 'Nombre del Producto');
+        $sheet2->setCellValue('B1', 'Descripción - Marca');
+        $sheet2->setCellValue('C1', 'Precio por Mayor');
+        
+        $row = 2;
+        foreach ($products as $product) {
+            $description = $product->description ?: $product->product_name;
+            $brand = $product->distributorBrand ? $product->distributorBrand->name : '';
+            $displayText = !empty($brand) ? $description . ' - ' . $brand : $description;
+            
+            $sheet2->setCellValue('A' . $row, $product->product_name);
+            $sheet2->setCellValue('B' . $row, $displayText);
+            $sheet2->setCellValue('C' . $row, $product->precio_mayor ? '$' . number_format($product->precio_mayor, 2) : 'N/A');
+            $row++;
+        }
+        
+        // Hoja 3: Nombre, Descripción - Marca, Precio Menor
+        $sheet3 = $spreadsheet->createSheet();
+        $sheet3->setTitle('Precios por Menor');
+        $sheet3->setCellValue('A1', 'Nombre del Producto');
+        $sheet3->setCellValue('B1', 'Descripción - Marca');
+        $sheet3->setCellValue('C1', 'Precio por Menor');
+        
+        $row = 2;
+        foreach ($products as $product) {
+            $description = $product->description ?: $product->product_name;
+            $brand = $product->distributorBrand ? $product->distributorBrand->name : '';
+            $displayText = !empty($brand) ? $description . ' - ' . $brand : $description;
+            
+            $sheet3->setCellValue('A' . $row, $product->product_name);
+            $sheet3->setCellValue('B' . $row, $displayText);
+            $sheet3->setCellValue('C' . $row, $product->precio_menor ? '$' . number_format($product->precio_menor, 2) : 'N/A');
+            $row++;
+        }
+        
+        // Ajustar ancho de columnas automáticamente
+        foreach ([$sheet1, $sheet2, $sheet3] as $sheet) {
+            foreach (range('A', 'D') as $column) {
+                $sheet->getColumnDimension($column)->setAutoSize(true);
+            }
+        }
+        
+        // Crear el archivo
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $filename = 'inventario_' . date('Y-m-d_H-i-s') . '.xlsx';
+        $filepath = storage_path('app/public/' . $filename);
+        
+        $writer->save($filepath);
+        
+        // Descargar el archivo
+        return response()->download($filepath, $filename)->deleteFileAfterSend();
+    }
 }

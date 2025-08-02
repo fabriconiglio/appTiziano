@@ -60,6 +60,8 @@ Route::get('/api/supplier-inventories/search', [App\Http\Controllers\SupplierInv
     Route::resource('supplier-inventories', SupplierInventoryController::class);
     Route::post('supplier-inventories/{supplierInventory}/adjust-stock', [SupplierInventoryController::class, 'adjustStock'])
         ->name('supplier-inventories.adjust-stock');
+    Route::get('supplier-inventories/export/excel', [SupplierInventoryController::class, 'exportToExcel'])
+        ->name('supplier-inventories.export-excel');
 
     // CRUD de categorías
     Route::resource('categories', CategoryController::class);

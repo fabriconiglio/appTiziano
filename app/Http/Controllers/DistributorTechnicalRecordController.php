@@ -63,6 +63,36 @@ class DistributorTechnicalRecordController extends Controller
         $validated['distributor_client_id'] = $distributorClient->id;
         $validated['user_id'] = auth()->id();
 
+        // Calcular el total automáticamente basado en los productos comprados
+        $calculatedTotal = 0;
+        if (!empty($validated['products_purchased'])) {
+            foreach ($validated['products_purchased'] as $productData) {
+                $supplierInventory = SupplierInventory::find($productData['product_id']);
+                if ($supplierInventory) {
+                    // Determinar el precio según el tipo de compra
+                    $price = 0;
+                    switch ($validated['purchase_type']) {
+                        case 'al_por_mayor':
+                            $price = $supplierInventory->precio_mayor ?: 0;
+                            break;
+                        case 'al_por_menor':
+                            $price = $supplierInventory->precio_menor ?: 0;
+                            break;
+                        case 'especial':
+                            // Para compras especiales, usar el precio menor como base
+                            $price = $supplierInventory->precio_menor ?: $supplierInventory->precio_mayor ?: 0;
+                            break;
+                        default:
+                            // Si no se especifica tipo, usar precio menor
+                            $price = $supplierInventory->precio_menor ?: $supplierInventory->precio_mayor ?: 0;
+                            break;
+                    }
+                    $calculatedTotal += $price * $productData['quantity'];
+                }
+            }
+        }
+        $validated['total_amount'] = $calculatedTotal;
+
         // Iniciar transacción para asegurar consistencia
         DB::beginTransaction();
         
@@ -164,6 +194,36 @@ class DistributorTechnicalRecordController extends Controller
             }
             $validated['photos'] = $photos;
         }
+
+        // Calcular el total automáticamente basado en los productos comprados
+        $calculatedTotal = 0;
+        if (!empty($validated['products_purchased'])) {
+            foreach ($validated['products_purchased'] as $productData) {
+                $supplierInventory = SupplierInventory::find($productData['product_id']);
+                if ($supplierInventory) {
+                    // Determinar el precio según el tipo de compra
+                    $price = 0;
+                    switch ($validated['purchase_type']) {
+                        case 'al_por_mayor':
+                            $price = $supplierInventory->precio_mayor ?: 0;
+                            break;
+                        case 'al_por_menor':
+                            $price = $supplierInventory->precio_menor ?: 0;
+                            break;
+                        case 'especial':
+                            // Para compras especiales, usar el precio menor como base
+                            $price = $supplierInventory->precio_menor ?: $supplierInventory->precio_mayor ?: 0;
+                            break;
+                        default:
+                            // Si no se especifica tipo, usar precio menor
+                            $price = $supplierInventory->precio_menor ?: $supplierInventory->precio_mayor ?: 0;
+                            break;
+                    }
+                    $calculatedTotal += $price * $productData['quantity'];
+                }
+            }
+        }
+        $validated['total_amount'] = $calculatedTotal;
 
         // Iniciar transacción
         DB::beginTransaction();
@@ -297,15 +357,34 @@ class DistributorTechnicalRecordController extends Controller
                     $brand = $supplierInventory->distributorBrand ? $supplierInventory->distributorBrand->name : '';
                     $displayText = !empty($brand) ? $description . ' - ' . $brand : $description;
                     
+                    // Determinar el precio según el tipo de compra
+                    $unitPrice = 0;
+                    switch ($distributorTechnicalRecord->purchase_type) {
+                        case 'al_por_mayor':
+                            $unitPrice = $supplierInventory->precio_mayor ?: 0;
+                            break;
+                        case 'al_por_menor':
+                            $unitPrice = $supplierInventory->precio_menor ?: 0;
+                            break;
+                        case 'especial':
+                            $unitPrice = $supplierInventory->precio_menor ?: $supplierInventory->precio_mayor ?: 0;
+                            break;
+                        default:
+                            $unitPrice = $supplierInventory->precio_menor ?: $supplierInventory->precio_mayor ?: 0;
+                            break;
+                    }
+                    
+                    $totalPrice = $unitPrice * $productData['quantity'];
+                    
                     $products[] = [
                         'name' => $supplierInventory->product_name,
                         'description' => $displayText,
                         'quantity' => $productData['quantity'],
-                        'unit_price' => $supplierInventory->precio_menor ?: 0,
-                        'total_price' => ($supplierInventory->precio_menor ?: 0) * $productData['quantity']
+                        'unit_price' => $unitPrice,
+                        'total_price' => $totalPrice
                     ];
                     
-                    $total += ($supplierInventory->precio_menor ?: 0) * $productData['quantity'];
+                    $total += $totalPrice;
                 }
             }
         }

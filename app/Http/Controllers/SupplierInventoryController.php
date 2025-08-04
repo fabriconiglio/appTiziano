@@ -271,6 +271,32 @@ class SupplierInventoryController extends Controller
     }
 
     /**
+     * Get product details for API
+     */
+    public function getProduct(Request $request)
+    {
+        $productId = $request->get('product_id');
+        
+        $product = SupplierInventory::with('distributorBrand')
+            ->find($productId);
+            
+        if (!$product) {
+            return response()->json(['error' => 'Producto no encontrado'], 404);
+        }
+        
+        return response()->json([
+            'id' => $product->id,
+            'product_name' => $product->product_name,
+            'description' => $product->description,
+            'precio_mayor' => $product->precio_mayor,
+            'precio_menor' => $product->precio_menor,
+            'costo' => $product->costo,
+            'stock_quantity' => $product->stock_quantity,
+            'brand' => $product->distributorBrand ? $product->distributorBrand->name : null
+        ]);
+    }
+
+    /**
      * Export inventory to Excel with 3 sheets
      */
     public function exportToExcel()

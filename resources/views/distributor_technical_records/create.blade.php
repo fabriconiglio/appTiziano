@@ -214,6 +214,15 @@
                                        name="products_purchased[${productIndex}][quantity]" 
                                        min="1" required>
                             </div>
+                            <div class="col-md-2" style="display: none;">
+                                <label class="form-label">Precio Unitario</label>
+                                <input type="text" class="form-control price-display" readonly>
+                                <input type="hidden" class="price-value" name="products_purchased[${productIndex}][price]">
+                            </div>
+                            <div class="col-md-2" style="display: none;">
+                                <label class="form-label">Subtotal</label>
+                                <input type="text" class="form-control subtotal-display" readonly>
+                            </div>
                             <div class="col-md-1">
                                 <label class="form-label">Stock</label>
                                 <input type="text" class="form-control stock-display" readonly>
@@ -288,6 +297,51 @@
                     $(this).closest('.product-row').find('.product-name-display').val(productName);
                     $(this).closest('.product-row').find('.brand-display').val(brand);
                     
+                    // Obtener precio del producto seleccionado
+                    const productId = $(this).val();
+                    if (productId) {
+                        $.ajax({
+                            url: '{{ route("api.supplier-inventories.get-product") }}',
+                            method: 'GET',
+                            data: { product_id: productId },
+                            success: function(response) {
+                                // Determinar el precio según el tipo de compra
+                                const purchaseType = $('#purchase_type').val();
+                                let price = 0;
+                                
+                                switch (purchaseType) {
+                                    case 'al_por_mayor':
+                                        price = response.precio_mayor || 0;
+                                        break;
+                                    case 'al_por_menor':
+                                        price = response.precio_menor || 0;
+                                        break;
+                                    case 'especial':
+                                        price = response.precio_menor || response.precio_mayor || 0;
+                                        break;
+                                    default:
+                                        price = response.precio_menor || response.precio_mayor || 0;
+                                        break;
+                                }
+                                
+                                const priceDisplay = price > 0 ? '$' + parseFloat(price).toFixed(2) : 'N/A';
+                                
+                                $(this).closest('.product-row').find('.price-display').val(priceDisplay);
+                                $(this).closest('.product-row').find('.price-value').val(price);
+                                
+                                // Calcular subtotal si hay cantidad
+                                const quantity = parseInt($(this).closest('.product-row').find('.quantity-input').val()) || 0;
+                                if (quantity > 0) {
+                                    calculateSubtotal($(this).closest('.product-row'));
+                                }
+                            }.bind(this),
+                            error: function() {
+                                $(this).closest('.product-row').find('.price-display').val('Error');
+                                $(this).closest('.product-row').find('.price-value').val(0);
+                            }
+                        });
+                    }
+                    
                     // Limpiar cantidad si no hay stock
                     if (stock <= 0) {
                         $(this).closest('.product-row').find('.quantity-input').val('').addClass('is-invalid');
@@ -307,6 +361,9 @@
                         $(this).removeClass('is-invalid');
                         $(this).closest('.product-row').find('.stock-display').removeClass('is-invalid');
                     }
+                    
+                    // Calcular subtotal
+                    calculateSubtotal($(this).closest('.product-row'));
                 });
                 
                 productIndex++;
@@ -318,10 +375,84 @@
 
             // Agregar el primer producto por defecto
             addProductRow();
+            
+            // Evento para recalcular precios cuando cambie el tipo de compra
+            $('#purchase_type').on('change', function() {
+                $('.product-row').each(function() {
+                    const productRow = $(this);
+                    const productId = productRow.find('.product-description-select').val();
+                    
+                    if (productId) {
+                        // Recalcular precio del producto
+                        $.ajax({
+                            url: '{{ route("api.supplier-inventories.get-product") }}',
+                            method: 'GET',
+                            data: { product_id: productId },
+                            success: function(response) {
+                                // Determinar el precio según el tipo de compra
+                                const purchaseType = $('#purchase_type').val();
+                                let price = 0;
+                                
+                                switch (purchaseType) {
+                                    case 'al_por_mayor':
+                                        price = response.precio_mayor || 0;
+                                        break;
+                                    case 'al_por_menor':
+                                        price = response.precio_menor || 0;
+                                        break;
+                                    case 'especial':
+                                        price = response.precio_menor || response.precio_mayor || 0;
+                                        break;
+                                    default:
+                                        price = response.precio_menor || response.precio_mayor || 0;
+                                        break;
+                                }
+                                
+                                const priceDisplay = price > 0 ? '$' + parseFloat(price).toFixed(2) : 'N/A';
+                                
+                                productRow.find('.price-display').val(priceDisplay);
+                                productRow.find('.price-value').val(price);
+                                
+                                // Recalcular subtotal
+                                calculateSubtotal(productRow);
+                            },
+                            error: function() {
+                                productRow.find('.price-display').val('Error');
+                                productRow.find('.price-value').val(0);
+                            }
+                        });
+                    }
+                });
+            });
+            
+            // Función para calcular subtotal de una fila
+            function calculateSubtotal(productRow) {
+                const quantity = parseInt(productRow.find('.quantity-input').val()) || 0;
+                const price = parseFloat(productRow.find('.price-value').val()) || 0;
+                const subtotal = quantity * price;
+                
+                productRow.find('.subtotal-display').val(subtotal > 0 ? '$' + subtotal.toFixed(2) : '$0.00');
+                
+                // Calcular total general
+                calculateTotal();
+            }
+            
+            // Función para calcular total general
+            function calculateTotal() {
+                let total = 0;
+                $('.product-row').each(function() {
+                    const quantity = parseInt($(this).find('.quantity-input').val()) || 0;
+                    const price = parseFloat($(this).find('.price-value').val()) || 0;
+                    total += quantity * price;
+                });
+                
+                $('#total_amount').val(total.toFixed(2));
+            }
         });
 
         function removeProduct(index) {
             $(`.product-row[data-index="${index}"]`).remove();
+            calculateTotal();
         }
     </script>
 @endpush

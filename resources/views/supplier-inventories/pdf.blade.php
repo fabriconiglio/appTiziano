@@ -69,6 +69,7 @@
                     <th>Descripción - Marca</th>
                     <th>Precio por Mayor</th>
                     <th>Precio por Menor</th>
+                    <th>Costo</th>
                 </tr>
             </thead>
             <tbody>
@@ -78,6 +79,7 @@
                     <td>{{ $item['description'] }}</td>
                     <td>{{ $item['precio_mayor'] }}</td>
                     <td>{{ $item['precio_menor'] }}</td>
+                    <td>{{ $item['costo'] }}</td>
                 </tr>
                 @endforeach
             </tbody>

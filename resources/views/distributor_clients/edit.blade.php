@@ -14,7 +14,7 @@
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">Editar Cliente Distribuidor: {{ $distributorClient->name }} {{ $distributorClient->surname }}</h5>
-                        <a href="{{ route('clients.index') }}" class="btn btn-secondary btn-sm">
+                        <a href="{{ route('distributor-clients.index') }}" class="btn btn-secondary btn-sm">
                             <i class="fas fa-arrow-left"></i> Volver
                         </a>
                     </div>

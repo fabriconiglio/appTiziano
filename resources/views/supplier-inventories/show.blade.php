@@ -55,6 +55,21 @@
                                     </div>
 
                                     <div class="col-md-4 mb-3">
+                                        <strong>Precio al Mayor:</strong>
+                                        <p>{{ $supplierInventory->precio_mayor ? '$' . number_format($supplierInventory->precio_mayor, 2) : 'No disponible' }}</p>
+                                    </div>
+
+                                    <div class="col-md-4 mb-3">
+                                        <strong>Precio al Menor:</strong>
+                                        <p>{{ $supplierInventory->precio_menor ? '$' . number_format($supplierInventory->precio_menor, 2) : 'No disponible' }}</p>
+                                    </div>
+
+                                    <div class="col-md-4 mb-3">
+                                        <strong>Costo:</strong>
+                                        <p>{{ $supplierInventory->costo ? '$' . number_format($supplierInventory->costo, 2) : 'No disponible' }}</p>
+                                    </div>
+
+                                    <div class="col-md-4 mb-3">
                                         <strong>Cantidad en Inventario:</strong>
                                         <p>{{ $supplierInventory->stock_quantity }}</p>
                                     </div>

@@ -60,6 +60,7 @@
                                         <th>Stock</th>
                                         <th>Precio al Mayor</th>
                                         <th>Precio al Menor</th>
+                                        <th>Costo</th>
                                         <th>Estado</th>
                                         <th>Acciones</th>
                                     </tr>
@@ -74,6 +75,7 @@
                                         <td>{{ $item->stock_quantity }}</td>
                                         <td>${{ number_format($item->precio_mayor, 2) }}</td>
                                         <td>${{ number_format($item->precio_menor, 2) }}</td>
+                                        <td>${{ number_format($item->costo, 2) }}</td>
                                         <td>
                                             <span class="badge {{ $item->status_badge_class }}">{{ $item->status_text }}</span>
                                         </td>

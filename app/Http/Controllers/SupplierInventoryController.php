@@ -138,6 +138,7 @@ class SupplierInventoryController extends Controller
             'distributor_brand_id' => 'nullable|exists:distributor_brands,id',
             'precio_mayor' => 'nullable|numeric|min:0',
             'precio_menor' => 'nullable|numeric|min:0',
+            'costo' => 'nullable|numeric|min:0',
         ]);
 
         // Establecer el estado basado en el stock
@@ -198,6 +199,7 @@ class SupplierInventoryController extends Controller
             'distributor_brand_id' => 'nullable|exists:distributor_brands,id',
             'precio_mayor' => 'nullable|numeric|min:0',
             'precio_menor' => 'nullable|numeric|min:0',
+            'costo' => 'nullable|numeric|min:0',
         ]);
 
         // Actualizar el estado basado en el stock

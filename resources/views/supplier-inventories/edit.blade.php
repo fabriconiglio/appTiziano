@@ -94,6 +94,16 @@
                                         @enderror
                                     </div>
                                 </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="costo" class="form-label">Costo</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" step="0.01" class="form-control @error('costo') is-invalid @enderror" id="costo" name="costo" value="{{ old('costo', $supplierInventory->costo) }}">
+                                        @error('costo')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
 
                                 <div class="col-md-6 mb-3">
                                     <label for="stock_quantity" class="form-label">Cantidad en Inventario *</label>

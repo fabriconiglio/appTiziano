@@ -103,6 +103,7 @@ class SupplierInventoryController extends Controller
                     }
                 }
             })
+            ->orderBy('stock_quantity', 'desc') // Productos con stock primero
             ->limit(10)
             ->get(['id', 'product_name', 'description', 'stock_quantity', 'sku', 'distributor_brand_id', 'brand', 'precio_mayor', 'precio_menor']);
 

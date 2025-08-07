@@ -9,9 +9,9 @@
     <style>
         .product-row {
             background-color: #f8f9fa;
-            padding: 15px;
-            margin-bottom: 10px;
-            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 8px;
             border: 1px solid #dee2e6;
         }
         .remove-product {
@@ -21,13 +21,41 @@
         .remove-product:hover {
             color: #c82333;
         }
+        /* Estilos para inputs más grandes */
+        .product-row .form-control,
+        .product-row .form-select {
+            height: 45px;
+            font-size: 12px;
+            padding: 8px 12px;
+        }
+        .product-row .form-label {
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #495057;
+        }
+        /* Hacer las columnas más anchas */
+        .product-row .col-md-1 {
+            min-width: 80px;
+        }
+        .product-row .col-md-2 {
+            min-width: 120px;
+        }
+        .product-row .col-md-3 {
+            min-width: 180px;
+        }
+        /* Ajustar el botón de eliminar */
+        .product-row .btn-sm {
+            height: 45px;
+            font-size: 12px;
+        }
     </style>
 @endpush
 
 @section('content')
-    <div class="container">
+    <div class="container-fluid">
         <div class="row justify-content-center">
-            <div class="col-md-10">
+            <div class="col-md-12">
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">Nueva Ficha Técnica de Compra - {{ $distributorClient->name }} {{ $distributorClient->surname }}</h5>

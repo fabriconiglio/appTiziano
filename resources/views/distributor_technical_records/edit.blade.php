@@ -68,6 +68,15 @@
         .product-row .col-md-3 {
             min-width: 180px;
         }
+        /* Hacer el input del subtotal más ancho */
+        .product-row .subtotal-display {
+            min-width: 100px;
+            width: 100%;
+        }
+        /* Ajustar el contenedor del subtotal */
+        .product-row .d-flex.align-items-end {
+            gap: 8px;
+        }
         /* Ajustar el botón de eliminar */
         .product-row .btn-sm {
             height: 45px;
@@ -211,16 +220,15 @@
                                                         <input type="text" class="form-control price-display" readonly>
                                                         <input type="hidden" class="price-value" name="products_purchased[{{ $index }}][price]">
                                                     </div>
-                                                    <div class="col-md-1">
+                                                    <div class="col-md-2">
                                                         <label class="form-label">Subtotal</label>
-                                                        <input type="text" class="form-control subtotal-display" readonly>
-                                                    </div>
-                                                    <div class="col-md-1">
-                                                        <label class="form-label">&nbsp;</label>
-                                                        <button type="button" class="btn btn-outline-danger btn-sm remove-product" 
-                                                                onclick="removeProduct({{ $index }})">
-                                                            <i class="fas fa-trash"></i>
-                                                        </button>
+                                                        <div class="d-flex align-items-end">
+                                                            <input type="text" class="form-control subtotal-display" readonly style="flex: 1; margin-right: 8px;">
+                                                            <button type="button" class="btn btn-outline-danger btn-sm remove-product" 
+                                                                    onclick="removeProduct({{ $index }})" style="height: 45px; min-width: 45px; flex-shrink: 0;">
+                                                                <i class="fas fa-trash"></i>
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -443,16 +451,15 @@
                                 <input type="text" class="form-control price-display" readonly>
                                 <input type="hidden" class="price-value" name="products_purchased[${productIndex}][price]">
                             </div>
-                            <div class="col-md-1">
+                            <div class="col-md-2">
                                 <label class="form-label">Subtotal</label>
-                                <input type="text" class="form-control subtotal-display" readonly>
-                            </div>
-                            <div class="col-md-1">
-                                <label class="form-label">&nbsp;</label>
-                                <button type="button" class="btn btn-outline-danger btn-sm remove-product" 
-                                        onclick="removeProduct(${productIndex})">
-                                    <i class="fas fa-trash"></i>
-                                </button>
+                                <div class="d-flex align-items-end">
+                                    <input type="text" class="form-control subtotal-display" readonly style="flex: 1; margin-right: 8px;">
+                                    <button type="button" class="btn btn-outline-danger btn-sm remove-product" 
+                                            onclick="removeProduct(${productIndex})" style="height: 45px; min-width: 45px; flex-shrink: 0;">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -77,26 +77,25 @@ class SupplierInventoryController extends Controller
 
         $products = SupplierInventory::with('distributorBrand')
             ->where(function($q) use ($query) {
-                $q->where('description', 'LIKE', "%{$query}%")
-                  ->orWhere('product_name', 'LIKE', "%{$query}%")
+                $q->where('product_name', 'LIKE', "%{$query}%")
                   ->orWhere('sku', 'LIKE', "%{$query}%")
                   ->orWhereHas('distributorBrand', function($brandQuery) use ($query) {
                       $brandQuery->where('name', 'LIKE', "%{$query}%");
                   });
             })
             ->limit(10)
-            ->get(['id', 'product_name', 'description', 'stock_quantity', 'sku', 'distributor_brand_id']);
+            ->get(['id', 'product_name', 'description', 'stock_quantity', 'sku', 'distributor_brand_id', 'precio_mayor', 'precio_menor']);
 
-        // Modificar los productos para incluir la descripción concatenada con la marca
+        // Modificar los productos para incluir nombre-marca como texto de búsqueda
         $products->transform(function ($product) {
-            $description = $product->description ?: $product->product_name;
+            $productName = $product->product_name;
             $brand = $product->distributorBrand ? $product->distributorBrand->name : '';
             
-            // Concatenar descripción con marca si existe
+            // Crear texto de búsqueda: nombre-marca
             if (!empty($brand)) {
-                $product->display_text = $description . ' - ' . $brand;
+                $product->display_text = $productName . ' - ' . $brand;
             } else {
-                $product->display_text = $description;
+                $product->display_text = $productName;
             }
             
             return $product;

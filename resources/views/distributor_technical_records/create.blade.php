@@ -186,46 +186,50 @@
                 const productRow = `
                     <div class="product-row" data-index="${productIndex}">
                         <div class="row">
-                            <div class="col-md-4">
-                                <label class="form-label">Descripción del Producto</label>
+                            <div class="col-md-3">
+                                <label class="form-label">Buscar Producto</label>
                                 <select class="form-select product-description-select" name="products_purchased[${productIndex}][product_id]" required>
-                                    <option value="">Buscar por descripción...</option>
+                                    <option value="">Buscar por nombre y marca...</option>
                                     @foreach($supplierInventories as $product)
                                         <option value="{{ $product->id }}" 
                                                 data-stock="{{ $product->stock_quantity }}"
                                                 data-product-name="{{ $product->product_name }}"
                                                 data-description="{{ $product->description }}">
-                                            {{ $product->description ?: $product->product_name }}
+                                            {{ $product->product_name }} - {{ $product->distributorBrand->name ?? 'Sin marca' }}
                                         </option>
                                     @endforeach
                                 </select>
                             </div>
                             <div class="col-md-2">
-                                <label class="form-label">Producto</label>
+                                <label class="form-label">Nombre-Marca</label>
                                 <input type="text" class="form-control product-name-display" readonly>
                             </div>
                             <div class="col-md-2">
+                                <label class="form-label">Descripción</label>
+                                <input type="text" class="form-control description-display" readonly>
+                            </div>
+                            <div class="col-md-1">
                                 <label class="form-label">Marca</label>
                                 <input type="text" class="form-control brand-display" readonly>
                             </div>
-                            <div class="col-md-2">
+                            <div class="col-md-1">
                                 <label class="form-label">Cantidad</label>
                                 <input type="number" class="form-control quantity-input" 
                                        name="products_purchased[${productIndex}][quantity]" 
                                        min="1" required>
                             </div>
-                            <div class="col-md-2" style="display: none;">
-                                <label class="form-label">Precio Unitario</label>
-                                <input type="text" class="form-control price-display" readonly>
-                                <input type="hidden" class="price-value" name="products_purchased[${productIndex}][price]">
-                            </div>
-                            <div class="col-md-2" style="display: none;">
-                                <label class="form-label">Subtotal</label>
-                                <input type="text" class="form-control subtotal-display" readonly>
-                            </div>
                             <div class="col-md-1">
                                 <label class="form-label">Stock</label>
                                 <input type="text" class="form-control stock-display" readonly>
+                            </div>
+                            <div class="col-md-1">
+                                <label class="form-label">Precio</label>
+                                <input type="text" class="form-control price-display" readonly>
+                                <input type="hidden" class="price-value" name="products_purchased[${productIndex}][price]">
+                            </div>
+                            <div class="col-md-1">
+                                <label class="form-label">Subtotal</label>
+                                <input type="text" class="form-control subtotal-display" readonly>
                             </div>
                             <div class="col-md-1">
                                 <label class="form-label">&nbsp;</label>
@@ -240,9 +244,9 @@
                 
                 $('#products-container').append(productRow);
                 
-                // Inicializar Select2 para el nuevo select de descripción
+                // Inicializar Select2 para el nuevo select de búsqueda
                 $(`.product-row[data-index="${productIndex}"] .product-description-select`).select2({
-                    placeholder: 'Buscar por descripción...',
+                    placeholder: 'Buscar por nombre y marca...',
                     allowClear: true,
                     ajax: {
                         url: '{{ route("api.supplier-inventories.search") }}',
@@ -260,7 +264,7 @@
                                 results: data.map(function(item) {
                                     return {
                                         id: item.id,
-                                        text: item.display_text || item.description || item.product_name,
+                                        text: item.display_text || item.product_name,
                                         stock: item.stock_quantity,
                                         productName: item.product_name,
                                         description: item.description,
@@ -291,11 +295,13 @@
                     const stock = data.stock || 0;
                     const productName = data.productName || '';
                     const brand = data.brand || '';
+                    const description = data.description || '';
                     
                     // Actualizar campos automáticamente
                     $(this).closest('.product-row').find('.stock-display').val(stock);
-                    $(this).closest('.product-row').find('.product-name-display').val(productName);
+                    $(this).closest('.product-row').find('.product-name-display').val(productName + (brand ? ' - ' + brand : ''));
                     $(this).closest('.product-row').find('.brand-display').val(brand);
+                    $(this).closest('.product-row').find('.description-display').val(description);
                     
                     // Obtener precio del producto seleccionado
                     const productId = $(this).val();

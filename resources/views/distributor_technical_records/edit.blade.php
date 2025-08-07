@@ -68,6 +68,10 @@
         .product-row .col-md-3 {
             min-width: 180px;
         }
+        /* Hacer el input de descripción extra ancho */
+        .product-row .description-display {
+            min-width: 200px;
+        }
         /* Hacer el input del subtotal más ancho */
         .product-row .subtotal-display {
             min-width: 100px;
@@ -193,7 +197,7 @@
                                                         <input type="text" class="form-control product-name-display" readonly 
                                                                value="{{ $supplierInventories->firstWhere('id', $productData['product_id'])->product_name ?? '' }} - {{ $supplierInventories->firstWhere('id', $productData['product_id'])->distributorBrand->name ?? '' }}">
                                                     </div>
-                                                    <div class="col-md-2">
+                                                    <div class="col-md-3">
                                                         <label class="form-label">Descripción</label>
                                                         <input type="text" class="form-control description-display" readonly 
                                                                value="{{ $supplierInventories->firstWhere('id', $productData['product_id'])->description ?? '' }}">
@@ -428,7 +432,7 @@
                                 <label class="form-label">Nombre-Marca</label>
                                 <input type="text" class="form-control product-name-display" readonly>
                             </div>
-                            <div class="col-md-2">
+                            <div class="col-md-3">
                                 <label class="form-label">Descripción</label>
                                 <input type="text" class="form-control description-display" readonly>
                             </div>

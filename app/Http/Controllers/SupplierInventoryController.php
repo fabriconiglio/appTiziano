@@ -69,27 +69,47 @@ class SupplierInventoryController extends Controller
      */
     public function search(Request $request)
     {
-        $query = $request->get('q');
+        $query = trim($request->get('q'));
         
         if (empty($query)) {
             return response()->json([]);
         }
 
+        // Dividir la consulta en palabras para búsqueda más flexible
+        $searchTerms = explode(' ', $query);
+        
         $products = SupplierInventory::with('distributorBrand')
-            ->where(function($q) use ($query) {
+            ->where(function($q) use ($query, $searchTerms) {
+                // Búsqueda exacta de la consulta completa
                 $q->where('product_name', 'LIKE', "%{$query}%")
+                  ->orWhere('description', 'LIKE', "%{$query}%")
                   ->orWhere('sku', 'LIKE', "%{$query}%")
+                  ->orWhere('brand', 'LIKE', "%{$query}%")
                   ->orWhereHas('distributorBrand', function($brandQuery) use ($query) {
                       $brandQuery->where('name', 'LIKE', "%{$query}%");
                   });
+                
+                // Búsqueda por palabras individuales (si hay más de una palabra)
+                if (count($searchTerms) > 1) {
+                    foreach ($searchTerms as $term) {
+                        if (strlen($term) > 2) { // Solo términos de más de 2 caracteres
+                            $q->orWhere('product_name', 'LIKE', "%{$term}%")
+                              ->orWhere('description', 'LIKE', "%{$term}%")
+                              ->orWhere('brand', 'LIKE', "%{$term}%")
+                              ->orWhereHas('distributorBrand', function($brandQuery) use ($term) {
+                                  $brandQuery->where('name', 'LIKE', "%{$term}%");
+                              });
+                        }
+                    }
+                }
             })
             ->limit(10)
-            ->get(['id', 'product_name', 'description', 'stock_quantity', 'sku', 'distributor_brand_id', 'precio_mayor', 'precio_menor']);
+            ->get(['id', 'product_name', 'description', 'stock_quantity', 'sku', 'distributor_brand_id', 'brand', 'precio_mayor', 'precio_menor']);
 
         // Modificar los productos para incluir nombre-marca como texto de búsqueda
         $products->transform(function ($product) {
             $productName = $product->product_name;
-            $brand = $product->distributorBrand ? $product->distributorBrand->name : '';
+            $brand = $product->distributorBrand ? $product->distributorBrand->name : $product->brand;
             
             // Crear texto de búsqueda: nombre-marca
             if (!empty($brand)) {

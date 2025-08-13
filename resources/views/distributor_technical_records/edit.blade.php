@@ -177,35 +177,14 @@
                                         @foreach($distributorTechnicalRecord->products_purchased as $index => $productData)
                                             <div class="product-row" data-index="{{ $index }}">
                                                 <div class="row">
-                                                    <div class="col-md-3">
+                                                    <div class="col-md-6">
                                                         <label class="form-label">Buscar Producto</label>
                                                         <select class="form-select product-description-select" name="products_purchased[{{ $index }}][product_id]" required>
-                                                            <option value="">Buscar por nombre y marca...</option>
-                                                            @foreach($supplierInventories as $product)
-                                                                <option value="{{ $product->id }}" 
-                                                                        data-stock="{{ $product->stock_quantity }}"
-                                                                        data-product-name="{{ $product->product_name }}"
-                                                                        data-description="{{ $product->description }}"
-                                                                        {{ $productData['product_id'] == $product->id ? 'selected' : '' }}>
-                                                                    {{ $product->product_name }} - {{ $product->distributorBrand->name ?? 'Sin marca' }}
-                                                                </option>
-                                                            @endforeach
+                                                            <option value="">Buscar por nombre, descripción o marca...</option>
+                                                            <option value="{{ $productData['product_id'] }}" selected>
+                                                                {{ $supplierInventories->firstWhere('id', $productData['product_id'])->product_name ?? 'Producto no encontrado' }} - {{ $supplierInventories->firstWhere('id', $productData['product_id'])->description ?? '' }} - {{ $supplierInventories->firstWhere('id', $productData['product_id'])->distributorBrand->name ?? 'Sin marca' }}
+                                                            </option>
                                                         </select>
-                                                    </div>
-                                                    <div class="col-md-2">
-                                                        <label class="form-label">Nombre-Marca</label>
-                                                        <input type="text" class="form-control product-name-display" readonly 
-                                                               value="{{ $supplierInventories->firstWhere('id', $productData['product_id'])->product_name ?? '' }} - {{ $supplierInventories->firstWhere('id', $productData['product_id'])->distributorBrand->name ?? '' }}">
-                                                    </div>
-                                                    <div class="col-md-3">
-                                                        <label class="form-label">Descripción</label>
-                                                        <input type="text" class="form-control description-display" readonly 
-                                                               value="{{ $supplierInventories->firstWhere('id', $productData['product_id'])->description ?? '' }}">
-                                                    </div>
-                                                    <div class="col-md-1">
-                                                        <label class="form-label">Marca</label>
-                                                        <input type="text" class="form-control brand-display" readonly 
-                                                               value="{{ $supplierInventories->firstWhere('id', $productData['product_id'])->distributorBrand->name ?? '' }}">
                                                     </div>
                                                     <div class="col-md-1">
                                                         <label class="form-label">Cantidad</label>
@@ -347,13 +326,26 @@
                             params.page = params.page || 1;
                             return {
                                 results: data.map(function(item) {
+                                    // Usar el display_text del backend si está disponible, sino construirlo
+                                    let displayText = item.display_text;
+                                    if (!displayText) {
+                                        const parts = [item.product_name];
+                                        if (item.description && item.description.trim()) {
+                                            parts.push(item.description.trim());
+                                        }
+                                        if (item.brand && item.brand.trim()) {
+                                            parts.push(item.brand.trim());
+                                        }
+                                        displayText = parts.join(' - ');
+                                    }
+                                    
                                     return {
                                         id: item.id,
-                                        text: item.display_text || item.product_name,
+                                        text: displayText,
                                         stock: item.stock_quantity,
                                         productName: item.product_name,
                                         description: item.description,
-                                        brand: item.distributor_brand ? item.distributor_brand.name : ''
+                                        brand: item.brand || ''
                                     };
                                 }),
                                 pagination: {
@@ -370,6 +362,19 @@
                     },
                     templateSelection: function(data) {
                         if (!data.id) return data.text;
+                        
+                        // Siempre construir el texto usando los datos originales, ignorando el text que recibe
+                        if (data.productName) {
+                            const parts = [data.productName];
+                            if (data.description && data.description.trim()) {
+                                parts.push(data.description.trim());
+                            }
+                            if (data.brand && data.brand.trim()) {
+                                parts.push(data.brand.trim());
+                            }
+                            return parts.join(' - ');
+                        }
+                        
                         return data.text;
                     }
                 });
@@ -384,9 +389,6 @@
                 
                 // Actualizar campos automáticamente
                 $(this).closest('.product-row').find('.stock-display').val(stock);
-                $(this).closest('.product-row').find('.product-name-display').val(productName + (brand ? ' - ' + brand : ''));
-                $(this).closest('.product-row').find('.brand-display').val(brand);
-                $(this).closest('.product-row').find('.description-display').val(description);
                 
                 // Limpiar cantidad si no hay stock
                 if (stock <= 0) {
@@ -422,23 +424,11 @@
                 const productRow = `
                     <div class="product-row" data-index="${productIndex}">
                         <div class="row">
-                            <div class="col-md-3">
+                            <div class="col-md-6">
                                 <label class="form-label">Buscar Producto</label>
                                 <select class="form-select product-description-select" name="products_purchased[${productIndex}][product_id]" required>
-                                    <option value="">Buscar por nombre y marca...</option>
+                                    <option value="">Buscar por nombre, descripción o marca...</option>
                                 </select>
-                            </div>
-                            <div class="col-md-2">
-                                <label class="form-label">Nombre-Marca</label>
-                                <input type="text" class="form-control product-name-display" readonly>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Descripción</label>
-                                <input type="text" class="form-control description-display" readonly>
-                            </div>
-                            <div class="col-md-1">
-                                <label class="form-label">Marca</label>
-                                <input type="text" class="form-control brand-display" readonly>
                             </div>
                             <div class="col-md-1">
                                 <label class="form-label">Cantidad</label>
@@ -495,7 +485,7 @@
                                         stock: item.stock_quantity,
                                         productName: item.product_name,
                                         description: item.description,
-                                        brand: item.distributor_brand ? item.distributor_brand.name : ''
+                                        brand: item.brand || ''
                                     };
                                 }),
                                 pagination: {
@@ -512,6 +502,19 @@
                     },
                     templateSelection: function(data) {
                         if (!data.id) return data.text;
+                        
+                        // Siempre construir el texto usando los datos originales, ignorando el text que recibe
+                        if (data.productName) {
+                            const parts = [data.productName];
+                            if (data.description && data.description.trim()) {
+                                parts.push(data.description.trim());
+                            }
+                            if (data.brand && data.brand.trim()) {
+                                parts.push(data.brand.trim());
+                            }
+                            return parts.join(' - ');
+                        }
+                        
                         return data.text;
                     }
                 });

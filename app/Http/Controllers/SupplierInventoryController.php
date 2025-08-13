@@ -105,23 +105,30 @@ class SupplierInventoryController extends Controller
             })
             ->orderBy('stock_quantity', 'desc') // Productos con stock primero
             ->limit(10)
-            ->get(['id', 'product_name', 'description', 'stock_quantity', 'sku', 'distributor_brand_id', 'brand', 'precio_mayor', 'precio_menor']);
+            ->get(['id', 'product_name', 'description', 'stock_quantity', 'sku', 'distributor_brand_id', 'brand', 'precio_mayor', 'precio_menor', 'costo']);
 
-        // Modificar los productos para incluir nombre-marca como texto de búsqueda
+        // Modificar los productos para incluir nombre-descripción-marca como texto de búsqueda
         $products->transform(function ($product) {
             $productName = $product->product_name;
+            $description = $product->description ?: '';
             $brand = $product->distributorBrand ? $product->distributorBrand->name : $product->brand;
             
-            // Crear texto de búsqueda: nombre-marca
-            if (!empty($brand)) {
-                $product->display_text = $productName . ' - ' . $brand;
-            } else {
-                $product->display_text = $productName;
+            // Crear texto de búsqueda: nombre - descripción - marca
+            $displayParts = [$productName];
+            
+            if (!empty(trim($description))) {
+                $displayParts[] = trim($description);
             }
+            if (!empty(trim($brand))) {
+                $displayParts[] = trim($brand);
+            }
+            
+            $product->display_text = implode(' - ', $displayParts);
+            $product->brand = $brand; // Agregar el campo brand para el frontend
             
             return $product;
         });
-
+        
         return response()->json($products);
     }
 

@@ -7,6 +7,7 @@ use App\Models\DistributorCategory;
 use App\Models\DistributorBrand;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Log;
 
 class SupplierInventoryController extends Controller
 {
@@ -106,6 +107,14 @@ class SupplierInventoryController extends Controller
             ->orderBy('stock_quantity', 'desc') // Productos con stock primero
             ->limit(10)
             ->get(['id', 'product_name', 'description', 'stock_quantity', 'sku', 'distributor_brand_id', 'brand', 'precio_mayor', 'precio_menor', 'costo']);
+
+        // DEBUG: Log para ver qué productos se encontraron
+        Log::info('Búsqueda de productos', [
+            'query' => $query,
+            'searchTerms' => $searchTerms,
+            'products_found' => $products->count(),
+            'products' => $products->toArray()
+        ]);
 
         // Modificar los productos para incluir nombre-descripción-marca como texto de búsqueda
         $products->transform(function ($product) {

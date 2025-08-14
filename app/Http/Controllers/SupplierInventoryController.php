@@ -105,7 +105,7 @@ class SupplierInventoryController extends Controller
             })
             ->orderBy('product_name', 'asc') // Ordenar por nombre del producto
             ->orderBy('distributor_brand_id', 'asc') // Luego por marca
-            ->limit(20) // Aumentar el límite para mostrar más productos
+            ->limit(30) // Aumentar el límite para mostrar más productos
             ->get(['id', 'product_name', 'description', 'stock_quantity', 'sku', 'distributor_brand_id', 'brand', 'precio_mayor', 'precio_menor', 'costo']);
 
 

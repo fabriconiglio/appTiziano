@@ -110,7 +110,7 @@
                         </div>
 
                         <div class="mt-3">
-                            {{ $technicalRecords->links() }}
+                            {{ $technicalRecords->appends(request()->query())->links() }}
                         </div>
                     @else
                         <div class="alert alert-info">

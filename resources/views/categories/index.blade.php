@@ -78,7 +78,7 @@
                         Mostrando {{ $categories->firstItem() ?? 0 }} a {{ $categories->lastItem() ?? 0 }} de {{ $categories->total() }} resultados
                     </div>
                     <div>
-                        {{ $categories->links() }}
+                        {{ $categories->appends(request()->query())->links() }}
                     </div>
                 </div>
             </div>

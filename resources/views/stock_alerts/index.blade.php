@@ -106,7 +106,7 @@
                         </div>
 
                         <div class="d-flex justify-content-center">
-                            {{ $alerts->links() }}
+                            {{ $alerts->appends(request()->query())->links() }}
                         </div>
                     @else
                         <div class="text-center py-4">

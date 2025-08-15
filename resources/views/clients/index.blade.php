@@ -116,7 +116,7 @@
                         Mostrando {{ $clients->firstItem() ?? 0 }} a {{ $clients->lastItem() ?? 0 }} de {{ $clients->total() }} resultados
                     </div>
                     <div>
-                        {{ $clients->links() }}
+                        {{ $clients->appends(request()->query())->links() }}
                     </div>
                 </div>
             </div>

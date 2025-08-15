@@ -83,7 +83,7 @@
                         Mostrando {{ $brands->firstItem() ?? 0 }} a {{ $brands->lastItem() ?? 0 }} de {{ $brands->total() }} resultados
                     </div>
                     <div>
-                        {{ $brands->links() }}
+                        {{ $brands->appends(request()->query())->links() }}
                     </div>
                 </div>
             </div>

@@ -105,7 +105,7 @@
                         Mostrando {{ $distributorClients->firstItem() ?? 0 }} a {{ $distributorClients->lastItem() ?? 0 }} de {{ $distributorClients->total() }} resultados
                     </div>
                     <div>
-                        {{ $distributorClients->links() }}
+                        {{ $distributorClients->appends(request()->query())->links() }}
                     </div>
                 </div>
             </div>

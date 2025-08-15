@@ -74,7 +74,7 @@ class SupplierInventoryController extends Controller
         if (empty($query)) {
             return response()->json([]);
         }
-    
+
         // Dividir la consulta en palabras para búsqueda más flexible
         $searchTerms = explode(' ', $query);
         
@@ -82,29 +82,29 @@ class SupplierInventoryController extends Controller
             ->where(function($q) use ($query, $searchTerms) {
                 // Búsqueda exacta de la consulta completa
                 $q->where('product_name', 'LIKE', "%{$query}%")
-                  ->orWhere('description', 'LIKE', "%{$query}%")
-                  ->orWhere('sku', 'LIKE', "%{$query}%")
-                  ->orWhere('brand', 'LIKE', "%{$query}%")
-                  ->orWhereHas('distributorBrand', function($brandQuery) use ($query) {
-                      $brandQuery->where('name', 'LIKE', "%{$query}%");
-                  });
+                ->orWhere('description', 'LIKE', "%{$query}%")
+                ->orWhere('sku', 'LIKE', "%{$query}%")
+                ->orWhere('brand', 'LIKE', "%{$query}%")
+                ->orWhereHas('distributorBrand', function($brandQuery) use ($query) {
+                    $brandQuery->where('name', 'LIKE', "%{$query}%");
+                });
                 
                 // Búsqueda por palabras individuales (si hay más de una palabra)
                 if (count($searchTerms) > 1) {
                     foreach ($searchTerms as $term) {
                         if (strlen($term) > 2) { // Solo términos de más de 2 caracteres
                             $q->orWhere('product_name', 'LIKE', "%{$term}%")
-                              ->orWhere('description', 'LIKE', "%{$term}%")
-                              ->orWhere('brand', 'LIKE', "%{$term}%")
-                              ->orWhereHas('distributorBrand', function($brandQuery) use ($term) {
-                                  $brandQuery->where('name', 'LIKE', "%{$term}%");
-                              });
+                            ->orWhere('description', 'LIKE', "%{$term}%")
+                            ->orWhere('brand', 'LIKE', "%{$term}%")
+                            ->orWhereHas('distributorBrand', function($brandQuery) use ($term) {
+                                $brandQuery->where('name', 'LIKE', "%{$term}%");
+                            });
                         }
                     }
                 }
             })
             ->get(['id', 'product_name', 'description', 'stock_quantity', 'sku', 'distributor_brand_id', 'brand', 'precio_mayor', 'precio_menor', 'costo']);
-    
+
         // Modificar los productos para incluir nombre-descripción-marca como texto de búsqueda
         $products->transform(function ($product) {
             $productName = $product->product_name;
@@ -126,15 +126,15 @@ class SupplierInventoryController extends Controller
             
             return $product;
         });
-    
+
         // Ordenar productos con algoritmo de relevancia mejorado
         $products = $products->sortBy(function ($product) use ($query, $searchTerms) {
             $brand = $product->distributorBrand ? $product->distributorBrand->name : ($product->brand ?: '');
             $productName = $product->product_name ?: '';
             $description = $product->description ?: '';
             
-            // Crear texto completo para búsqueda
-            $fullText = strtolower($productName . ' ' . $description . ' ' . $brand);
+            // Crear texto completo para búsqueda: NOMBRE + MARCA + DESCRIPCIÓN (en ese orden)
+            $fullText = strtolower(trim($productName . ' ' . $brand . ' ' . $description));
             $queryLower = strtolower($query);
             
             // 1. MÁXIMA PRIORIDAD: Coincidencia exacta completa en cualquier campo
@@ -269,6 +269,29 @@ class SupplierInventoryController extends Controller
                     return '1_2_' . str_pad(1000 - $nameSequenceScore, 4, '0', STR_PAD_LEFT) . '_' . $productName;
                 }
                 
+                // Verificar secuencia en marca (antes que descripción)
+                $brandText = strtolower($brand);
+                $lastPos = -1;
+                $termsInOrder = true;
+                $brandSequenceScore = 0;
+                
+                foreach ($searchTerms as $term) {
+                    if (strlen($term) > 1) {
+                        $pos = stripos($brandText, strtolower($term));
+                        if ($pos !== false && $pos > $lastPos) {
+                            $lastPos = $pos;
+                            $brandSequenceScore += 10; // Puntaje medio por secuencia en marca
+                        } else {
+                            $termsInOrder = false;
+                            break;
+                        }
+                    }
+                }
+                
+                if ($termsInOrder && $brandSequenceScore > 0) {
+                    return '1_3_' . str_pad(1000 - $brandSequenceScore, 4, '0', STR_PAD_LEFT) . '_' . $productName;
+                }
+                
                 // Verificar secuencia en descripción (menor prioridad)
                 $descText = strtolower($description);
                 $lastPos = -1;
@@ -280,7 +303,7 @@ class SupplierInventoryController extends Controller
                         $pos = stripos($descText, strtolower($term));
                         if ($pos !== false && $pos > $lastPos) {
                             $lastPos = $pos;
-                            $descSequenceScore += 8; // Menor puntaje por secuencia en descripción
+                            $descSequenceScore += 5; // Menor puntaje por secuencia en descripción
                         } else {
                             $termsInOrder = false;
                             break;
@@ -289,7 +312,7 @@ class SupplierInventoryController extends Controller
                 }
                 
                 if ($termsInOrder && $descSequenceScore > 0) {
-                    return '1_3_' . str_pad(1000 - $descSequenceScore, 4, '0', STR_PAD_LEFT) . '_' . $productName;
+                    return '1_4_' . str_pad(1000 - $descSequenceScore, 4, '0', STR_PAD_LEFT) . '_' . $productName;
                 }
                 
                 // Verificar secuencia en texto completo (última opción)
@@ -311,7 +334,7 @@ class SupplierInventoryController extends Controller
                 }
                 
                 if ($termsInOrder && $fullSequenceScore > 0) {
-                    return '1_4_' . str_pad(1000 - $fullSequenceScore, 4, '0', STR_PAD_LEFT) . '_' . $productName;
+                    return '1_5_' . str_pad(1000 - $fullSequenceScore, 4, '0', STR_PAD_LEFT) . '_' . $productName;
                 }
             }
             

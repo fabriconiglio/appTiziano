@@ -208,7 +208,7 @@
                                                         <div class="d-flex align-items-end">
                                                             <input type="text" class="form-control subtotal-display" readonly style="flex: 1; margin-right: 8px;">
                                                             <button type="button" class="btn btn-outline-danger btn-sm remove-product" 
-                                                                    onclick="removeProduct({{ $index }})" style="height: 45px; min-width: 45px; flex-shrink: 0;">
+                                                                    data-index="{{ $index }}" style="height: 45px; min-width: 45px; flex-shrink: 0;">
                                                                 <i class="fas fa-trash"></i>
                                                             </button>
                                                         </div>
@@ -438,7 +438,7 @@
                 $(this).closest('.product-row').find('.stock-display').val(stock);
             });
 
-            let productIndex = {{ count($distributorTechnicalRecord->products_purchased ?? []) }};
+            let productIndex = parseInt('{{ count($distributorTechnicalRecord->products_purchased ?? []) }}');
 
             function addProductRow() {
                 const productRow = `
@@ -470,7 +470,7 @@
                                 <div class="d-flex align-items-end">
                                     <input type="text" class="form-control subtotal-display" readonly style="flex: 1; margin-right: 8px;">
                                     <button type="button" class="btn btn-outline-danger btn-sm remove-product" 
-                                            onclick="removeProduct(${productIndex})" style="height: 45px; min-width: 45px; flex-shrink: 0;">
+                                            data-index="${productIndex}" style="height: 45px; min-width: 45px; flex-shrink: 0;">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
@@ -649,6 +649,13 @@
                 addProductRow();
             });
             
+            // Evento para eliminar productos
+            $(document).on('click', '.remove-product', function() {
+                const index = $(this).data('index');
+                $(`.product-row[data-index="${index}"]`).remove();
+                calculateTotal();
+            });
+
             // Inicializar eventos para productos existentes
             $('.product-row').each(function() {
                 const productRow = $(this);
@@ -736,10 +743,7 @@
             });
         });
 
-        function removeProduct(index) {
-            $(`.product-row[data-index="${index}"]`).remove();
-            calculateTotal();
-        }
+
         
         // Función para calcular subtotal de una fila
         function calculateSubtotal(productRow) {

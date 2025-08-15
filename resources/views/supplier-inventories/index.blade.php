@@ -160,7 +160,7 @@
                                 Mostrando {{ $inventories->firstItem() ?? 0 }} a {{ $inventories->lastItem() ?? 0 }} de {{ $inventories->total() }} resultados
                             </div>
                             <div>
-                                {{ $inventories->links() }}
+                                {{ $inventories->appends(request()->query())->links() }}
                             </div>
                         </div>
                     </div>

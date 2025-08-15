@@ -79,15 +79,14 @@ class SupplierInventoryController extends Controller
         $searchTerms = explode(' ', $query);
         
         $products = SupplierInventory::with('distributorBrand')
+            ->leftJoin('distributor_brands', 'supplier_inventories.distributor_brand_id', '=', 'distributor_brands.id')
             ->where(function($q) use ($query, $searchTerms) {
                 // Búsqueda exacta de la consulta completa
                 $q->where('product_name', 'LIKE', "%{$query}%")
                   ->orWhere('description', 'LIKE', "%{$query}%")
                   ->orWhere('sku', 'LIKE', "%{$query}%")
                   ->orWhere('brand', 'LIKE', "%{$query}%")
-                  ->orWhereHas('distributorBrand', function($brandQuery) use ($query) {
-                      $brandQuery->where('name', 'LIKE', "%{$query}%");
-                  });
+                  ->orWhere('distributor_brands.name', 'LIKE', "%{$query}%");
                 
                 // Búsqueda por palabras individuales (si hay más de una palabra)
                 if (count($searchTerms) > 1) {
@@ -96,15 +95,14 @@ class SupplierInventoryController extends Controller
                             $q->orWhere('product_name', 'LIKE', "%{$term}%")
                               ->orWhere('description', 'LIKE', "%{$term}%")
                               ->orWhere('brand', 'LIKE', "%{$term}%")
-                              ->orWhereHas('distributorBrand', function($brandQuery) use ($term) {
-                                  $brandQuery->where('name', 'LIKE', "%{$term}%");
-                              });
+                              ->orWhere('distributor_brands.name', 'LIKE', "%{$term}%");
                         }
                     }
                 }
             })
-            ->orderBy('product_name', 'asc') // Ordenar por nombre del producto
-            ->orderBy('distributor_brand_id', 'asc') // Luego por marca
+            ->orderByRaw("CASE WHEN distributor_brands.name LIKE '%{$query}%' THEN 0 ELSE 1 END") // Priorizar coincidencias exactas de marca
+            ->orderBy('supplier_inventories.product_name', 'asc') // Luego por nombre del producto
+            ->orderBy('distributor_brands.name', 'asc') // Finalmente por nombre de marca
             ->get(['id', 'product_name', 'description', 'stock_quantity', 'sku', 'distributor_brand_id', 'brand', 'precio_mayor', 'precio_menor', 'costo']);
 
 

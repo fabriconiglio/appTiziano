@@ -74,7 +74,7 @@ class SupplierInventoryController extends Controller
         if (empty($query)) {
             return response()->json([]);
         }
-
+    
         // Dividir la consulta en palabras para búsqueda más flexible
         $searchTerms = explode(' ', $query);
         
@@ -103,11 +103,8 @@ class SupplierInventoryController extends Controller
                     }
                 }
             })
-            ->orderBy('product_name', 'asc') // Ordenar por nombre del producto
-            ->orderBy('distributor_brand_id', 'asc') // Luego por marca
             ->get(['id', 'product_name', 'description', 'stock_quantity', 'sku', 'distributor_brand_id', 'brand', 'precio_mayor', 'precio_menor', 'costo']);
-
-
+    
         // Modificar los productos para incluir nombre-descripción-marca como texto de búsqueda
         $products->transform(function ($product) {
             $productName = $product->product_name;
@@ -129,47 +126,114 @@ class SupplierInventoryController extends Controller
             
             return $product;
         });
-
-        // Ordenar productos para priorizar coincidencias de marca y nombre
+    
+        // Ordenar productos con algoritmo de relevancia mejorado
         $products = $products->sortBy(function ($product) use ($query, $searchTerms) {
-            $brand = $product->distributorBrand ? $product->distributorBrand->name : '';
-            $productName = $product->product_name;
+            $brand = $product->distributorBrand ? $product->distributorBrand->name : ($product->brand ?: '');
+            $productName = $product->product_name ?: '';
             $description = $product->description ?: '';
             
-            // Buscar coincidencias en cada término de búsqueda
-            $brandMatches = 0;
-            $nameMatches = 0;
+            // Crear texto completo para búsqueda
+            $fullText = strtolower($productName . ' ' . $description . ' ' . $brand);
+            $queryLower = strtolower($query);
+            
+            // 1. MÁXIMA PRIORIDAD: Coincidencia exacta completa en cualquier campo
+            if (stripos($productName, $query) !== false || 
+                stripos($description, $query) !== false || 
+                stripos($brand, $query) !== false) {
+                
+                // Sub-prioridad: nombre del producto > descripción > marca
+                if (stripos($productName, $query) !== false) {
+                    return '1_1_' . $productName; // Coincidencia exacta en nombre
+                } elseif (stripos($description, $query) !== false) {
+                    return '1_2_' . $productName; // Coincidencia exacta en descripción
+                } else {
+                    return '1_3_' . $productName; // Coincidencia exacta en marca
+                }
+            }
+            
+            // 2. SEGUNDA PRIORIDAD: Todos los términos de búsqueda presentes
+            $allTermsFound = true;
+            $termMatchScore = 0;
+            $termPositions = [];
             
             foreach ($searchTerms as $term) {
-                if (strlen($term) > 2) {
-                    // Contar coincidencias de marca
-                    if (stripos($brand, $term) !== false) {
-                        $brandMatches++;
-                    }
-                    // Contar coincidencias de nombre
+                if (strlen($term) > 1) {
+                    $termFound = false;
+                    $termLower = strtolower($term);
+                    
+                    // Verificar en nombre del producto (mayor peso)
                     if (stripos($productName, $term) !== false) {
-                        $nameMatches++;
+                        $termFound = true;
+                        $termMatchScore += 10;
+                        $termPositions[] = stripos(strtolower($productName), $termLower);
+                    }
+                    // Verificar en descripción (peso medio)
+                    elseif (stripos($description, $term) !== false) {
+                        $termFound = true;
+                        $termMatchScore += 5;
+                        $termPositions[] = stripos(strtolower($description), $termLower);
+                    }
+                    // Verificar en marca (menor peso)
+                    elseif (stripos($brand, $term) !== false) {
+                        $termFound = true;
+                        $termMatchScore += 3;
+                        $termPositions[] = stripos(strtolower($brand), $termLower);
+                    }
+                    
+                    if (!$termFound) {
+                        $allTermsFound = false;
+                        break;
                     }
                 }
             }
             
-            // Prioridad 0: Coincidencia perfecta (marca + nombre)
-            if ($brandMatches > 0 && $nameMatches > 0) {
-                return '0_' . (10 - $brandMatches - $nameMatches) . '_' . $productName;
+            // Si todos los términos están presentes
+            if ($allTermsFound && count($searchTerms) > 1) {
+                // Calcular proximidad de términos (términos más cercanos = mejor ranking)
+                $proximityBonus = 0;
+                if (count($termPositions) > 1) {
+                    $proximityBonus = 100 - (max($termPositions) - min($termPositions));
+                    $proximityBonus = max(0, $proximityBonus);
+                }
+                
+                $finalScore = $termMatchScore + $proximityBonus;
+                return '2_' . str_pad(1000 - $finalScore, 4, '0', STR_PAD_LEFT) . '_' . $productName;
             }
             
-            // Prioridad 1: Solo coincidencia de marca
-            if ($brandMatches > 0) {
-                return '1_' . (10 - $brandMatches) . '_' . $productName;
+            // 3. TERCERA PRIORIDAD: Coincidencias parciales por campo
+            $partialScore = 0;
+            
+            // Contar coincidencias por campo
+            $nameMatches = 0;
+            $descMatches = 0;
+            $brandMatches = 0;
+            
+            foreach ($searchTerms as $term) {
+                if (strlen($term) > 1) {
+                    if (stripos($productName, $term) !== false) $nameMatches++;
+                    if (stripos($description, $term) !== false) $descMatches++;
+                    if (stripos($brand, $term) !== false) $brandMatches++;
+                }
             }
             
-            // Prioridad 2: Solo coincidencia de nombre
-            if ($nameMatches > 0) {
-                return '2_' . (10 - $nameMatches) . '_' . $productName;
+            // Calcular score basado en el tipo de coincidencias
+            if ($nameMatches > 0 && $brandMatches > 0) {
+                // Nombre + marca (como "tintura" en nombre y "colormaster" en marca)
+                return '3_1_' . str_pad(100 - ($nameMatches * 10 + $brandMatches * 5), 3, '0', STR_PAD_LEFT) . '_' . $productName;
+            } elseif ($nameMatches > 0) {
+                // Solo en nombre
+                return '3_2_' . str_pad(100 - ($nameMatches * 10), 3, '0', STR_PAD_LEFT) . '_' . $productName;
+            } elseif ($brandMatches > 0) {
+                // Solo en marca
+                return '3_3_' . str_pad(100 - ($brandMatches * 5), 3, '0', STR_PAD_LEFT) . '_' . $productName;
+            } elseif ($descMatches > 0) {
+                // Solo en descripción
+                return '3_4_' . str_pad(100 - ($descMatches * 3), 3, '0', STR_PAD_LEFT) . '_' . $productName;
             }
             
-            // Prioridad 3: Otros productos
-            return '3_' . $productName;
+            // 4. BAJA PRIORIDAD: Otros productos
+            return '9_' . $productName;
         })->values();
         
         return response()->json($products);

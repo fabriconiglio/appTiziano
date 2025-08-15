@@ -74,7 +74,7 @@ class SupplierInventoryController extends Controller
         if (empty($query)) {
             return response()->json([]);
         }
-
+    
         // Dividir la consulta en palabras para búsqueda más flexible
         $searchTerms = explode(' ', $query);
         
@@ -82,29 +82,29 @@ class SupplierInventoryController extends Controller
             ->where(function($q) use ($query, $searchTerms) {
                 // Búsqueda exacta de la consulta completa
                 $q->where('product_name', 'LIKE', "%{$query}%")
-                ->orWhere('description', 'LIKE', "%{$query}%")
-                ->orWhere('sku', 'LIKE', "%{$query}%")
-                ->orWhere('brand', 'LIKE', "%{$query}%")
-                ->orWhereHas('distributorBrand', function($brandQuery) use ($query) {
-                    $brandQuery->where('name', 'LIKE', "%{$query}%");
-                });
+                  ->orWhere('description', 'LIKE', "%{$query}%")
+                  ->orWhere('sku', 'LIKE', "%{$query}%")
+                  ->orWhere('brand', 'LIKE', "%{$query}%")
+                  ->orWhereHas('distributorBrand', function($brandQuery) use ($query) {
+                      $brandQuery->where('name', 'LIKE', "%{$query}%");
+                  });
                 
                 // Búsqueda por palabras individuales (si hay más de una palabra)
                 if (count($searchTerms) > 1) {
                     foreach ($searchTerms as $term) {
                         if (strlen($term) > 2) { // Solo términos de más de 2 caracteres
                             $q->orWhere('product_name', 'LIKE', "%{$term}%")
-                            ->orWhere('description', 'LIKE', "%{$term}%")
-                            ->orWhere('brand', 'LIKE', "%{$term}%")
-                            ->orWhereHas('distributorBrand', function($brandQuery) use ($term) {
-                                $brandQuery->where('name', 'LIKE', "%{$term}%");
-                            });
+                              ->orWhere('description', 'LIKE', "%{$term}%")
+                              ->orWhere('brand', 'LIKE', "%{$term}%")
+                              ->orWhereHas('distributorBrand', function($brandQuery) use ($term) {
+                                  $brandQuery->where('name', 'LIKE', "%{$term}%");
+                              });
                         }
                     }
                 }
             })
             ->get(['id', 'product_name', 'description', 'stock_quantity', 'sku', 'distributor_brand_id', 'brand', 'precio_mayor', 'precio_menor', 'costo']);
-
+    
         // Modificar los productos para incluir nombre-descripción-marca como texto de búsqueda
         $products->transform(function ($product) {
             $productName = $product->product_name;
@@ -126,7 +126,7 @@ class SupplierInventoryController extends Controller
             
             return $product;
         });
-
+    
         // Ordenar productos con algoritmo de relevancia mejorado
         $products = $products->sortBy(function ($product) use ($query, $searchTerms) {
             $brand = $product->distributorBrand ? $product->distributorBrand->name : ($product->brand ?: '');
@@ -152,6 +152,72 @@ class SupplierInventoryController extends Controller
                     return '0_3_' . $productName; // Coincidencia exacta en marca
                 } else {
                     return '0_4_' . $productName; // Coincidencia exacta en texto completo
+                }
+            }
+            
+            // 1.5 NUEVA PRIORIDAD ESPECIAL: Términos clave en nombre + resto en marca
+            if (count($searchTerms) > 1) {
+                // Buscar si los primeros términos están en el nombre y los últimos en la marca
+                $nameMatchCount = 0;
+                $brandMatchCount = 0;
+                $nameTermsMatched = [];
+                $brandTermsMatched = [];
+                
+                foreach ($searchTerms as $index => $term) {
+                    if (strlen($term) > 1) {
+                        $termLower = strtolower($term);
+                        
+                        // Verificar si el término está en el nombre
+                        if (stripos($productName, $term) !== false) {
+                            $nameMatchCount++;
+                            $nameTermsMatched[] = $index;
+                        }
+                        
+                        // Verificar si el término está en la marca
+                        if (stripos($brand, $term) !== false) {
+                            $brandMatchCount++;
+                            $brandTermsMatched[] = $index;
+                        }
+                    }
+                }
+                
+                // Si tenemos al menos 1 término en nombre y 1 en marca
+                if ($nameMatchCount > 0 && $brandMatchCount > 0) {
+                    // Calcular score especial basado en la distribución
+                    $distributionScore = 0;
+                    
+                    // Bonus si los términos del nombre son los primeros de la búsqueda
+                    $consecutiveNameTerms = 0;
+                    for ($i = 0; $i < count($searchTerms); $i++) {
+                        if (in_array($i, $nameTermsMatched)) {
+                            $consecutiveNameTerms++;
+                        } else {
+                            break;
+                        }
+                    }
+                    
+                    // Bonus si los términos de la marca son los últimos de la búsqueda
+                    $consecutiveBrandTerms = 0;
+                    for ($i = count($searchTerms) - 1; $i >= 0; $i--) {
+                        if (in_array($i, $brandTermsMatched)) {
+                            $consecutiveBrandTerms++;
+                        } else {
+                            break;
+                        }
+                    }
+                    
+                    // Calcular puntaje especial
+                    $distributionScore = ($consecutiveNameTerms * 25) + ($consecutiveBrandTerms * 20) + ($nameMatchCount * 15) + ($brandMatchCount * 10);
+                    
+                    // Si es una distribución buena (ej: "tintura 3" en nombre, "colormaster" en marca)
+                    if ($consecutiveNameTerms > 0 && $consecutiveBrandTerms > 0) {
+                        return '0_5_' . str_pad(1000 - $distributionScore, 4, '0', STR_PAD_LEFT) . '_' . $productName;
+                    }
+                    
+                    // Si hay buena distribución pero no perfecta
+                    if ($distributionScore > 40) {
+                        return '0_6_' . str_pad(1000 - $distributionScore, 4, '0', STR_PAD_LEFT) . '_' . $productName;
+                    }
                 }
             }
             

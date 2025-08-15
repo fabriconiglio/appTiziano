@@ -130,23 +130,46 @@ class SupplierInventoryController extends Controller
             return $product;
         });
 
-        // Ordenar productos para priorizar coincidencias de marca
-        $products = $products->sortBy(function ($product) use ($query) {
+        // Ordenar productos para priorizar coincidencias de marca y nombre
+        $products = $products->sortBy(function ($product) use ($query, $searchTerms) {
             $brand = $product->distributorBrand ? $product->distributorBrand->name : '';
             $productName = $product->product_name;
+            $description = $product->description ?: '';
             
-            // Prioridad 0: Coincidencia exacta de marca
-            if (stripos($brand, $query) !== false) {
-                return '0_' . $productName;
+            // Buscar coincidencias en cada término de búsqueda
+            $brandMatches = 0;
+            $nameMatches = 0;
+            
+            foreach ($searchTerms as $term) {
+                if (strlen($term) > 2) {
+                    // Contar coincidencias de marca
+                    if (stripos($brand, $term) !== false) {
+                        $brandMatches++;
+                    }
+                    // Contar coincidencias de nombre
+                    if (stripos($productName, $term) !== false) {
+                        $nameMatches++;
+                    }
+                }
             }
             
-            // Prioridad 1: Coincidencia parcial de marca
-            if (stripos($brand, $query) !== false) {
-                return '1_' . $productName;
+            // Prioridad 0: Coincidencia perfecta (marca + nombre)
+            if ($brandMatches > 0 && $nameMatches > 0) {
+                return '0_' . (10 - $brandMatches - $nameMatches) . '_' . $productName;
             }
             
-            // Prioridad 2: Otros productos
-            return '2_' . $productName;
+            // Prioridad 1: Solo coincidencia de marca
+            if ($brandMatches > 0) {
+                return '1_' . (10 - $brandMatches) . '_' . $productName;
+            }
+            
+            // Prioridad 2: Solo coincidencia de nombre
+            if ($nameMatches > 0) {
+                return '2_' . (10 - $nameMatches) . '_' . $productName;
+            }
+            
+            // Prioridad 3: Otros productos
+            return '3_' . $productName;
         })->values();
         
         return response()->json($products);

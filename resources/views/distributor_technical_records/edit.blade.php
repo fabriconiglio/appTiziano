@@ -312,6 +312,26 @@
                 $('.product-description-select').select2({
                     placeholder: 'Buscar por nombre y marca...',
                     allowClear: true,
+                    language: {
+                        errorLoading: function() {
+                            return 'No se pudieron cargar los resultados.';
+                        },
+                        inputTooShort: function() {
+                            return 'Por favor ingresa más caracteres.';
+                        },
+                        loadingMore: function() {
+                            return 'Cargando más resultados…';
+                        },
+                        maximumSelected: function() {
+                            return 'Solo puedes seleccionar un elemento.';
+                        },
+                        noResults: function() {
+                            return 'No se encontraron resultados.';
+                        },
+                        searching: function() {
+                            return 'Buscando…';
+                        }
+                    },
                     ajax: {
                         url: '{{ route("api.supplier-inventories.search") }}',
                         dataType: 'json',
@@ -465,6 +485,26 @@
                 $(`.product-row[data-index="${productIndex}"] .product-description-select`).select2({
                     placeholder: 'Buscar por nombre y marca...',
                     allowClear: true,
+                    language: {
+                        errorLoading: function() {
+                            return 'No se pudieron cargar los resultados.';
+                        },
+                        inputTooShort: function() {
+                            return 'Por favor ingresa más caracteres.';
+                        },
+                        loadingMore: function() {
+                            return 'Cargando más resultados…';
+                        },
+                        maximumSelected: function() {
+                            return 'Solo puedes seleccionar un elemento.';
+                        },
+                        noResults: function() {
+                            return 'No se encontraron resultados.';
+                        },
+                        searching: function() {
+                            return 'Buscando…';
+                        }
+                    },
                     ajax: {
                         url: '{{ route("api.supplier-inventories.search") }}',
                         dataType: 'json',

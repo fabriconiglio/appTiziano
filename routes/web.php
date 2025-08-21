@@ -66,8 +66,10 @@ Route::get('/api/supplier-inventories/get-product', [App\Http\Controllers\Suppli
         ->name('supplier-inventories.adjust-stock');
     Route::get('supplier-inventories/export/excel', [SupplierInventoryController::class, 'exportToExcel'])
         ->name('supplier-inventories.export-excel');
-    Route::get('supplier-inventories/export/pdf', [SupplierInventoryController::class, 'exportToPdf'])
-        ->name('supplier-inventories.export-pdf');
+    Route::get('supplier-inventories/export/lista-mayorista', [SupplierInventoryController::class, 'exportListaMayorista'])
+        ->name('supplier-inventories.export-lista-mayorista');
+    Route::get('supplier-inventories/export/lista-minorista', [SupplierInventoryController::class, 'exportListaMinorista'])
+        ->name('supplier-inventories.export-lista-minorista');
 
     // CRUD de categorías
     Route::resource('categories', CategoryController::class);

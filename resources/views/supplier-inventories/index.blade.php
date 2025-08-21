@@ -14,8 +14,11 @@
                             <a href="{{ route('supplier-inventories.export-excel') }}" class="btn btn-success btn-sm me-2">
                                 <i class="fas fa-file-excel"></i> Exportar a Excel
                             </a>
-                            <a href="{{ route('supplier-inventories.export-pdf') }}" class="btn btn-danger btn-sm">
-                                <i class="fas fa-file-pdf"></i> Exportar a PDF
+                            <a href="{{ route('supplier-inventories.export-lista-mayorista') }}" class="btn btn-danger btn-sm">
+                                <i class="fas fa-file-pdf"></i> Lista Mayorista
+                            </a>
+                            <a href="{{ route('supplier-inventories.export-lista-minorista') }}" class="btn btn-danger btn-sm">
+                                <i class="fas fa-file-pdf"></i> Lista Minorista
                             </a>
                         </div>
                     </div>

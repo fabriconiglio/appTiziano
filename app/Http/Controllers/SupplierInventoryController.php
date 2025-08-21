@@ -717,55 +717,80 @@ class SupplierInventoryController extends Controller
     }
 
     /**
-     * Export inventory to PDF with 3 sections
+     * Export lista mayorista to PDF
      */
-    public function exportToPdf()
+    public function exportListaMayorista()
     {
         // Obtener todos los productos con sus relaciones
         $products = SupplierInventory::with(['distributorBrand', 'distributorCategory'])
             ->orderBy('product_name')
             ->get();
 
-        // Preparar los datos para cada sección
-        $completeInventory = [];
-        $mayorPrices = [];
-        $menorPrices = [];
+        // Preparar los datos para lista mayorista
+        $mayoristaData = [];
 
         foreach ($products as $product) {
             $description = $product->description ?: $product->product_name;
             $brand = $product->distributorBrand ? $product->distributorBrand->name : '';
             $displayText = !empty($brand) ? $description . ' - ' . $brand : $description;
+            $category = $product->distributorCategory ? $product->distributorCategory->name : 'Sin categoría';
             
-            $completeInventory[] = [
+            $mayoristaData[] = [
                 'name' => $product->product_name,
                 'description' => $displayText,
                 'precio_mayor' => $product->precio_mayor ? '$' . number_format($product->precio_mayor, 2) : 'N/A',
-                'precio_menor' => $product->precio_menor ? '$' . number_format($product->precio_menor, 2) : 'N/A',
-                'costo' => $product->costo ? '$' . number_format($product->costo, 2) : 'N/A'
-            ];
-
-            $mayorPrices[] = [
-                'name' => $product->product_name,
-                'description' => $displayText,
-                'precio_mayor' => $product->precio_mayor ? '$' . number_format($product->precio_mayor, 2) : 'N/A'
-            ];
-
-            $menorPrices[] = [
-                'name' => $product->product_name,
-                'description' => $displayText,
-                'precio_menor' => $product->precio_menor ? '$' . number_format($product->precio_menor, 2) : 'N/A'
+                'stock' => $product->stock_quantity,
+                'category' => $category
             ];
         }
 
         $data = [
-            'completeInventory' => $completeInventory,
-            'mayorPrices' => $mayorPrices,
-            'menorPrices' => $menorPrices,
-            'exportDate' => now()->format('d/m/Y H:i:s')
+            'products' => $mayoristaData,
+            'exportDate' => now()->format('d/m/Y H:i:s'),
+            'title' => 'Lista de Precios por Mayor'
         ];
 
-        $pdf = Pdf::loadView('supplier-inventories.pdf', $data);
+        $pdf = Pdf::loadView('supplier-inventories.lista-mayorista', $data);
         
-        return $pdf->download('inventario_' . date('Y-m-d_H-i-s') . '.pdf');
+        return $pdf->download('lista_mayorista_' . date('Y-m-d_H-i-s') . '.pdf');
+    }
+
+    /**
+     * Export lista minorista to PDF
+     */
+    public function exportListaMinorista()
+    {
+        // Obtener todos los productos con sus relaciones
+        $products = SupplierInventory::with(['distributorBrand', 'distributorCategory'])
+            ->orderBy('product_name')
+            ->get();
+
+        // Preparar los datos para lista minorista
+        $minoristaData = [];
+
+        foreach ($products as $product) {
+            $description = $product->description ?: $product->product_name;
+            $brand = $product->distributorBrand ? $product->distributorBrand->name : '';
+            $displayText = !empty($brand) ? $description . ' - ' . $brand : $description;
+            $category = $product->distributorCategory ? $product->distributorCategory->name : 'Sin categoría';
+            
+            $minoristaData[] = [
+                'name' => $product->product_name,
+                'description' => $displayText,
+                'precio_menor' => $product->precio_menor ? '$' . number_format($product->precio_menor, 2) : 'N/A',
+                'stock' => $product->stock_quantity,
+                'category' => $category
+            ];
+        }
+
+        $data = [
+            'products' => $minoristaData,
+            'exportDate' => now()->format('d/m/Y H:i:s'),
+            'title' => 'Lista de Precios por Menor'
+        ];
+
+        $pdf = Pdf::loadView('supplier-inventories.lista-minorista', $data);
+        
+        return $pdf->download('lista_minorista_' . date('Y-m-d_H-i-s') . '.pdf');
     }
 }

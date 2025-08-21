@@ -176,9 +176,9 @@
                                     <select class="form-select @error('payment_method') is-invalid @enderror"
                                             id="payment_method" name="payment_method">
                                         <option value="">Seleccionar método</option>
-                                        <option value="efectivo" {{ old('payment_method', $distributorTechnicalRecord->payment_method) == 'selected' : '' }}>Efectivo</option>
-                                        <option value="tarjeta" {{ old('payment_method', $distributorTechnicalRecord->payment_method) == 'selected' : '' }}>Tarjeta</option>
-                                        <option value="transferencia" {{ old('payment_method', $distributorTechnicalRecord->payment_method) == 'selected' : '' }}>Transferencia</option>
+                                        <option value="efectivo" {{ old('payment_method', $distributorTechnicalRecord->payment_method) == 'efectivo' ? 'selected' : '' }}>Efectivo</option>
+                                        <option value="tarjeta" {{ old('payment_method', $distributorTechnicalRecord->payment_method) == 'tarjeta' ? 'selected' : '' }}>Tarjeta</option>
+                                        <option value="transferencia" {{ old('payment_method', $distributorTechnicalRecord->payment_method) == 'transferencia' ? 'selected' : '' }}>Transferencia</option>
                                         <option value="cheque" {{ old('payment_method', $distributorTechnicalRecord->payment_method) == 'cheque' ? 'selected' : '' }}>Cheque</option>
                                     </select>
                                     @error('payment_method')

@@ -12,6 +12,7 @@ class DistributorTechnicalRecord extends Model
         'purchase_date',
         'purchase_type',
         'total_amount',
+        'advance_payment',
         'payment_method',
         'products_purchased',
         'observations',
@@ -23,7 +24,8 @@ class DistributorTechnicalRecord extends Model
         'products_purchased' => 'array',
         'photos' => 'array',
         'purchase_date' => 'datetime',
-        'total_amount' => 'decimal:2'
+        'total_amount' => 'decimal:2',
+        'advance_payment' => 'decimal:2'
     ];
 
     public function distributorClient()
@@ -47,5 +49,14 @@ class DistributorTechnicalRecord extends Model
     public function getRouteKeyName()
     {
         return 'id';
+    }
+
+    /**
+     * Get the final amount after deducting advance payment.
+     */
+    public function getFinalAmountAttribute()
+    {
+        $advance = $this->advance_payment ?? 0;
+        return max(0, $this->total_amount - $advance);
     }
 }

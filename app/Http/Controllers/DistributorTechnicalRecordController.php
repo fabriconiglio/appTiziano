@@ -8,8 +8,12 @@ use App\Models\DistributorTechnicalRecord;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Barryvdh\DomPDF\Facade\Pdf;
 
+/**
+ * @property DistributorClient $distributorClient
+ */
 class DistributorTechnicalRecordController extends Controller
 {
     /**
@@ -34,6 +38,10 @@ class DistributorTechnicalRecordController extends Controller
 
     /**
      * Store a newly created resource in storage.
+     * 
+     * @param Request $request
+     * @param DistributorClient $distributorClient
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function store(Request $request, DistributorClient $distributorClient)
     {
@@ -41,6 +49,7 @@ class DistributorTechnicalRecordController extends Controller
             'purchase_date' => 'required|date',
             'purchase_type' => 'nullable|string',
             'total_amount' => 'nullable|numeric|min:0',
+            'advance_payment' => 'nullable|numeric|min:0',
             'payment_method' => 'nullable|string',
             'products_purchased' => 'nullable|array',
             'products_purchased.*.product_id' => 'required|exists:supplier_inventories,id',
@@ -176,6 +185,7 @@ class DistributorTechnicalRecordController extends Controller
             'purchase_date' => 'required|date',
             'purchase_type' => 'nullable|string',
             'total_amount' => 'nullable|numeric|min:0',
+            'advance_payment' => 'nullable|numeric|min:0',
             'payment_method' => 'nullable|string',
             'products_purchased' => 'nullable|array',
             'products_purchased.*.product_id' => 'required|exists:supplier_inventories,id',
@@ -330,7 +340,7 @@ class DistributorTechnicalRecordController extends Controller
             return response()->json(['success' => true]);
 
         } catch (\Exception $e) {
-            \Log::error('Error al eliminar foto: ' . $e->getMessage());
+            Log::error('Error al eliminar foto: ' . $e->getMessage());
             return response()->json(['message' => 'Error al eliminar la foto'], 500);
         }
     }

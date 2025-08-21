@@ -118,16 +118,34 @@
                             </div>
 
                             <div class="row mb-3">
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <label for="total_amount" class="form-label">Monto Total</label>
                                     <input type="number" step="0.01" class="form-control @error('total_amount') is-invalid @enderror"
                                            id="total_amount" name="total_amount"
-                                           value="{{ old('total_amount') }}" placeholder="0.00">
+                                           value="{{ old('total_amount') }}" placeholder="0.00" readonly>
                                     @error('total_amount')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
 
+                                <div class="col-md-4">
+                                    <label for="advance_payment" class="form-label">Entrega Anticipada de Dinero</label>
+                                    <input type="number" step="0.01" class="form-control @error('advance_payment') is-invalid @enderror"
+                                           id="advance_payment" name="advance_payment"
+                                           value="{{ old('advance_payment', 0) }}" placeholder="0.00">
+                                    @error('advance_payment')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label for="final_amount" class="form-label">Monto Final a Pagar</label>
+                                    <input type="text" class="form-control" id="final_amount" readonly 
+                                           value="$0.00" style="background-color: #e9ecef;">
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
                                 <div class="col-md-6">
                                     <label for="payment_method" class="form-label">Método de Pago</label>
                                     <select class="form-select @error('payment_method') is-invalid @enderror"
@@ -516,7 +534,22 @@
                 });
                 
                 $('#total_amount').val(total.toFixed(2));
+                calculateFinalAmount();
             }
+
+            // Función para calcular monto final
+            function calculateFinalAmount() {
+                const total = parseFloat($('#total_amount').val()) || 0;
+                const advance = parseFloat($('#advance_payment').val()) || 0;
+                const finalAmount = Math.max(0, total - advance);
+                
+                $('#final_amount').val('$' + finalAmount.toFixed(2));
+            }
+
+            // Evento para recalcular monto final cuando cambie el adelanto
+            $('#advance_payment').on('input', function() {
+                calculateFinalAmount();
+            });
         });
 
         function removeProduct(index) {

@@ -81,6 +81,18 @@
         .total-row td {
             border-bottom: none;
         }
+
+        .advance-row {
+            background-color: #fff3cd !important;
+            color: #856404;
+            font-weight: bold;
+        }
+
+        .final-row {
+            background-color: #d1ecf1 !important;
+            color: #0c5460;
+            font-weight: bold;
+        }
         .footer {
             margin-top: 30px;
             text-align: center;
@@ -169,6 +181,10 @@
                 @endswitch<br>
                 <strong>Vendedor:</strong> {{ $technicalRecord->user->name }}<br>
                 <strong>Total:</strong> ${{ number_format($total, 2) }}
+                @if($technicalRecord->advance_payment && $technicalRecord->advance_payment > 0)
+                    <br><strong>Adelanto:</strong> ${{ number_format($technicalRecord->advance_payment, 2) }}
+                    <br><strong>Monto Final:</strong> ${{ number_format($technicalRecord->final_amount, 2) }}
+                @endif
             </div>
         </div>
     </div>
@@ -197,6 +213,16 @@
                 <td colspan="4" style="text-align: right;"><strong>TOTAL:</strong></td>
                 <td><strong>${{ number_format($total, 2) }}</strong></td>
             </tr>
+            @if($technicalRecord->advance_payment && $technicalRecord->advance_payment > 0)
+            <tr class="advance-row">
+                <td colspan="4" style="text-align: right;"><strong>ADELANTO:</strong></td>
+                <td><strong>-${{ number_format($technicalRecord->advance_payment, 2) }}</strong></td>
+            </tr>
+            <tr class="final-row">
+                <td colspan="4" style="text-align: right;"><strong>MONTO FINAL:</strong></td>
+                <td><strong>${{ number_format($technicalRecord->final_amount, 2) }}</strong></td>
+            </tr>
+            @endif
         </tbody>
     </table>
 

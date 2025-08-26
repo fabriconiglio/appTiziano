@@ -71,10 +71,9 @@
     <table>
         <thead>
             <tr>
-                <th style="width: 25%;">Nombre del Producto</th>
-                <th style="width: 35%;">Descripción - Marca</th>
+                <th style="width: 30%;">Nombre del Producto</th>
+                <th style="width: 40%;">Descripción - Marca</th>
                 <th style="width: 15%;">Precio por Menor</th>
-                <th style="width: 10%;">Stock</th>
                 <th style="width: 15%;">Categoría</th>
             </tr>
         </thead>
@@ -84,7 +83,6 @@
                 <td><strong>{{ $product['name'] }}</strong></td>
                 <td>{{ $product['description'] }}</td>
                 <td class="text-right">{{ $product['precio_menor'] }}</td>
-                <td class="text-center">{{ $product['stock'] }}</td>
                 <td>{{ $product['category'] }}</td>
             </tr>
             @endforeach

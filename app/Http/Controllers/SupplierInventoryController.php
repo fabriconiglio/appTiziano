@@ -739,7 +739,6 @@ class SupplierInventoryController extends Controller
                 'name' => $product->product_name,
                 'description' => $displayText,
                 'precio_mayor' => $product->precio_mayor ? '$' . number_format($product->precio_mayor, 2) : 'N/A',
-                'stock' => $product->stock_quantity,
                 'category' => $category
             ];
         }
@@ -778,7 +777,6 @@ class SupplierInventoryController extends Controller
                 'name' => $product->product_name,
                 'description' => $displayText,
                 'precio_menor' => $product->precio_menor ? '$' . number_format($product->precio_menor, 2) : 'N/A',
-                'stock' => $product->stock_quantity,
                 'category' => $category
             ];
         }

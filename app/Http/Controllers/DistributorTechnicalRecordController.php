@@ -49,12 +49,12 @@ class DistributorTechnicalRecordController extends Controller
         Log::info('=== INICIO FICHA TÉCNICA STORE ===');
         Log::info('Request all data:', $request->all());
         Log::info('Products purchased raw:', $request->input('products_purchased', []));
-        Log::info('Total products received:', count($request->input('products_purchased', [])));
+        Log::info('Total products received:', ['count' => count($request->input('products_purchased', []))]);
         
         // Log cada producto individualmente
         $products = $request->input('products_purchased', []);
         foreach ($products as $index => $product) {
-            Log::info("Producto {$index}:", $product);
+            Log::info("Producto {$index}:", ['product' => $product]);
         }
 
         $validated = $request->validate([
@@ -72,7 +72,7 @@ class DistributorTechnicalRecordController extends Controller
         ]);
 
         // Log después de la validación
-        Log::info('Total products after validation:', count($validated['products_purchased'] ?? []));
+        Log::info('Total products after validation:', ['count' => count($validated['products_purchased'] ?? [])]);
         Log::info('Validated products:', $validated['products_purchased'] ?? []);
 
         // Procesar las fotos
@@ -93,7 +93,7 @@ class DistributorTechnicalRecordController extends Controller
         if (!empty($validated['products_purchased'])) {
             Log::info('Procesando productos para calcular total...');
             foreach ($validated['products_purchased'] as $index => $productData) {
-                Log::info("Calculando producto {$index}:", $productData);
+                Log::info("Calculando producto {$index}:", ['product' => $productData]);
                 $supplierInventory = SupplierInventory::find($productData['product_id']);
                 if ($supplierInventory) {
                     // Determinar el precio según el tipo de compra
@@ -115,12 +115,16 @@ class DistributorTechnicalRecordController extends Controller
                             break;
                     }
                     $calculatedTotal += $price * $productData['quantity'];
-                    Log::info("Producto {$index} - Precio: {$price}, Cantidad: {$productData['quantity']}, Subtotal: " . ($price * $productData['quantity']));
+                    Log::info("Producto {$index} - Precio: {$price}, Cantidad: {$productData['quantity']}, Subtotal: " . ($price * $productData['quantity']), [
+                        'price' => $price,
+                        'quantity' => $productData['quantity'],
+                        'subtotal' => $price * $productData['quantity']
+                    ]);
                 }
             }
         }
         $validated['total_amount'] = $calculatedTotal;
-        Log::info('Total calculado:', $calculatedTotal);
+        Log::info('Total calculado:', ['total' => $calculatedTotal]);
 
         // Iniciar transacción para asegurar consistencia
         DB::beginTransaction();
@@ -129,13 +133,13 @@ class DistributorTechnicalRecordController extends Controller
             // Crear la ficha técnica
             Log::info('Creando ficha técnica con datos:', $validated);
             $technicalRecord = DistributorTechnicalRecord::create($validated);
-            Log::info('Ficha técnica creada con ID:', $technicalRecord->id);
+            Log::info('Ficha técnica creada con ID:', ['id' => $technicalRecord->id]);
 
             // Procesar productos comprados y actualizar stock
             if (!empty($validated['products_purchased'])) {
                 Log::info('Procesando productos para actualizar stock...');
                 foreach ($validated['products_purchased'] as $index => $productData) {
-                    Log::info("Procesando stock producto {$index}:", $productData);
+                    Log::info("Procesando stock producto {$index}:", ['product' => $productData]);
                     $supplierInventory = SupplierInventory::find($productData['product_id']);
                     
                     if ($supplierInventory) {
@@ -147,7 +151,11 @@ class DistributorTechnicalRecordController extends Controller
                         // Descontar stock
                         $oldStock = $supplierInventory->stock_quantity;
                         $supplierInventory->decrement('stock_quantity', $productData['quantity']);
-                        Log::info("Stock actualizado para producto {$productData['product_id']}: {$oldStock} -> {$supplierInventory->stock_quantity}");
+                        Log::info("Stock actualizado para producto {$productData['product_id']}: {$oldStock} -> {$supplierInventory->stock_quantity}", [
+                            'product_id' => $productData['product_id'],
+                            'old_stock' => $oldStock,
+                            'new_stock' => $supplierInventory->stock_quantity
+                        ]);
                     }
                 }
             }
@@ -211,15 +219,15 @@ class DistributorTechnicalRecordController extends Controller
         
         // Log detallado para debugging
         Log::info('=== INICIO FICHA TÉCNICA UPDATE ===');
-        Log::info('Technical Record ID:', $technical_record);
+        Log::info('Technical Record ID:', ['id' => $technical_record]);
         Log::info('Request all data:', $request->all());
         Log::info('Products purchased raw:', $request->input('products_purchased', []));
-        Log::info('Total products received:', count($request->input('products_purchased', [])));
+        Log::info('Total products received:', ['count' => count($request->input('products_purchased', []))]);
         
         // Log cada producto individualmente
         $products = $request->input('products_purchased', []);
         foreach ($products as $index => $product) {
-            Log::info("Producto {$index}:", $product);
+            Log::info("Producto {$index}:", ['product' => $product]);
         }
         
         $validated = $request->validate([
@@ -237,7 +245,7 @@ class DistributorTechnicalRecordController extends Controller
         ]);
 
         // Log después de la validación
-        Log::info('Total products after validation:', count($validated['products_purchased'] ?? []));
+        Log::info('Total products after validation:', ['count' => count($validated['products_purchased'] ?? [])]);
         Log::info('Validated products:', $validated['products_purchased'] ?? []);
 
         // Procesar nuevas fotos
@@ -255,7 +263,7 @@ class DistributorTechnicalRecordController extends Controller
         if (!empty($validated['products_purchased'])) {
             Log::info('Procesando productos para calcular total...');
             foreach ($validated['products_purchased'] as $index => $productData) {
-                Log::info("Calculando producto {$index}:", $productData);
+                Log::info("Calculando producto {$index}:", ['product' => $productData]);
                 $supplierInventory = SupplierInventory::find($productData['product_id']);
                 if ($supplierInventory) {
                     // Determinar el precio según el tipo de compra
@@ -277,12 +285,16 @@ class DistributorTechnicalRecordController extends Controller
                             break;
                     }
                     $calculatedTotal += $price * $productData['quantity'];
-                    Log::info("Producto {$index} - Precio: {$price}, Cantidad: {$productData['quantity']}, Subtotal: " . ($price * $productData['quantity']));
+                    Log::info("Producto {$index} - Precio: {$price}, Cantidad: {$productData['quantity']}, Subtotal: " . ($price * $productData['quantity']), [
+                        'price' => $price,
+                        'quantity' => $productData['quantity'],
+                        'subtotal' => $price * $productData['quantity']
+                    ]);
                 }
             }
         }
         $validated['total_amount'] = $calculatedTotal;
-        Log::info('Total calculado:', $calculatedTotal);
+        Log::info('Total calculado:', ['total' => $calculatedTotal]);
 
         // Iniciar transacción
         DB::beginTransaction();
@@ -292,12 +304,16 @@ class DistributorTechnicalRecordController extends Controller
             if (!empty($distributorTechnicalRecord->products_purchased)) {
                 Log::info('Restaurando stock anterior...');
                 foreach ($distributorTechnicalRecord->products_purchased as $index => $productData) {
-                    Log::info("Restaurando stock producto {$index}:", $productData);
+                    Log::info("Restaurando stock producto {$index}:", ['product' => $productData]);
                     $supplierInventory = SupplierInventory::find($productData['product_id']);
                     if ($supplierInventory) {
                         $oldStock = $supplierInventory->stock_quantity;
                         $supplierInventory->increment('stock_quantity', $productData['quantity']);
-                        Log::info("Stock restaurado para producto {$productData['product_id']}: {$oldStock} -> {$supplierInventory->stock_quantity}");
+                        Log::info("Stock restaurado para producto {$productData['product_id']}: {$oldStock} -> {$supplierInventory->stock_quantity}", [
+                            'product_id' => $productData['product_id'],
+                            'old_stock' => $oldStock,
+                            'new_stock' => $supplierInventory->stock_quantity
+                        ]);
                     }
                 }
             }
@@ -311,7 +327,7 @@ class DistributorTechnicalRecordController extends Controller
             if (!empty($validated['products_purchased'])) {
                 Log::info('Procesando nuevos productos para actualizar stock...');
                 foreach ($validated['products_purchased'] as $index => $productData) {
-                    Log::info("Procesando stock producto {$index}:", $productData);
+                    Log::info("Procesando stock producto {$index}:", ['product' => $productData]);
                     $supplierInventory = SupplierInventory::find($productData['product_id']);
                     
                     if ($supplierInventory) {
@@ -323,7 +339,11 @@ class DistributorTechnicalRecordController extends Controller
                         // Descontar stock
                         $oldStock = $supplierInventory->stock_quantity;
                         $supplierInventory->decrement('stock_quantity', $productData['quantity']);
-                        Log::info("Stock actualizado para producto {$productData['product_id']}: {$oldStock} -> {$supplierInventory->stock_quantity}");
+                        Log::info("Stock actualizado para producto {$productData['product_id']}: {$oldStock} -> {$supplierInventory->stock_quantity}", [
+                            'product_id' => $productData['product_id'],
+                            'old_stock' => $oldStock,
+                            'new_stock' => $supplierInventory->stock_quantity
+                        ]);
                     }
                 }
             }

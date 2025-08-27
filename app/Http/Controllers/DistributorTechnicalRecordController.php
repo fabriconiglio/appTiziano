@@ -45,6 +45,18 @@ class DistributorTechnicalRecordController extends Controller
      */
     public function store(Request $request, DistributorClient $distributorClient)
     {
+        // Log detallado para debugging
+        Log::info('=== INICIO FICHA TÉCNICA STORE ===');
+        Log::info('Request all data:', $request->all());
+        Log::info('Products purchased raw:', $request->input('products_purchased', []));
+        Log::info('Total products received:', count($request->input('products_purchased', [])));
+        
+        // Log cada producto individualmente
+        $products = $request->input('products_purchased', []);
+        foreach ($products as $index => $product) {
+            Log::info("Producto {$index}:", $product);
+        }
+
         $validated = $request->validate([
             'purchase_date' => 'required|date',
             'purchase_type' => 'nullable|string',
@@ -58,6 +70,10 @@ class DistributorTechnicalRecordController extends Controller
             'photos.*' => 'nullable|image|max:2048',
             'next_purchase_notes' => 'nullable|string'
         ]);
+
+        // Log después de la validación
+        Log::info('Total products after validation:', count($validated['products_purchased'] ?? []));
+        Log::info('Validated products:', $validated['products_purchased'] ?? []);
 
         // Procesar las fotos
         if ($request->hasFile('photos')) {
@@ -75,7 +91,9 @@ class DistributorTechnicalRecordController extends Controller
         // Calcular el total automáticamente basado en los productos comprados
         $calculatedTotal = 0;
         if (!empty($validated['products_purchased'])) {
-            foreach ($validated['products_purchased'] as $productData) {
+            Log::info('Procesando productos para calcular total...');
+            foreach ($validated['products_purchased'] as $index => $productData) {
+                Log::info("Calculando producto {$index}:", $productData);
                 $supplierInventory = SupplierInventory::find($productData['product_id']);
                 if ($supplierInventory) {
                     // Determinar el precio según el tipo de compra
@@ -97,21 +115,27 @@ class DistributorTechnicalRecordController extends Controller
                             break;
                     }
                     $calculatedTotal += $price * $productData['quantity'];
+                    Log::info("Producto {$index} - Precio: {$price}, Cantidad: {$productData['quantity']}, Subtotal: " . ($price * $productData['quantity']));
                 }
             }
         }
         $validated['total_amount'] = $calculatedTotal;
+        Log::info('Total calculado:', $calculatedTotal);
 
         // Iniciar transacción para asegurar consistencia
         DB::beginTransaction();
         
         try {
             // Crear la ficha técnica
+            Log::info('Creando ficha técnica con datos:', $validated);
             $technicalRecord = DistributorTechnicalRecord::create($validated);
+            Log::info('Ficha técnica creada con ID:', $technicalRecord->id);
 
             // Procesar productos comprados y actualizar stock
             if (!empty($validated['products_purchased'])) {
-                foreach ($validated['products_purchased'] as $productData) {
+                Log::info('Procesando productos para actualizar stock...');
+                foreach ($validated['products_purchased'] as $index => $productData) {
+                    Log::info("Procesando stock producto {$index}:", $productData);
                     $supplierInventory = SupplierInventory::find($productData['product_id']);
                     
                     if ($supplierInventory) {
@@ -121,18 +145,22 @@ class DistributorTechnicalRecordController extends Controller
                         }
                         
                         // Descontar stock
+                        $oldStock = $supplierInventory->stock_quantity;
                         $supplierInventory->decrement('stock_quantity', $productData['quantity']);
+                        Log::info("Stock actualizado para producto {$productData['product_id']}: {$oldStock} -> {$supplierInventory->stock_quantity}");
                     }
                 }
             }
 
             DB::commit();
+            Log::info('=== FICHA TÉCNICA STORE COMPLETADA EXITOSAMENTE ===');
 
             return redirect()->route('distributor-clients.show', $distributorClient)
                 ->with('success', 'Ficha técnica de compra creada exitosamente.');
 
         } catch (\Exception $e) {
             DB::rollback();
+            Log::error('Error en ficha técnica store:', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             return back()->withErrors(['error' => $e->getMessage()])->withInput();
         }
     }
@@ -181,6 +209,19 @@ class DistributorTechnicalRecordController extends Controller
     {
         $distributorTechnicalRecord = DistributorTechnicalRecord::findOrFail($technical_record);
         
+        // Log detallado para debugging
+        Log::info('=== INICIO FICHA TÉCNICA UPDATE ===');
+        Log::info('Technical Record ID:', $technical_record);
+        Log::info('Request all data:', $request->all());
+        Log::info('Products purchased raw:', $request->input('products_purchased', []));
+        Log::info('Total products received:', count($request->input('products_purchased', [])));
+        
+        // Log cada producto individualmente
+        $products = $request->input('products_purchased', []);
+        foreach ($products as $index => $product) {
+            Log::info("Producto {$index}:", $product);
+        }
+        
         $validated = $request->validate([
             'purchase_date' => 'required|date',
             'purchase_type' => 'nullable|string',
@@ -195,6 +236,10 @@ class DistributorTechnicalRecordController extends Controller
             'next_purchase_notes' => 'nullable|string'
         ]);
 
+        // Log después de la validación
+        Log::info('Total products after validation:', count($validated['products_purchased'] ?? []));
+        Log::info('Validated products:', $validated['products_purchased'] ?? []);
+
         // Procesar nuevas fotos
         if ($request->hasFile('photos')) {
             $photos = $distributorTechnicalRecord->photos ?? [];
@@ -208,7 +253,9 @@ class DistributorTechnicalRecordController extends Controller
         // Calcular el total automáticamente basado en los productos comprados
         $calculatedTotal = 0;
         if (!empty($validated['products_purchased'])) {
-            foreach ($validated['products_purchased'] as $productData) {
+            Log::info('Procesando productos para calcular total...');
+            foreach ($validated['products_purchased'] as $index => $productData) {
+                Log::info("Calculando producto {$index}:", $productData);
                 $supplierInventory = SupplierInventory::find($productData['product_id']);
                 if ($supplierInventory) {
                     // Determinar el precio según el tipo de compra
@@ -230,10 +277,12 @@ class DistributorTechnicalRecordController extends Controller
                             break;
                     }
                     $calculatedTotal += $price * $productData['quantity'];
+                    Log::info("Producto {$index} - Precio: {$price}, Cantidad: {$productData['quantity']}, Subtotal: " . ($price * $productData['quantity']));
                 }
             }
         }
         $validated['total_amount'] = $calculatedTotal;
+        Log::info('Total calculado:', $calculatedTotal);
 
         // Iniciar transacción
         DB::beginTransaction();
@@ -241,20 +290,28 @@ class DistributorTechnicalRecordController extends Controller
         try {
             // Restaurar stock anterior si existía
             if (!empty($distributorTechnicalRecord->products_purchased)) {
-                foreach ($distributorTechnicalRecord->products_purchased as $productData) {
+                Log::info('Restaurando stock anterior...');
+                foreach ($distributorTechnicalRecord->products_purchased as $index => $productData) {
+                    Log::info("Restaurando stock producto {$index}:", $productData);
                     $supplierInventory = SupplierInventory::find($productData['product_id']);
                     if ($supplierInventory) {
+                        $oldStock = $supplierInventory->stock_quantity;
                         $supplierInventory->increment('stock_quantity', $productData['quantity']);
+                        Log::info("Stock restaurado para producto {$productData['product_id']}: {$oldStock} -> {$supplierInventory->stock_quantity}");
                     }
                 }
             }
 
             // Actualizar la ficha técnica
+            Log::info('Actualizando ficha técnica con datos:', $validated);
             $distributorTechnicalRecord->update($validated);
+            Log::info('Ficha técnica actualizada');
 
             // Procesar nuevos productos comprados y actualizar stock
             if (!empty($validated['products_purchased'])) {
-                foreach ($validated['products_purchased'] as $productData) {
+                Log::info('Procesando nuevos productos para actualizar stock...');
+                foreach ($validated['products_purchased'] as $index => $productData) {
+                    Log::info("Procesando stock producto {$index}:", $productData);
                     $supplierInventory = SupplierInventory::find($productData['product_id']);
                     
                     if ($supplierInventory) {
@@ -264,18 +321,22 @@ class DistributorTechnicalRecordController extends Controller
                         }
                         
                         // Descontar stock
+                        $oldStock = $supplierInventory->stock_quantity;
                         $supplierInventory->decrement('stock_quantity', $productData['quantity']);
+                        Log::info("Stock actualizado para producto {$productData['product_id']}: {$oldStock} -> {$supplierInventory->stock_quantity}");
                     }
                 }
             }
 
             DB::commit();
+            Log::info('=== FICHA TÉCNICA UPDATE COMPLETADA EXITOSAMENTE ===');
 
             return redirect()->route('distributor-clients.show', $distributorClient)
                 ->with('success', 'Ficha técnica de compra actualizada exitosamente.');
 
         } catch (\Exception $e) {
             DB::rollback();
+            Log::error('Error en ficha técnica update:', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             return back()->withErrors(['error' => $e->getMessage()])->withInput();
         }
     }

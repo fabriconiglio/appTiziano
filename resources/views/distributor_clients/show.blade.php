@@ -123,9 +123,15 @@
                                                         <i class="fas fa-edit"></i>
                                                     </a>
                                                     <a href="{{ route('distributor-clients.technical-records.remito', [$distributorClient, $record]) }}"
-                                                       class="btn btn-outline-danger btn-sm" target="_blank">
+                                                       class="btn btn-outline-info btn-sm" target="_blank">
                                                         <i class="fas fa-file-pdf"></i>
                                                     </a>
+                                                    <button type="button" 
+                                                            class="btn btn-outline-danger btn-sm"
+                                                            data-bs-toggle="modal" 
+                                                            data-bs-target="#deleteModal{{ $record->id }}">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -146,6 +152,60 @@
             </div>
         </div>
     </div>
+
+    <!-- Modales de confirmación para eliminar fichas técnicas -->
+    @foreach($distributorClient->distributorTechnicalRecords as $record)
+        <div class="modal fade" id="deleteModal{{ $record->id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ $record->id }}" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deleteModalLabel{{ $record->id }}">
+                            <i class="fas fa-exclamation-triangle text-warning"></i>
+                            Confirmar Eliminación
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>¿Estás seguro de que quieres eliminar esta ficha técnica?</p>
+                        <div class="alert alert-warning">
+                            <strong>Fecha:</strong> {{ $record->purchase_date->format('d/m/Y H:i') }}<br>
+                            <strong>Tipo:</strong> 
+                            @switch($record->purchase_type)
+                                @case('al_por_mayor')
+                                    Al por Mayor
+                                    @break
+                                @case('al_por_menor')
+                                    Al por Menor
+                                    @break
+                                @case('especial')
+                                    Especial
+                                    @break
+                                @default
+                                    No especificado
+                            @endswitch<br>
+                            <strong>Monto:</strong> ${{ number_format($record->total_amount, 2) }}<br>
+                            <strong>Productos:</strong> {{ count($record->products_purchased ?? []) }} producto(s)
+                        </div>
+                        <p class="text-danger"><strong>Esta acción no se puede deshacer.</strong></p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times"></i> Cancelar
+                        </button>
+                        <form action="{{ route('distributor-clients.technical-records.destroy', [$distributorClient, $record]) }}" 
+                              method="POST" 
+                              style="display: inline;">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Eliminar
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endforeach
 
     @push('scripts')
         <script>

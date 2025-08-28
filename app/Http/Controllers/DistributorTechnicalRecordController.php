@@ -414,27 +414,45 @@ class DistributorTechnicalRecordController extends Controller
     {
         $distributorTechnicalRecord = DistributorTechnicalRecord::findOrFail($technical_record);
         
+        // Log para debugging
+        Log::info('=== ELIMINANDO FICHA TÉCNICA ===');
+        Log::info('Technical Record ID:', ['id' => $technical_record]);
+        Log::info('Distributor Client ID:', ['id' => $distributorClient->id]);
+        Log::info('Products to restore:', ['count' => count($distributorTechnicalRecord->products_purchased ?? [])]);
+        
         // Restaurar stock al eliminar
         DB::beginTransaction();
         
         try {
             if (!empty($distributorTechnicalRecord->products_purchased)) {
-                foreach ($distributorTechnicalRecord->products_purchased as $productData) {
+                Log::info('Restaurando stock de productos...');
+                foreach ($distributorTechnicalRecord->products_purchased as $index => $productData) {
+                    Log::info("Restaurando stock producto {$index}:", ['product' => $productData]);
                     $supplierInventory = SupplierInventory::find($productData['product_id']);
                     if ($supplierInventory) {
+                        $oldStock = $supplierInventory->stock_quantity;
                         $supplierInventory->increment('stock_quantity', $productData['quantity']);
+                        Log::info("Stock restaurado para producto {$productData['product_id']}: {$oldStock} -> {$supplierInventory->stock_quantity}", [
+                            'product_id' => $productData['product_id'],
+                            'old_stock' => $oldStock,
+                            'new_stock' => $supplierInventory->stock_quantity,
+                            'quantity_restored' => $productData['quantity']
+                        ]);
                     }
                 }
             }
 
+            Log::info('Eliminando ficha técnica...');
             $distributorTechnicalRecord->delete();
             DB::commit();
+            Log::info('=== FICHA TÉCNICA ELIMINADA EXITOSAMENTE ===');
 
             return redirect()->route('distributor-clients.show', $distributorClient)
                 ->with('success', 'Ficha técnica de compra eliminada exitosamente.');
 
         } catch (\Exception $e) {
             DB::rollback();
+            Log::error('Error al eliminar ficha técnica:', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             return back()->withErrors(['error' => 'Error al eliminar la ficha técnica: ' . $e->getMessage()]);
         }
     }

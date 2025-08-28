@@ -47,6 +47,8 @@ class DistributorTechnicalRecordController extends Controller
     {
         // Log detallado para debugging
         Log::info('=== INICIO FICHA TÉCNICA STORE ===');
+        Log::info('Raw request content length:', ['length' => strlen($request->getContent())]);
+        Log::info('Request headers:', ['content-type' => $request->header('Content-Type'), 'content-length' => $request->header('Content-Length')]);
         Log::info('Request all data:', $request->all());
         Log::info('Products purchased raw:', $request->input('products_purchased', []));
         Log::info('Total products received:', ['count' => count($request->input('products_purchased', []))]);
@@ -219,6 +221,8 @@ class DistributorTechnicalRecordController extends Controller
         
         // Log detallado para debugging
         Log::info('=== INICIO FICHA TÉCNICA UPDATE ===');
+        Log::info('Raw request content length:', ['length' => strlen($request->getContent())]);
+        Log::info('Request headers:', ['content-type' => $request->header('Content-Type'), 'content-length' => $request->header('Content-Length')]);
         Log::info('Technical Record ID:', ['id' => $technical_record]);
         Log::info('Request all data:', $request->all());
         Log::info('Products purchased raw:', $request->input('products_purchased', []));

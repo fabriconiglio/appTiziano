@@ -456,14 +456,10 @@
                 $(this).closest('.product-row').find('.stock-display').val(stock);
             });
 
+            // Variable global para el índice de productos
             let productIndex = parseInt('{{ count($distributorTechnicalRecord->products_purchased ?? []) }}');
 
             function addProductRow() {
-
-                // Recalcular el índice basado en productos existentes
-                const existingProducts = document.querySelectorAll('.product-row');
-                const productIndex = existingProducts.length;
-
                 const productRow = `
                     <div class="product-row" data-index="${productIndex}">
                         <div class="row">
@@ -665,6 +661,8 @@
                     calculateSubtotal($(this).closest('.product-row'));
                 });
                 
+                // Incrementar el índice para el próximo producto
+                productIndex++;
             }
 
             $('#add-product').click(function() {
@@ -675,6 +673,26 @@
             $(document).on('click', '.remove-product', function() {
                 const index = $(this).data('index');
                 $(`.product-row[data-index="${index}"]`).remove();
+                
+                // Recalcular índices después de eliminar
+                $('.product-row').each(function(newIndex) {
+                    const oldIndex = $(this).data('index');
+                    $(this).attr('data-index', newIndex);
+                    
+                    // Actualizar los nombres de los campos
+                    $(this).find('select[name^="products_purchased["]').attr('name', `products_purchased[${newIndex}][product_id]`);
+                    $(this).find('input[name^="products_purchased["]').each(function() {
+                        const fieldName = $(this).attr('name').match(/\[([^\]]+)\]$/)[1];
+                        $(this).attr('name', `products_purchased[${newIndex}][${fieldName}]`);
+                    });
+                    
+                    // Actualizar el data-index del botón de eliminar
+                    $(this).find('.remove-product').attr('data-index', newIndex);
+                });
+                
+                // Actualizar el productIndex global
+                productIndex = $('.product-row').length;
+                
                 calculateTotal();
             });
 

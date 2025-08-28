@@ -49,6 +49,27 @@ class DistributorTechnicalRecordController extends Controller
         Log::info('=== INICIO FICHA TÉCNICA STORE ===');
         Log::info('Raw request content length:', ['length' => strlen($request->getContent())]);
         Log::info('Request headers:', ['content-type' => $request->header('Content-Type'), 'content-length' => $request->header('Content-Length')]);
+        
+        Log::info('=== DIAGNÓSTICO DETALLADO ===');
+        Log::info('Request method:', [$request->method()]);
+        Log::info('Content-Type:', [$request->header('Content-Type')]);
+        Log::info('Content-Length:', [$request->header('Content-Length')]);
+        Log::info('Raw input length:', [strlen($request->getContent())]);
+
+        $allInput = $request->all();
+        Log::info('Total input keys:', [count($allInput)]);
+        Log::info('All input keys:', [array_keys($allInput)]);
+
+        $productsInput = $request->input('products_purchased', []);
+        Log::info('Products array count:', [count($productsInput)]);
+        Log::info('Products array keys:', [array_keys($productsInput)]);
+
+        // Log los primeros y últimos productos para ver el patrón
+        if (count($productsInput) > 0) {
+            Log::info('First product:', [0 => $productsInput[0] ?? 'N/A']);
+            Log::info('Last product:', [(count($productsInput)-1) => end($productsInput)]);
+        }
+        
         Log::info('Request all data:', $request->all());
         Log::info('Products purchased raw:', $request->input('products_purchased', []));
         Log::info('Total products received:', ['count' => count($request->input('products_purchased', []))]);
@@ -223,6 +244,27 @@ class DistributorTechnicalRecordController extends Controller
         Log::info('=== INICIO FICHA TÉCNICA UPDATE ===');
         Log::info('Raw request content length:', ['length' => strlen($request->getContent())]);
         Log::info('Request headers:', ['content-type' => $request->header('Content-Type'), 'content-length' => $request->header('Content-Length')]);
+        
+        Log::info('=== DIAGNÓSTICO DETALLADO ===');
+        Log::info('Request method:', [$request->method()]);
+        Log::info('Content-Type:', [$request->header('Content-Type')]);
+        Log::info('Content-Length:', [$request->header('Content-Length')]);
+        Log::info('Raw input length:', [strlen($request->getContent())]);
+
+        $allInput = $request->all();
+        Log::info('Total input keys:', [count($allInput)]);
+        Log::info('All input keys:', [array_keys($allInput)]);
+
+        $productsInput = $request->input('products_purchased', []);
+        Log::info('Products array count:', [count($productsInput)]);
+        Log::info('Products array keys:', [array_keys($productsInput)]);
+
+        // Log los primeros y últimos productos para ver el patrón
+        if (count($productsInput) > 0) {
+            Log::info('First product:', [0 => $productsInput[0] ?? 'N/A']);
+            Log::info('Last product:', [(count($productsInput)-1) => end($productsInput)]);
+        }
+        
         Log::info('Technical Record ID:', ['id' => $technical_record]);
         Log::info('Request all data:', $request->all());
         Log::info('Products purchased raw:', $request->input('products_purchased', []));

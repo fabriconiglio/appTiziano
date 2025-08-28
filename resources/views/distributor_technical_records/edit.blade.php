@@ -463,7 +463,7 @@
                 // Recalcular el índice basado en productos existentes
                 const existingProducts = document.querySelectorAll('.product-row');
                 const productIndex = existingProducts.length;
-                
+
                 const productRow = `
                     <div class="product-row" data-index="${productIndex}">
                         <div class="row">
@@ -665,7 +665,6 @@
                     calculateSubtotal($(this).closest('.product-row'));
                 });
                 
-                productIndex++;
             }
 
             $('#add-product').click(function() {

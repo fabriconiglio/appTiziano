@@ -106,6 +106,13 @@ Route::get('/api/supplier-inventories/get-product', [App\Http\Controllers\Suppli
     // CRUD de distributor categories
     Route::resource('distributor_categories', \App\Http\Controllers\DistributorCategoryController::class);
 
+    // CRUD de proveedores
+    Route::resource('suppliers', \App\Http\Controllers\SupplierController::class);
+    Route::patch('suppliers/{supplier}/toggle-status', [\App\Http\Controllers\SupplierController::class, 'toggleStatus'])
+        ->name('suppliers.toggle-status');
+    Route::post('suppliers/{id}/restore', [\App\Http\Controllers\SupplierController::class, 'restore'])
+        ->name('suppliers.restore');
+
     Route::post('clients/{id}/restore', [App\Http\Controllers\ClientController::class, 'restore'])->name('clients.restore');
 
     // Alertas de stock

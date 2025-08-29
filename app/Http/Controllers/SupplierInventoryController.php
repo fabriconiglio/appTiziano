@@ -439,7 +439,8 @@ class SupplierInventoryController extends Controller
     {
         $categories = DistributorCategory::where('is_active', true)->orderBy('name')->get();
         $brands = DistributorBrand::where('is_active', true)->orderBy('name')->get();
-        return view('supplier-inventories.create', compact('categories', 'brands'));
+        $suppliers = \App\Models\Supplier::where('is_active', true)->orderBy('name')->get();
+        return view('supplier-inventories.create', compact('categories', 'brands', 'suppliers'));
     }
 
     /**
@@ -500,7 +501,8 @@ class SupplierInventoryController extends Controller
     {
         $categories = DistributorCategory::where('is_active', true)->orderBy('name')->get();
         $brands = DistributorBrand::where('is_active', true)->orderBy('name')->get();
-        return view('supplier-inventories.edit', compact('supplierInventory', 'categories', 'brands'));
+        $suppliers = \App\Models\Supplier::where('is_active', true)->orderBy('name')->get();
+        return view('supplier-inventories.edit', compact('supplierInventory', 'categories', 'brands', 'suppliers'));
     }
 
     /**

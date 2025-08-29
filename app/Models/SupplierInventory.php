@@ -99,4 +99,9 @@ class SupplierInventory extends Model
     {
         return $this->belongsTo(DistributorBrand::class);
     }
+
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class, 'supplier_name', 'name');
+    }
 }

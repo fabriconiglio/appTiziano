@@ -108,6 +108,10 @@
                                 <li class="dropdown-submenu">
                                     <a class="dropdown-item" href="{{ route('distributor-clients.index') }}">{{ __('Clientes Distribuidores') }}</a>
                                 </li>
+                                <!-- Submenú Proveedores -->
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item" href="{{ route('suppliers.index') }}">{{ __('Proveedores') }}</a>
+                                </li>
                                 <!-- Submenú Inventario Proveedor -->
                                 <li class="dropdown-submenu">
                                     <a class="dropdown-item" href="{{ route('supplier-inventories.index') }}">{{ __('Inventario Proveedor') }}</a>

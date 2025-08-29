@@ -67,6 +67,12 @@
                                             Clientes Distribuidores
                                         </a>
 
+                                        <a href="{{ route('suppliers.index') }}"
+                                           class="btn btn-outline-success">
+                                            <i class="fas fa-building me-2"></i>
+                                            Proveedores
+                                        </a>
+
                                         <a href="{{ route('supplier-inventories.index') }}"
                                            class="btn btn-outline-success">
                                             <i class="fas fa-box-open me-2"></i>

@@ -32,7 +32,7 @@ class DistributorCurrentAccountController extends Controller
             });
         }
 
-        $distributorClients = $query->get();
+        $distributorClients = $query->paginate(15);
 
         // Calcular saldos para cada cliente
         foreach ($distributorClients as $client) {

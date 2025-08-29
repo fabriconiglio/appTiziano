@@ -29,7 +29,7 @@ class ClientCurrentAccountController extends Controller
             });
         }
 
-        $clients = $query->get();
+        $clients = $query->paginate(15);
 
         // Calcular saldos
         foreach ($clients as $client) {

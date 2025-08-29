@@ -5,6 +5,7 @@
 
 @push('styles')
     <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 @endpush
 
 @section('content')
@@ -171,8 +172,18 @@
 
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
         $(document).ready(function() {
+            // Inicializar Select2 para productos utilizados
+            $('#products_used').select2({
+                placeholder: 'Seleccionar productos...',
+                allowClear: true,
+                width: '100%',
+                language: 'es'
+            });
+
+            // Inicializar Summernote para observaciones
             $('#observations').summernote({
                 placeholder: 'Agrega aquí las observaciones de la ficha técnica...',
                 tabsize: 2,

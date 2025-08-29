@@ -119,51 +119,55 @@
                     </tbody>
                 </table>
             </div>
+        </div>
+    </div>
 
-            <!-- Paginación -->
-            <div class="d-flex justify-content-between align-items-center mt-3">
-                <div class="text-muted">
-                    Mostrando {{ $distributorClients->firstItem() ?? 0 }} a {{ $distributorClients->lastItem() ?? 0 }} de {{ $distributorClients->total() }} resultados
-                </div>
-                <div>
-                    {{ $distributorClients->appends(request()->query())->links() }}
-                </div>
-            </div>
+    <!-- Paginación -->
+    <div class="d-flex justify-content-between align-items-center mt-4">
+        <div class="text-muted">
+            Mostrando {{ $distributorClients->firstItem() ?? 0 }} a {{ $distributorClients->lastItem() ?? 0 }} de {{ $distributorClients->total() }} resultados
+        </div>
+        <div>
+            {{ $distributorClients->appends(request()->query())->links() }}
+        </div>
+    </div>
 
-            <!-- Resumen -->
-            <div class="mt-4">
-                <h6 class="text-muted mb-3">Resumen</h6>
-                <div class="row">
-                    <div class="col-md-3">
-                        <div class="card bg-danger text-white">
-                            <div class="card-body text-center">
-                                <h6 class="card-title">Total Deudas</h6>
-                                <h3 class="mb-0">${{ number_format($distributorClients->where('current_balance', '>', 0)->sum('current_balance'), 2, ',', '.') }}</h3>
-                            </div>
+    <!-- Resumen -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="mb-0">Resumen</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="card bg-danger text-white">
+                        <div class="card-body text-center">
+                            <h6 class="card-title">Total Deudas</h6>
+                            <h3 class="mb-0">${{ number_format($distributorClients->where('current_balance', '>', 0)->sum('current_balance'), 2, ',', '.') }}</h3>
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        <div class="card bg-success text-white">
-                            <div class="card-body text-center">
-                                <h6 class="card-title">Total Créditos</h6>
-                                <h3 class="mb-0">${{ number_format(abs($distributorClients->where('current_balance', '<', 0)->sum('current_balance')), 2, ',', '.') }}</h3>
-                            </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body text-center">
+                            <h6 class="card-title">Total Créditos</h6>
+                            <h3 class="mb-0">${{ number_format(abs($distributorClients->where('current_balance', '<', 0)->sum('current_balance')), 2, ',', '.') }}</h3>
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        <div class="card bg-warning text-dark">
-                            <div class="card-body text-center">
-                                <h6 class="card-title">Distribuidores con Deuda</h6>
-                                <h3 class="mb-0">{{ $distributorClients->where('current_balance', '>', 0)->count() }}</h3>
-                            </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-dark">
+                        <div class="card-body text-center">
+                            <h6 class="card-title">Distribuidores con Deuda</h6>
+                            <h3 class="mb-0">{{ $distributorClients->where('current_balance', '>', 0)->count() }}</h3>
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        <div class="card bg-info text-white">
-                            <div class="card-body text-center">
-                                <h6 class="card-title">Total Distribuidores</h6>
-                                <h3 class="mb-0">{{ $distributorClients->count() }}</h3>
-                            </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body text-center">
+                            <h6 class="card-title">Total Distribuidores</h6>
+                            <h3 class="mb-0">{{ $distributorClients->count() }}</h3>
                         </div>
                     </div>
                 </div>

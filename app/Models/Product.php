@@ -17,6 +17,7 @@ class Product extends Model
         'price',
         'category_id',
         'brand_id', // Agregamos el brand_id a los campos fillable
+        'supplier_name',
     ];
 
     public function stockMovements()
@@ -32,5 +33,10 @@ class Product extends Model
     public function brand(): BelongsTo
     {
         return $this->belongsTo(Brand::class);
+    }
+
+    public function supplier()
+    {
+        return $this->belongsTo(HairdressingSupplier::class, 'supplier_name', 'name');
     }
 }

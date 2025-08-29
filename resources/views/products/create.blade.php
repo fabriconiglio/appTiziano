@@ -91,6 +91,24 @@
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label for="supplier_name" class="form-label">Proveedor</label>
+                                    <select class="form-select @error('supplier_name') is-invalid @enderror"
+                                            id="supplier_name"
+                                            name="supplier_name">
+                                        <option value="">Selecciona un proveedor</option>
+                                        @foreach($suppliers as $supplier)
+                                            <option value="{{ $supplier->name }}"
+                                                {{ old('supplier_name') == $supplier->name ? 'selected' : '' }}>
+                                                {{ $supplier->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('supplier_name')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
                             </div>
 
                             <div class="row">

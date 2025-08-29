@@ -85,6 +85,11 @@
                                     <a class="dropdown-item" href="{{ route('client-current-accounts.index') }}">{{ __('Cuentas Corrientes') }}</a>
                                 </li>
 
+                                <!-- Submenú Proveedores -->
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item" href="{{ route('hairdressing-suppliers.index') }}">{{ __('Proveedores') }}</a>
+                                </li>
+
                                 <!-- Submenú Alertas de Stock -->
                                 <li class="dropdown-submenu">
                                     <a class="dropdown-item" href="{{ route('stock-alerts.peluqueria') }}">

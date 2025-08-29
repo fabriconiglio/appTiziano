@@ -38,6 +38,12 @@
                                             Inventario Peluquería
                                         </a>
 
+                                        <a href="{{ route('hairdressing-suppliers.index') }}"
+                                           class="btn btn-outline-primary">
+                                            <i class="fas fa-building me-2"></i>
+                                            Proveedores
+                                        </a>
+
                                         <a href="{{ route('client-current-accounts.index') }}"
                                            class="btn btn-outline-primary">
                                             <i class="fas fa-calculator me-2"></i>

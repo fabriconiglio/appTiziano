@@ -113,6 +113,13 @@ Route::get('/api/supplier-inventories/get-product', [App\Http\Controllers\Suppli
     Route::post('suppliers/{id}/restore', [\App\Http\Controllers\SupplierController::class, 'restore'])
         ->name('suppliers.restore');
 
+    // CRUD de proveedores de peluquería
+    Route::resource('hairdressing-suppliers', \App\Http\Controllers\HairdressingSupplierController::class);
+    Route::patch('hairdressing-suppliers/{hairdressingSupplier}/toggle-status', [\App\Http\Controllers\HairdressingSupplierController::class, 'toggleStatus'])
+        ->name('hairdressing-suppliers.toggle-status');
+    Route::post('hairdressing-suppliers/{id}/restore', [\App\Http\Controllers\HairdressingSupplierController::class, 'restore'])
+        ->name('hairdressing-suppliers.restore');
+
     Route::post('clients/{id}/restore', [App\Http\Controllers\ClientController::class, 'restore'])->name('clients.restore');
 
     // Alertas de stock

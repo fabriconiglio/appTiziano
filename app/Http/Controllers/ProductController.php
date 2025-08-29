@@ -26,7 +26,11 @@ class ProductController extends Controller
                       ->orderBy('name')
                       ->get();
 
-        return view('products.create', compact('categories', 'brands'));
+        $suppliers = \App\Models\HairdressingSupplier::where('is_active', true)
+                      ->orderBy('name')
+                      ->get();
+
+        return view('products.create', compact('categories', 'brands', 'suppliers'));
     }
 
     public function store(Request $request)
@@ -37,6 +41,7 @@ class ProductController extends Controller
             'price' => 'required|numeric|min:0',
             'category_id' => 'required|exists:categories,id',
             'brand_id' => 'nullable|exists:brands,id', // Agregamos validación para brand_id
+            'supplier_name' => 'nullable|string|max:255',
             'sku' => 'nullable|string|max:50|unique:products',
             'current_stock' => 'nullable|integer|min:0',
             'minimum_stock' => 'nullable|integer|min:0',
@@ -59,7 +64,11 @@ class ProductController extends Controller
                       ->orderBy('name')
                       ->get();
 
-        return view('products.edit', compact('product', 'categories', 'brands'));
+        $suppliers = \App\Models\HairdressingSupplier::where('is_active', true)
+                      ->orderBy('name')
+                      ->get();
+
+        return view('products.edit', compact('product', 'categories', 'brands', 'suppliers'));
     }
 
     public function update(Request $request, Product $product)
@@ -70,6 +79,7 @@ class ProductController extends Controller
             'price' => 'required|numeric|min:0',
             'category_id' => 'required|exists:categories,id',
             'brand_id' => 'nullable|exists:brands,id', // Agregamos validación para brand_id
+            'supplier_name' => 'nullable|string|max:255',
             'sku' => 'nullable|string|max:50|unique:products,sku,' . $product->id,
             'current_stock' => 'nullable|integer|min:0',
             'minimum_stock' => 'nullable|integer|min:0',

@@ -22,6 +22,7 @@
                     <th>Nombre</th>
                     <th>Categoría</th>
                     <th>Marca</th>
+                    <th>Proveedor</th>
                     <th>Stock</th>
                     <th>Precio</th>
                     <th>Descripción</th>
@@ -44,6 +45,13 @@
                                 <span class="badge bg-info text-dark">{{ $product->brand->name }}</span>
                             @else
                                 <span class="badge bg-secondary">Sin marca</span>
+                            @endif
+                        </td>
+                        <td>
+                            @if($product->supplier_name)
+                                <span class="badge bg-success">{{ $product->supplier_name }}</span>
+                            @else
+                                <span class="badge bg-secondary">Sin proveedor</span>
                             @endif
                         </td>
                         <td>

@@ -102,7 +102,8 @@
                                         <button type="button" 
                                                 class="btn btn-danger btn-sm"
                                                 title="Eliminar cuenta corriente"
-                                                onclick="confirmDelete('{{ $client->id }}', '{{ $client->full_name }}')">
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#deleteModal{{ $client->id }}">
                                             <i class="fas fa-trash"></i> Eliminar
                                         </button>
                                     </div>
@@ -157,37 +158,70 @@
     </div>
 </div>
 
-<!-- Modal de confirmación de eliminación -->
-<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="deleteModalLabel">Confirmar Eliminación</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>¿Estás seguro de que quieres eliminar la cuenta corriente de <strong id="clientName"></strong>?</p>
-                <p class="text-danger"><small>Esta acción eliminará todos los movimientos de la cuenta corriente y no se puede deshacer.</small></p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <form id="deleteForm" method="POST" style="display: inline;">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-danger">Eliminar Cuenta Corriente</button>
-                </form>
+<!-- Modales de confirmación de eliminación -->
+@foreach($distributorClients as $client)
+    <div class="modal fade" id="deleteModal{{ $client->id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ $client->id }}" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel{{ $client->id }}">
+                        <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                        Confirmar Eliminación
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <h6 class="alert-heading">
+                            <i class="fas fa-trash text-danger me-2"></i>
+                            ¿Eliminar cuenta corriente?
+                        </h6>
+                        <p class="mb-2">¿Estás seguro de que quieres eliminar <strong>toda la cuenta corriente</strong> de:</p>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6 class="card-title">{{ $client->full_name }}</h6>
+                                <p class="card-text mb-1">
+                                    <strong>Saldo actual:</strong> 
+                                    <span class="badge {{ $client->current_balance > 0 ? 'bg-danger' : ($client->current_balance < 0 ? 'bg-success' : 'bg-secondary') }}">
+                                        ${{ number_format(abs($client->current_balance), 2) }}
+                                        @if($client->current_balance > 0)
+                                            (Debe)
+                                        @elseif($client->current_balance < 0)
+                                            (A favor)
+                                        @else
+                                            (Al día)
+                                        @endif
+                                    </span>
+                                </p>
+                                <p class="card-text">
+                                    <strong>Movimientos:</strong> 
+                                    <span class="badge bg-info">{{ $client->currentAccounts->count() }}</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        <strong>¡Atención!</strong> Esta acción eliminará <strong>TODOS</strong> los movimientos de la cuenta corriente y <strong>NO SE PUEDE DESHACER</strong>.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>
+                        Cancelar
+                    </button>
+                    <form action="{{ route('distributor-clients.current-accounts.destroy-all', $client) }}" method="POST" style="display: inline;">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash me-1"></i>
+                            Eliminar Cuenta Corriente
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
-</div>
+@endforeach
 
-<script>
-function confirmDelete(clientId, clientName) {
-    document.getElementById('clientName').textContent = clientName;
-    document.getElementById('deleteForm').action = `{{ route('distributor-clients.current-accounts.destroy-all', ':id') }}`.replace(':id', clientId);
-    
-    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
-    modal.show();
-}
-</script>
 @endsection 

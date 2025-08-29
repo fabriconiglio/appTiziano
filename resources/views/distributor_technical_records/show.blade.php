@@ -54,6 +54,28 @@
                                         <td>${{ number_format($distributorTechnicalRecord->total_amount, 2) }}</td>
                                     </tr>
                                     <tr>
+                                        <td><strong>Monto Final:</strong></td>
+                                        <td>${{ number_format($distributorTechnicalRecord->final_amount, 2) }}</td>
+                                    </tr>
+                                    @if($distributorTechnicalRecord->final_amount != $distributorTechnicalRecord->total_amount)
+                                    <tr>
+                                        <td><strong>Ajuste CC:</strong></td>
+                                        <td>
+                                            <span class="badge bg-info">
+                                                ${{ number_format(abs($distributorTechnicalRecord->total_amount - $distributorTechnicalRecord->final_amount), 2) }}
+                                            </span>
+                                            <br>
+                                            <small class="text-muted">
+                                                @if($distributorTechnicalRecord->total_amount > $distributorTechnicalRecord->final_amount)
+                                                    Se aplicó crédito de cuenta corriente
+                                                @else
+                                                    Se aplicó deuda de cuenta corriente
+                                                @endif
+                                            </small>
+                                        </td>
+                                    </tr>
+                                    @endif
+                                    <tr>
                                         <td><strong>Método de Pago:</strong></td>
                                         <td>
                                             @switch($distributorTechnicalRecord->payment_method)
@@ -131,6 +153,46 @@
                                             @endforeach
                                         </tbody>
                                     </table>
+                                </div>
+                            </div>
+                        @endif
+
+                        @if($distributorTechnicalRecord->final_amount != $distributorTechnicalRecord->total_amount)
+                            <div class="mt-4">
+                                <h6 class="text-muted">Información de Cuenta Corriente</h6>
+                                <div class="card border-info">
+                                    <div class="card-header bg-info text-white">
+                                        <i class="fas fa-calculator me-2"></i>
+                                        Detalles del Ajuste de Cuenta Corriente
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <strong>Monto del Ajuste:</strong><br>
+                                                <span class="badge bg-primary fs-6">
+                                                    ${{ number_format(abs($distributorTechnicalRecord->total_amount - $distributorTechnicalRecord->final_amount), 2) }}
+                                                </span>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <strong>Tipo de Ajuste:</strong><br>
+                                                @if($distributorTechnicalRecord->total_amount > $distributorTechnicalRecord->final_amount)
+                                                    <span class="badge bg-success">Crédito Aplicado</span>
+                                                    <br><small class="text-muted">El cliente usó su crédito de cuenta corriente</small>
+                                                @else
+                                                    <span class="badge bg-warning">Deuda Aplicada</span>
+                                                    <br><small class="text-muted">Se aplicó deuda de cuenta corriente</small>
+                                                @endif
+                                            </div>
+                                        </div>
+                                        <div class="row mt-3">
+                                            <div class="col-md-12">
+                                                <strong>Resumen:</strong><br>
+                                                • Total original: ${{ number_format($distributorTechnicalRecord->total_amount, 2) }}<br>
+                                                • Ajuste aplicado: ${{ number_format(abs($distributorTechnicalRecord->total_amount - $distributorTechnicalRecord->final_amount), 2) }}<br>
+                                                • Monto final a pagar: ${{ number_format($distributorTechnicalRecord->final_amount, 2) }}
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         @endif

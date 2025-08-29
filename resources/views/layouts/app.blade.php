@@ -107,6 +107,12 @@
                                 <li class="dropdown-submenu">
                                     <a class="dropdown-item" href="{{ route('supplier-inventories.index') }}">{{ __('Inventario Proveedor') }}</a>
                                 </li>
+                                <!-- Submenú Cuentas Corrientes -->
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item" href="{{ route('distributor-current-accounts.index') }}">
+                                        {{ __('Cuentas Corrientes') }}
+                                    </a>
+                                </li>
                                 <!-- Submenú Categorías Distribuidora -->
                                 <li class="dropdown-submenu">
                                     <a class="dropdown-item" href="{{ route('distributor_categories.index') }}">{{ __('Categorías Distribuidora') }}</a>

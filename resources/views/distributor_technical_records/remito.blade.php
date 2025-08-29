@@ -180,11 +180,11 @@
                         No especificado
                 @endswitch<br>
                 <strong>Vendedor:</strong> {{ $technicalRecord->user->name }}<br>
-                <strong>Total:</strong> ${{ number_format($total, 2) }}
-                @if($technicalRecord->advance_payment && $technicalRecord->advance_payment > 0)
-                    <br><strong>Adelanto:</strong> ${{ number_format($technicalRecord->advance_payment, 2) }}
-                    <br><strong>Monto Final:</strong> ${{ number_format($technicalRecord->final_amount, 2) }}
+                <strong>Total:</strong> ${{ number_format($technicalRecord->total_amount, 2) }}
+                @if($technicalRecord->final_amount != $technicalRecord->total_amount)
+                <br><strong>Ajuste CC:</strong> ${{ number_format(abs($technicalRecord->total_amount - $technicalRecord->final_amount), 2) }}
                 @endif
+                <br><strong>Monto Final:</strong> ${{ number_format($technicalRecord->final_amount, 2) }}
             </div>
         </div>
     </div>
@@ -211,12 +211,12 @@
             @endforeach
             <tr class="total-row">
                 <td colspan="4" style="text-align: right;"><strong>TOTAL:</strong></td>
-                <td><strong>${{ number_format($total, 2) }}</strong></td>
+                <td><strong>${{ number_format($technicalRecord->total_amount, 2) }}</strong></td>
             </tr>
-            @if($technicalRecord->advance_payment && $technicalRecord->advance_payment > 0)
+            @if($technicalRecord->final_amount != $technicalRecord->total_amount)
             <tr class="advance-row">
-                <td colspan="4" style="text-align: right;"><strong>ADELANTO:</strong></td>
-                <td><strong>-${{ number_format($technicalRecord->advance_payment, 2) }}</strong></td>
+                <td colspan="4" style="text-align: right;"><strong>AJUSTE CUENTA CORRIENTE:</strong></td>
+                <td><strong>${{ number_format(abs($technicalRecord->total_amount - $technicalRecord->final_amount), 2) }}</strong></td>
             </tr>
             <tr class="final-row">
                 <td colspan="4" style="text-align: right;"><strong>MONTO FINAL:</strong></td>

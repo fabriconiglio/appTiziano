@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\DistributorClient;
 use App\Models\SupplierInventory;
 use App\Models\DistributorTechnicalRecord;
+use App\Models\DistributorCurrentAccount;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 /**
@@ -48,7 +50,7 @@ class DistributorTechnicalRecordController extends Controller
             'purchase_date' => 'required|date',
             'purchase_type' => 'nullable|string',
             'total_amount' => 'nullable|numeric|min:0',
-            'advance_payment' => 'nullable|numeric|min:0',
+            'balance_adjustment' => 'nullable|numeric',
             'payment_method' => 'nullable|string',
             'products_purchased' => 'nullable|array',
             'products_purchased.*.product_id' => 'required|exists:supplier_inventories,id',
@@ -101,6 +103,34 @@ class DistributorTechnicalRecordController extends Controller
         }
         $validated['total_amount'] = $calculatedTotal;
 
+        // Debug: Log los valores para verificar
+        Log::info('Debug Ficha Técnica STORE:', [
+            'total_amount' => $calculatedTotal,
+            'balance_adjustment' => $validated['balance_adjustment'] ?? 0,
+            'balance_adjustment_type' => gettype($validated['balance_adjustment'] ?? 0),
+            'request_data' => $request->all()
+        ]);
+
+        // Calcular el monto final considerando el ajuste de cuenta corriente
+        $balanceAdjustment = floatval($validated['balance_adjustment'] ?? 0);
+        
+        // Debug: Log el cálculo del monto final
+        Log::info('Debug Cálculo Final:', [
+            'calculatedTotal' => $calculatedTotal,
+            'balanceAdjustment' => $balanceAdjustment,
+            'balanceAdjustment_type' => gettype($balanceAdjustment),
+            'finalAmount_calculation' => $calculatedTotal + $balanceAdjustment,
+            'finalAmount' => max(0, $calculatedTotal + $balanceAdjustment)
+        ]);
+        
+        // Calcular el monto final considerando el ajuste de cuenta corriente
+        $balanceAdjustment = floatval($validated['balance_adjustment'] ?? 0);
+        
+        // Si el balanceAdjustment es positivo, significa que tiene deuda (se suma)
+        // Si el balanceAdjustment es negativo, significa que tiene crédito (se resta)
+        $finalAmount = max(0, $calculatedTotal + $balanceAdjustment);
+        $validated['final_amount'] = $finalAmount;
+
         // Iniciar transacción para asegurar consistencia
         DB::beginTransaction();
         
@@ -123,6 +153,51 @@ class DistributorTechnicalRecordController extends Controller
                         $supplierInventory->decrement('stock_quantity', $productData['quantity']);
                     }
                 }
+            }
+
+            // Crear movimientos en cuenta corriente
+            if ($balanceAdjustment != 0) {
+                // Si hay ajuste de cuenta corriente
+                if ($balanceAdjustment < 0) {
+                    // Si el cliente usa crédito, crear una deuda por el monto usado
+                    \App\Models\DistributorCurrentAccount::create([
+                        'distributor_client_id' => $distributorClient->id,
+                        'user_id' => auth()->id(),
+                        'distributor_technical_record_id' => $technicalRecord->id,
+                        'type' => 'debt',
+                        'amount' => abs($balanceAdjustment),
+                        'description' => 'Deuda por uso de crédito de cuenta corriente',
+                        'date' => now(),
+                        'reference' => 'FT-' . $technicalRecord->id,
+                        'observations' => "Ficha técnica #{$technicalRecord->id} - " . ($validated['purchase_type'] ?: 'Compra') . " - Crédito usado: $" . number_format(abs($balanceAdjustment), 2)
+                    ]);
+                } else {
+                    // Si el cliente aplica deuda, crear un pago por el monto aplicado
+                    \App\Models\DistributorCurrentAccount::create([
+                        'distributor_client_id' => $distributorClient->id,
+                        'user_id' => auth()->id(),
+                        'distributor_technical_record_id' => $technicalRecord->id,
+                        'type' => 'payment',
+                        'amount' => abs($balanceAdjustment),
+                        'description' => 'Pago por aplicación de deuda de cuenta corriente',
+                        'date' => now(),
+                        'reference' => 'FT-' . $technicalRecord->id,
+                        'observations' => "Ficha técnica #{$technicalRecord->id} - " . ($validated['purchase_type'] ?: 'Compra') . " - Deuda aplicada: $" . number_format(abs($balanceAdjustment), 2)
+                    ]);
+                }
+            } elseif ($finalAmount > 0) {
+                // Solo crear deuda si no hay ajuste y hay un monto final a pagar
+                \App\Models\DistributorCurrentAccount::create([
+                    'distributor_client_id' => $distributorClient->id,
+                    'user_id' => auth()->id(),
+                    'distributor_technical_record_id' => $technicalRecord->id,
+                    'type' => 'debt',
+                    'amount' => $finalAmount,
+                    'description' => 'Deuda por ficha técnica de compra',
+                    'date' => now(),
+                    'reference' => 'FT-' . $technicalRecord->id,
+                    'observations' => "Ficha técnica #{$technicalRecord->id} - " . ($validated['purchase_type'] ?: 'Compra')
+                ]);
             }
 
             DB::commit();
@@ -184,7 +259,7 @@ class DistributorTechnicalRecordController extends Controller
             'purchase_date' => 'required|date',
             'purchase_type' => 'nullable|string',
             'total_amount' => 'nullable|numeric|min:0',
-            'advance_payment' => 'nullable|numeric|min:0',
+            'balance_adjustment' => 'nullable|numeric',
             'payment_method' => 'nullable|string',
             'products_purchased' => 'nullable|array',
             'products_purchased.*.product_id' => 'required|exists:supplier_inventories,id',
@@ -234,6 +309,21 @@ class DistributorTechnicalRecordController extends Controller
         }
         $validated['total_amount'] = $calculatedTotal;
 
+        // Debug: Log los valores para verificar
+        Log::info('Debug Ficha Técnica UPDATE:', [
+            'total_amount' => $calculatedTotal,
+            'balance_adjustment' => $validated['balance_adjustment'] ?? 0,
+            'request_data' => $request->all()
+        ]);
+
+        // Calcular el monto final considerando el ajuste de cuenta corriente
+        $balanceAdjustment = floatval($validated['balance_adjustment'] ?? 0);
+        
+        // Si el balanceAdjustment es positivo, significa que tiene deuda (se suma)
+        // Si el balanceAdjustment es negativo, significa que tiene crédito (se resta)
+        $finalAmount = max(0, $calculatedTotal + $balanceAdjustment);
+        $validated['final_amount'] = $finalAmount;
+
         // Iniciar transacción
         DB::beginTransaction();
         
@@ -266,6 +356,59 @@ class DistributorTechnicalRecordController extends Controller
                         $supplierInventory->decrement('stock_quantity', $productData['quantity']);
                     }
                 }
+            }
+
+            // Actualizar o crear movimientos en cuenta corriente
+            $existingMovements = DistributorCurrentAccount::where('distributor_technical_record_id', $distributorTechnicalRecord->id)->get();
+            
+            // Eliminar movimientos existentes para recrearlos
+            foreach ($existingMovements as $movement) {
+                $movement->delete();
+            }
+            
+            // Crear movimientos según la lógica actual
+            if ($balanceAdjustment != 0) {
+                // Si hay ajuste de cuenta corriente
+                if ($balanceAdjustment < 0) {
+                    // Si el cliente usa crédito, crear una deuda por el monto usado
+                    DistributorCurrentAccount::create([
+                        'distributor_client_id' => $distributorClient->id,
+                        'user_id' => auth()->id(),
+                        'distributor_technical_record_id' => $distributorTechnicalRecord->id,
+                        'type' => 'debt',
+                        'amount' => abs($balanceAdjustment),
+                        'description' => 'Deuda por uso de crédito de cuenta corriente',
+                        'date' => now(),
+                        'reference' => 'FT-' . $distributorTechnicalRecord->id,
+                        'observations' => "Ficha técnica #{$distributorTechnicalRecord->id} - " . ($validated['purchase_type'] ?: 'Compra') . " - Crédito usado: $" . number_format(abs($balanceAdjustment), 2)
+                    ]);
+                } else {
+                    // Si el cliente aplica deuda, crear un pago por el monto aplicado
+                    DistributorCurrentAccount::create([
+                        'distributor_client_id' => $distributorClient->id,
+                        'user_id' => auth()->id(),
+                        'distributor_technical_record_id' => $distributorTechnicalRecord->id,
+                        'type' => 'payment',
+                        'amount' => abs($balanceAdjustment),
+                        'description' => 'Pago por aplicación de deuda de cuenta corriente',
+                        'date' => now(),
+                        'reference' => 'FT-' . $distributorTechnicalRecord->id,
+                        'observations' => "Ficha técnica #{$distributorTechnicalRecord->id} - " . ($validated['purchase_type'] ?: 'Compra') . " - Deuda aplicada: $" . number_format(abs($balanceAdjustment), 2)
+                    ]);
+                }
+            } elseif ($finalAmount > 0) {
+                // Solo crear deuda si no hay ajuste y hay un monto final a pagar
+                DistributorCurrentAccount::create([
+                    'distributor_client_id' => $distributorClient->id,
+                    'user_id' => auth()->id(),
+                    'distributor_technical_record_id' => $distributorTechnicalRecord->id,
+                    'type' => 'debt',
+                    'amount' => $finalAmount,
+                    'description' => 'Deuda por ficha técnica de compra',
+                    'date' => now(),
+                    'reference' => 'FT-' . $distributorTechnicalRecord->id,
+                    'observations' => "Ficha técnica #{$distributorTechnicalRecord->id} - " . ($validated['purchase_type'] ?: 'Compra')
+                ]);
             }
 
             DB::commit();
@@ -401,7 +544,6 @@ class DistributorTechnicalRecordController extends Controller
             'technicalRecord' => $distributorTechnicalRecord,
             'distributorClient' => $distributorTechnicalRecord->distributorClient,
             'products' => $products,
-            'total' => $total,
             'generatedDate' => now()->format('d/m/Y H:i:s')
         ];
 

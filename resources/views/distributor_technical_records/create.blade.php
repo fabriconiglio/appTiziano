@@ -71,7 +71,7 @@
             <div class="col-md-12">
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Nueva Ficha Técnica de Compra - {{ $distributorClient->name }} {{ $distributorClient->surname }}</h5>
+                        <h5 class="mb-0 text-dark">Nueva Ficha Técnica de Compra - {{ $distributorClient->name }} {{ $distributorClient->surname }}</h5>
                         <a href="{{ route('distributor-clients.show', $distributorClient) }}" class="btn btn-secondary btn-sm">
                             <i class="fas fa-arrow-left"></i> Volver
                         </a>
@@ -118,7 +118,7 @@
                             </div>
 
                             <div class="row mb-3">
-                                <div class="col-md-4">
+                                <div class="col-md-6">
                                     <label for="total_amount" class="form-label">Monto Total</label>
                                     <input type="number" step="0.01" class="form-control @error('total_amount') is-invalid @enderror"
                                            id="total_amount" name="total_amount"
@@ -128,20 +128,62 @@
                                     @enderror
                                 </div>
 
-                                <div class="col-md-4">
-                                    <label for="advance_payment" class="form-label">Entrega Anticipada de Dinero</label>
-                                    <input type="number" step="0.01" class="form-control @error('advance_payment') is-invalid @enderror"
-                                           id="advance_payment" name="advance_payment"
-                                           value="{{ old('advance_payment', 0) }}" placeholder="0.00">
-                                    @error('advance_payment')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-
-                                <div class="col-md-4">
+                                <div class="col-md-6">
                                     <label for="final_amount" class="form-label">Monto Final a Pagar</label>
                                     <input type="text" class="form-control" id="final_amount" readonly 
                                            value="$0.00" style="background-color: #e9ecef;">
+                                </div>
+                            </div>
+
+                            <!-- Información de Cuenta Corriente -->
+                            <div class="card mb-3 border-info">
+                                <div class="card-header bg-info">
+                                    <h6 class="mb-0 text-dark">
+                                        <i class="fas fa-calculator me-2"></i>
+                                        Información de Cuenta Corriente
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <label class="form-label">Saldo Actual</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">$</span>
+                                                <input type="text" class="form-control" id="current_balance" 
+                                                       value="{{ number_format($distributorClient->getCurrentBalance(), 2, ',', '.') }}" 
+                                                       readonly style="background-color: #e9ecef;">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Estado</label>
+                                            <div class="mt-2">
+                                                @if($distributorClient->getCurrentBalance() > 0)
+                                                    <span class="badge bg-danger fs-6">Con Deuda</span>
+                                                @elseif($distributorClient->getCurrentBalance() < 0)
+                                                    <span class="badge bg-success fs-6">A Favor</span>
+                                                @else
+                                                    <span class="badge bg-secondary fs-6">Al Día</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Ajuste Automático</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">$</span>
+                                                <input type="text" class="form-control" id="balance_adjustment" 
+                                                       value="0,00" readonly style="background-color: #e9ecef;">
+                                            </div>
+                                            <small class="form-text text-muted">
+                                                @if($distributorClient->getCurrentBalance() > 0)
+                                                    Se sumará a la compra
+                                                @elseif($distributorClient->getCurrentBalance() < 0)
+                                                    Se descontará de la compra
+                                                @else
+                                                    Sin ajuste necesario
+                                                @endif
+                                            </small>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -201,6 +243,9 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
+
+                            <!-- Campo oculto para el ajuste de cuenta corriente -->
+                            <input type="hidden" name="balance_adjustment" id="balance_adjustment_hidden" value="0">
 
                             <div class="d-flex justify-content-end gap-2">
                                 <a href="{{ route('distributor-clients.show', $distributorClient) }}" class="btn btn-secondary">
@@ -542,16 +587,33 @@
             // Función para calcular monto final
             function calculateFinalAmount() {
                 const total = parseFloat($('#total_amount').val()) || 0;
-                const advance = parseFloat($('#advance_payment').val()) || 0;
-                const finalAmount = Math.max(0, total - advance);
+                
+                // Obtener el saldo de cuenta corriente
+                const currentBalanceText = $('#current_balance').val().replace(/[^\d,-]/g, '').replace(',', '.');
+                const currentBalance = parseFloat(currentBalanceText) || 0;
+                
+                // Calcular ajuste de cuenta corriente
+                let balanceAdjustment = 0;
+                if (currentBalance > 0) {
+                    // Si tiene deuda, se suma a la compra
+                    balanceAdjustment = currentBalance;
+                } else if (currentBalance < 0) {
+                    // Si tiene crédito, se descuenta de la compra (valor negativo)
+                    balanceAdjustment = currentBalance; // Mantener el valor negativo
+                }
+                
+                // Mostrar el ajuste en el campo correspondiente (valor absoluto para mostrar)
+                $('#balance_adjustment').val(Math.abs(balanceAdjustment).toFixed(2).replace('.', ','));
+                $('#balance_adjustment_hidden').val(balanceAdjustment.toString());
+                
+                // Calcular monto final: total + ajuste de cuenta corriente
+                const finalAmount = Math.max(0, total + balanceAdjustment);
                 
                 $('#final_amount').val('$' + finalAmount.toFixed(2));
             }
 
-            // Evento para recalcular monto final cuando cambie el adelanto
-            $('#advance_payment').on('input', function() {
-                calculateFinalAmount();
-            });
+            // Calcular monto final inicial
+            calculateFinalAmount();
         });
 
         function removeProduct(index) {

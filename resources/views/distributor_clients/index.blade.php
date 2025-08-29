@@ -8,9 +8,14 @@
         <!-- Cabecera -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1>Clientes Distribuidores</h1>
-            <a href="{{ route('distributor-clients.create') }}" class="btn btn-primary">
-                <i class="fas fa-plus"></i> Nuevo Cliente Distribuidor
-            </a>
+            <div>
+                <a href="{{ route('distributor-current-accounts.index') }}" class="btn btn-info me-2">
+                    <i class="fas fa-calculator"></i> Cuentas Corrientes
+                </a>
+                <a href="{{ route('distributor-clients.create') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Nuevo Cliente Distribuidor
+                </a>
+            </div>
         </div>
 
         <!-- Mensajes de éxito o error -->
@@ -77,6 +82,11 @@
                                            class="btn btn-success btn-sm"
                                            title="Nueva ficha técnica">
                                             <i class="fas fa-file-medical"></i>
+                                        </a>
+                                        <a href="{{ route('distributor-clients.current-accounts.show', $distributorClient) }}"
+                                           class="btn btn-info btn-sm"
+                                           title="Cuenta Corriente">
+                                            <i class="fas fa-calculator"></i>
                                         </a>
                                         <form action="{{ route('distributor-clients.destroy', $distributorClient) }}" method="POST" style="display:inline-block;" onsubmit="return confirm('¿Estás seguro de eliminar este cliente distribuidor?');">
                                             @csrf

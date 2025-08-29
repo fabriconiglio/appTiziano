@@ -12,6 +12,7 @@ class DistributorTechnicalRecord extends Model
         'purchase_date',
         'purchase_type',
         'total_amount',
+        'final_amount',
         'advance_payment',
         'payment_method',
         'products_purchased',
@@ -25,6 +26,7 @@ class DistributorTechnicalRecord extends Model
         'photos' => 'array',
         'purchase_date' => 'datetime',
         'total_amount' => 'decimal:2',
+        'final_amount' => 'decimal:2',
         'advance_payment' => 'decimal:2'
     ];
 
@@ -51,12 +53,5 @@ class DistributorTechnicalRecord extends Model
         return 'id';
     }
 
-    /**
-     * Get the final amount after deducting advance payment.
-     */
-    public function getFinalAmountAttribute()
-    {
-        $advance = $this->advance_payment ?? 0;
-        return max(0, $this->total_amount - $advance);
-    }
+
 }

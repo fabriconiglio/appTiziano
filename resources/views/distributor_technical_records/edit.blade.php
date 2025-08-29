@@ -112,6 +112,77 @@
                             </div>
                         @endif
 
+                        <!-- Información de la Ficha Técnica a Editar -->
+                        <div class="alert alert-info mb-4">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <h6 class="alert-heading mb-3">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        Información de la Ficha Técnica a Editar
+                                    </h6>
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <strong>ID de Ficha:</strong><br>
+                                            <span class="badge bg-primary">#{{ $distributorTechnicalRecord->id }}</span>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <strong>Fecha Original:</strong><br>
+                                            {{ $distributorTechnicalRecord->purchase_date->format('d/m/Y H:i') }}
+                                        </div>
+                                        <div class="col-md-3">
+                                            <strong>Monto Total Original:</strong><br>
+                                            ${{ number_format($distributorTechnicalRecord->total_amount, 2) }}
+                                        </div>
+                                        <div class="col-md-3">
+                                            <strong>Monto Final Original:</strong><br>
+                                            ${{ number_format($distributorTechnicalRecord->final_amount, 2) }}
+                                        </div>
+                                    </div>
+                                    <div class="row mt-2">
+                                        <div class="col-md-6">
+                                            <strong>Productos Originales:</strong><br>
+                                            @if(!empty($distributorTechnicalRecord->products_purchased))
+                                                @foreach($distributorTechnicalRecord->products_purchased as $productData)
+                                                    @php
+                                                        $product = $supplierInventories->firstWhere('id', $productData['product_id']);
+                                                    @endphp
+                                                    • {{ $product->product_name ?? 'Producto no encontrado' }} - Cantidad: {{ $productData['quantity'] }} - Precio: ${{ number_format($productData['price'] ?? 0, 2) }}<br>
+                                                @endforeach
+                                            @endif
+                                        </div>
+                                        <div class="col-md-6">
+                                            <strong>Observaciones Originales:</strong><br>
+                                            {{ $distributorTechnicalRecord->observations ?: 'Sin observaciones' }}
+                                        </div>
+                                    </div>
+                                    <div class="row mt-2">
+                                        <div class="col-md-6">
+                                            <strong>Cuenta Corriente Original:</strong><br>
+                                            @if($distributorTechnicalRecord->final_amount != $distributorTechnicalRecord->total_amount)
+                                                <span class="badge bg-info">
+                                                    Ajuste aplicado: ${{ number_format(abs($distributorTechnicalRecord->total_amount - $distributorTechnicalRecord->final_amount), 2) }}
+                                                </span>
+                                                <br>
+                                                <small class="text-muted">
+                                                    @if($distributorTechnicalRecord->total_amount > $distributorTechnicalRecord->final_amount)
+                                                        El cliente tenía crédito que se aplicó a esta compra
+                                                    @else
+                                                        Se agregó deuda de cuenta corriente a esta compra
+                                                    @endif
+                                                </small>
+                                            @else
+                                                <span class="badge bg-secondary">Sin ajuste de cuenta corriente</span>
+                                            @endif
+                                        </div>
+                                        <div class="col-md-6">
+                                            <strong>Método de Pago Original:</strong><br>
+                                            {{ $distributorTechnicalRecord->payment_method ? ucfirst($distributorTechnicalRecord->payment_method) : 'No especificado' }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <form action="{{ route('distributor-clients.technical-records.update', [$distributorClient, $distributorTechnicalRecord]) }}" method="POST" enctype="multipart/form-data">
                             @csrf
                             @method('PUT')
@@ -143,7 +214,7 @@
                             </div>
 
                             <div class="row mb-3">
-                                <div class="col-md-4">
+                                <div class="col-md-6">
                                     <label for="total_amount" class="form-label">Monto Total</label>
                                     <input type="number" step="0.01" class="form-control @error('total_amount') is-invalid @enderror"
                                            id="total_amount" name="total_amount"
@@ -153,22 +224,67 @@
                                     @enderror
                                 </div>
 
-                                <div class="col-md-4">
-                                    <label for="advance_payment" class="form-label">Entrega Anticipada de Dinero</label>
-                                    <input type="number" step="0.01" class="form-control @error('advance_payment') is-invalid @enderror"
-                                           id="advance_payment" name="advance_payment"
-                                           value="{{ old('advance_payment', $distributorTechnicalRecord->advance_payment ?? 0) }}" placeholder="0.00">
-                                    @error('advance_payment')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-
-                                <div class="col-md-4">
+                                <div class="col-md-6">
                                     <label for="final_amount" class="form-label">Monto Final a Pagar</label>
                                     <input type="text" class="form-control" id="final_amount" readonly 
                                            value="${{ number_format($distributorTechnicalRecord->final_amount, 2) }}" style="background-color: #e9ecef;">
                                 </div>
                             </div>
+
+                            <!-- Información de Cuenta Corriente -->
+                            <div class="card mb-3 border-info">
+                                <div class="card-header bg-info">
+                                    <h6 class="mb-0 text-dark">
+                                        <i class="fas fa-calculator me-2"></i>
+                                        Información de Cuenta Corriente
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <label class="form-label">Saldo Actual</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">$</span>
+                                                <input type="text" class="form-control" id="current_balance" 
+                                                       value="{{ number_format($distributorClient->getCurrentBalance(), 2, ',', '.') }}" 
+                                                       readonly style="background-color: #e9ecef;">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Estado</label>
+                                            <div class="mt-2">
+                                                @if($distributorClient->getCurrentBalance() > 0)
+                                                    <span class="badge bg-danger fs-6">Con Deuda</span>
+                                                @elseif($distributorClient->getCurrentBalance() < 0)
+                                                    <span class="badge bg-success fs-6">A Favor</span>
+                                                @else
+                                                    <span class="badge bg-secondary fs-6">Al Día</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Ajuste Automático</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">$</span>
+                                                <input type="text" class="form-control" id="balance_adjustment" 
+                                                       value="0,00" readonly style="background-color: #e9ecef;">
+                                            </div>
+                                            <small class="form-text text-muted">
+                                                @if($distributorClient->getCurrentBalance() > 0)
+                                                    Se sumará a la compra
+                                                @elseif($distributorClient->getCurrentBalance() < 0)
+                                                    Se descontará de la compra
+                                                @else
+                                                    Sin ajuste necesario
+                                                @endif
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Campo oculto para el balance_adjustment -->
+                            <input type="hidden" id="balance_adjustment_hidden" name="balance_adjustment" value="0">
 
                             <div class="row mb-3">
                                 <div class="col-md-6">
@@ -218,13 +334,16 @@
                                                     </div>
                                                     <div class="col-md-1">
                                                         <label class="form-label">Precio</label>
-                                                        <input type="text" class="form-control price-display" readonly>
-                                                        <input type="hidden" class="price-value" name="products_purchased[{{ $index }}][price]">
+                                                        <input type="text" class="form-control price-display" readonly 
+                                                               value="${{ number_format($productData['price'] ?? 0, 2) }}">
+                                                        <input type="hidden" class="price-value" name="products_purchased[{{ $index }}][price]" 
+                                                               value="{{ $productData['price'] ?? 0 }}">
                                                     </div>
                                                     <div class="col-md-2">
                                                         <label class="form-label">Subtotal</label>
                                                         <div class="d-flex align-items-end">
-                                                            <input type="text" class="form-control subtotal-display" readonly style="flex: 1; margin-right: 8px;">
+                                                            <input type="text" class="form-control subtotal-display" readonly style="flex: 1; margin-right: 8px;"
+                                                                   value="${{ number_format($productData['quantity'] * ($productData['price'] ?? 0), 2) }}">
                                                             <button type="button" class="btn btn-outline-danger btn-sm remove-product" 
                                                                     data-index="{{ $index }}" style="height: 45px; min-width: 45px; flex-shrink: 0;">
                                                                 <i class="fas fa-trash"></i>
@@ -271,6 +390,23 @@
 
                             <div class="mb-3">
                                 <label for="observations" class="form-label">Observaciones</label>
+                                
+                                <!-- Información de cuenta corriente en observaciones -->
+                                @if($distributorTechnicalRecord->final_amount != $distributorTechnicalRecord->total_amount)
+                                    <div class="alert alert-info mb-2">
+                                        <small>
+                                            <strong>Información de Cuenta Corriente:</strong><br>
+                                            @if($distributorTechnicalRecord->total_amount > $distributorTechnicalRecord->final_amount)
+                                                • Se aplicó un crédito de cuenta corriente de ${{ number_format(abs($distributorTechnicalRecord->total_amount - $distributorTechnicalRecord->final_amount), 2) }} a esta compra
+                                            @else
+                                                • Se agregó una deuda de cuenta corriente de ${{ number_format(abs($distributorTechnicalRecord->total_amount - $distributorTechnicalRecord->final_amount), 2) }} a esta compra
+                                            @endif
+                                            <br>• Total original: ${{ number_format($distributorTechnicalRecord->total_amount, 2) }}
+                                            <br>• Monto final: ${{ number_format($distributorTechnicalRecord->final_amount, 2) }}
+                                        </small>
+                                    </div>
+                                @endif
+                                
                                 <textarea class="form-control @error('observations') is-invalid @enderror"
                                           id="observations" name="observations"
                                           rows="3">{{ old('observations', $distributorTechnicalRecord->observations) }}</textarea>
@@ -288,6 +424,9 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
+
+                            <!-- Campo oculto para el ajuste de cuenta corriente -->
+                            <input type="hidden" name="balance_adjustment" id="balance_adjustment_hidden" value="0">
 
                             <div class="d-flex justify-content-end gap-2">
                                 <a href="{{ route('distributor-clients.show', $distributorClient) }}" class="btn btn-secondary">
@@ -813,16 +952,33 @@
         // Función para calcular monto final
         function calculateFinalAmount() {
             const total = parseFloat($('#total_amount').val()) || 0;
-            const advance = parseFloat($('#advance_payment').val()) || 0;
-            const finalAmount = Math.max(0, total - advance);
+            
+            // Obtener el saldo de cuenta corriente
+            const currentBalanceText = $('#current_balance').val().replace(/[^\d,-]/g, '').replace(',', '.');
+            const currentBalance = parseFloat(currentBalanceText) || 0;
+            
+            // Calcular ajuste de cuenta corriente
+            let balanceAdjustment = 0;
+            if (currentBalance > 0) {
+                // Si tiene deuda, se suma a la compra
+                balanceAdjustment = currentBalance;
+            } else if (currentBalance < 0) {
+                // Si tiene crédito, se descuenta de la compra (valor negativo)
+                balanceAdjustment = currentBalance; // Mantener el valor negativo
+            }
+            
+                            // Mostrar el ajuste en el campo correspondiente (valor absoluto para mostrar)
+                $('#balance_adjustment').val(Math.abs(balanceAdjustment).toFixed(2).replace('.', ','));
+                $('#balance_adjustment_hidden').val(balanceAdjustment.toString());
+            
+            // Calcular monto final: total + ajuste de cuenta corriente
+            const finalAmount = Math.max(0, total + balanceAdjustment);
             
             $('#final_amount').val('$' + finalAmount.toFixed(2));
         }
 
-        // Evento para recalcular monto final cuando cambie el adelanto
-        $('#advance_payment').on('input', function() {
-            calculateFinalAmount();
-        });
+        // Calcular monto final inicial
+        calculateFinalAmount();
 
         function deletePhoto(photo) {
             if (confirm('¿Estás seguro de que quieres eliminar esta foto?')) {

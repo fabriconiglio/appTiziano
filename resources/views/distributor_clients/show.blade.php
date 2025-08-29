@@ -103,7 +103,7 @@
                                                         <span class="badge bg-secondary">No especificado</span>
                                                 @endswitch
                                             </td>
-                                            <td>${{ number_format($record->total_amount, 2) }}</td>
+                                            <td>${{ number_format($record->final_amount, 2) }}</td>
                                             <td>{{ ucfirst($record->payment_method ?? 'No especificado') }}</td>
                                             <td>
                                                 @if(!empty($record->products_purchased))
@@ -123,7 +123,7 @@
                                                         <i class="fas fa-edit"></i>
                                                     </a>
                                                     <a href="{{ route('distributor-clients.technical-records.remito', [$distributorClient, $record]) }}"
-                                                       class="btn btn-outline-info btn-sm" target="_blank">
+                                                       class="btn btn-outline-danger btn-sm" target="_blank" style="border-color: #8B0000; color: #8B0000;">
                                                         <i class="fas fa-file-pdf"></i>
                                                     </a>
                                                     <button type="button" 
@@ -183,7 +183,7 @@
                                 @default
                                     No especificado
                             @endswitch<br>
-                            <strong>Monto:</strong> ${{ number_format($record->total_amount, 2) }}<br>
+                            <strong>Monto:</strong> ${{ number_format($record->final_amount, 2) }}<br>
                             <strong>Productos:</strong> {{ count($record->products_purchased ?? []) }} producto(s)
                         </div>
                         <p class="text-danger"><strong>Esta acción no se puede deshacer.</strong></p>

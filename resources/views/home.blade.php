@@ -66,6 +66,12 @@
                                             <i class="fas fa-box-open me-2"></i>
                                             Inventario Mayorista
                                         </a>
+
+                                        <a href="{{ route('distributor-current-accounts.index') }}"
+                                           class="btn btn-outline-success">
+                                            <i class="fas fa-calculator me-2"></i>
+                                            Cuentas Corrientes
+                                        </a>
                                     </div>
                                 </div>
                             </div>

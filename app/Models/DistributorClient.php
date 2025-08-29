@@ -32,4 +32,41 @@ class DistributorClient extends Model
     {
         return $this->hasMany(DistributorTechnicalRecord::class);
     }
+
+    public function currentAccounts()
+    {
+        return $this->hasMany(DistributorCurrentAccount::class);
+    }
+
+    /**
+     * Obtener el saldo actual de la cuenta corriente
+     */
+    public function getCurrentBalance()
+    {
+        return DistributorCurrentAccount::getCurrentBalance($this->id);
+    }
+
+    /**
+     * Obtener el saldo formateado
+     */
+    public function getFormattedBalance()
+    {
+        return DistributorCurrentAccount::getFormattedBalance($this->id);
+    }
+
+    /**
+     * Verificar si tiene deuda
+     */
+    public function hasDebt()
+    {
+        return DistributorCurrentAccount::hasDebt($this->id);
+    }
+
+    /**
+     * Obtener el nombre completo
+     */
+    public function getFullNameAttribute()
+    {
+        return $this->name . ' ' . $this->surname;
+    }
 }

@@ -37,6 +37,12 @@
                                             <i class="fas fa-box me-2"></i>
                                             Inventario Peluquería
                                         </a>
+
+                                        <a href="{{ route('client-current-accounts.index') }}"
+                                           class="btn btn-outline-primary">
+                                            <i class="fas fa-calculator me-2"></i>
+                                            Cuentas Corrientes
+                                        </a>
                                     </div>
                                 </div>
                             </div>

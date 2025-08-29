@@ -33,8 +33,42 @@ class Client extends Model
         return $this->hasMany(TechnicalRecord::class);
     }
 
-    public function appointments()
+
+
+    public function currentAccounts()
     {
-        return $this->hasMany(Appointment::class);
+        return $this->hasMany(ClientCurrentAccount::class);
+    }
+
+    /**
+     * Obtener el saldo actual de la cuenta corriente
+     */
+    public function getCurrentBalanceAttribute()
+    {
+        return ClientCurrentAccount::getCurrentBalance($this->id);
+    }
+
+    /**
+     * Obtener el saldo formateado de la cuenta corriente
+     */
+    public function getFormattedBalanceAttribute()
+    {
+        return ClientCurrentAccount::getFormattedBalance($this->id);
+    }
+
+    /**
+     * Verificar si tiene deuda
+     */
+    public function getHasDebtAttribute()
+    {
+        return ClientCurrentAccount::hasDebt($this->id);
+    }
+
+    /**
+     * Obtener el nombre completo
+     */
+    public function getFullNameAttribute()
+    {
+        return $this->name . ' ' . $this->surname;
     }
 }

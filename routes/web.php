@@ -11,6 +11,7 @@ use App\Http\Controllers\SupplierInventoryController;
 use App\Http\Controllers\TechnicalRecordController;
 use App\Http\Controllers\DistributorTechnicalRecordController;
 use App\Http\Controllers\StockAlertController;
+use App\Http\Controllers\ClientCurrentAccountController;
 use App\Models\DistributorTechnicalRecord;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
@@ -41,6 +42,16 @@ Route::middleware(['auth'])->group(function () {
     // CRUD de clientes y registros técnicos
     Route::resource('clients', ClientController::class);
     Route::resource('clients.technical-records', TechnicalRecordController::class);
+    
+    // CRUD de cuentas corrientes de clientes de peluquería
+    Route::get('client-current-accounts', [ClientCurrentAccountController::class, 'index'])->name('client-current-accounts.index');
+    Route::get('clients/{client}/current-accounts', [ClientCurrentAccountController::class, 'show'])->name('clients.current-accounts.show');
+    Route::get('clients/{client}/current-accounts/create', [ClientCurrentAccountController::class, 'create'])->name('clients.current-accounts.create');
+    Route::post('clients/{client}/current-accounts', [ClientCurrentAccountController::class, 'store'])->name('clients.current-accounts.store');
+    Route::get('clients/{client}/current-accounts/{currentAccount}/edit', [ClientCurrentAccountController::class, 'edit'])->name('clients.current-accounts.edit');
+    Route::put('clients/{client}/current-accounts/{currentAccount}', [ClientCurrentAccountController::class, 'update'])->name('clients.current-accounts.update');
+    Route::delete('clients/{client}/current-accounts/{currentAccount}', [ClientCurrentAccountController::class, 'destroy'])->name('clients.current-accounts.destroy');
+    Route::delete('clients/{client}/current-accounts', [ClientCurrentAccountController::class, 'destroyAll'])->name('clients.current-accounts.destroy-all');
 
     Route::post('clients/{client}/technical-records/{technicalRecord}/delete-photo',
         [TechnicalRecordController::class, 'deletePhoto'])

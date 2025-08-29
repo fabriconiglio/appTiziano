@@ -86,6 +86,11 @@
                                            title="Nueva ficha técnica">
                                             <i class="fas fa-file-medical"></i>
                                         </a>
+                                        <a href="{{ route('clients.current-accounts.show', $client) }}"
+                                           class="btn btn-info btn-sm"
+                                           title="Cuenta Corriente">
+                                            <i class="fas fa-calculator"></i>
+                                        </a>
                                         <form action="{{ route('clients.destroy', $client) }}" method="POST" style="display:inline-block;" onsubmit="return confirm('¿Estás seguro de eliminar este cliente?');">
                                             @csrf
                                             @method('DELETE')

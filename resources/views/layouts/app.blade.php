@@ -80,6 +80,11 @@
                                     <a class="dropdown-item" href="{{ route('brands.index') }}">{{ __('Marcas') }}</a>
                                 </li>
 
+                                <!-- Submenú Cuentas Corrientes Peluquería -->
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item" href="{{ route('client-current-accounts.index') }}">{{ __('Cuentas Corrientes') }}</a>
+                                </li>
+
                                 <!-- Submenú Alertas de Stock -->
                                 <li class="dropdown-submenu">
                                     <a class="dropdown-item" href="{{ route('stock-alerts.peluqueria') }}">

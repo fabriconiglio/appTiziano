@@ -12,7 +12,8 @@ class SupplierController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Supplier::query();
+        // Obtener todos los proveedores
+        $query = Supplier::orderBy('name');
 
         // Aplicar filtro de búsqueda si se proporciona
         if ($request->has('search') && !empty($request->get('search'))) {
@@ -27,12 +28,7 @@ class SupplierController extends Controller
             });
         }
 
-        // Filtro por estado
-        if ($request->has('status') && $request->get('status') !== '') {
-            $query->where('is_active', $request->get('status') === 'active');
-        }
-
-        $suppliers = $query->orderBy('name')->paginate(15);
+        $suppliers = $query->paginate(15);
 
         return view('suppliers.index', compact('suppliers'));
     }

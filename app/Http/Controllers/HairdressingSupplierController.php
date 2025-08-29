@@ -12,8 +12,10 @@ class HairdressingSupplierController extends Controller
      */
     public function index(Request $request)
     {
-        $query = HairdressingSupplier::query();
-        
+        // Obtener todos los proveedores
+        $query = HairdressingSupplier::orderBy('name');
+
+        // Aplicar filtro de búsqueda si se proporciona
         if ($request->has('search') && !empty($request->get('search'))) {
             $searchTerm = $request->get('search');
             $query->where(function($q) use ($searchTerm) {
@@ -25,13 +27,9 @@ class HairdressingSupplierController extends Controller
                   ->orWhere('cuit', 'LIKE', "%{$searchTerm}%");
             });
         }
-        
-        if ($request->has('status') && $request->get('status') !== '') {
-            $query->where('is_active', $request->get('status') === 'active');
-        }
-        
-        $suppliers = $query->orderBy('name')->paginate(15);
-        
+
+        $suppliers = $query->paginate(15);
+
         return view('hairdressing-suppliers.index', compact('suppliers'));
     }
 

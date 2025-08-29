@@ -35,18 +35,11 @@
                            placeholder="Buscar por nombre, contacto, email, teléfono o CUIT"
                            value="{{ request('search') }}">
                 </div>
-                <div class="col-md-3">
-                    <select name="status" class="form-select">
-                        <option value="">Todos los estados</option>
-                        <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Activos</option>
-                        <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactivos</option>
-                    </select>
-                </div>
                 <div class="col-auto">
                     <button type="submit" class="btn btn-secondary">
                         <i class="fas fa-search"></i> Buscar
                     </button>
-                    @if(request('search') || request('status'))
+                    @if(request('search'))
                         <a href="{{ route('hairdressing-suppliers.index') }}" class="btn btn-light">
                             <i class="fas fa-times"></i> Limpiar
                         </a>
@@ -131,9 +124,11 @@
                                                 <i class="fas fa-{{ $supplier->is_active ? 'pause' : 'play' }}"></i>
                                             </button>
                                         </form>
-                                        <button type="button" class="btn btn-sm btn-danger" 
-                                                onclick="confirmDelete({{ $supplier->id }}, '{{ $supplier->name }}')" 
-                                                title="Eliminar">
+                                        <button type="button" 
+                                                class="btn btn-danger btn-sm"
+                                                title="Eliminar proveedor"
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#deleteModal{{ $supplier->id }}">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </div>
@@ -164,39 +159,65 @@
     </div>
 </div>
 
-<!-- Modal de confirmación de eliminación -->
-<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="deleteModalLabel">Confirmar eliminación</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                ¿Estás seguro de que deseas eliminar el proveedor "<span id="supplierName"></span>"?
-                <br><br>
-                <strong>Esta acción no se puede deshacer.</strong>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <form id="deleteForm" method="POST" class="d-inline">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-danger">Eliminar</button>
-                </form>
+<!-- Modales de confirmación de eliminación -->
+@foreach($suppliers as $supplier)
+    <div class="modal fade" id="deleteModal{{ $supplier->id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ $supplier->id }}" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel{{ $supplier->id }}">
+                        <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                        Confirmar Eliminación
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <h6 class="alert-heading">
+                            <i class="fas fa-trash text-danger me-2"></i>
+                            ¿Eliminar proveedor?
+                        </h6>
+                        <p class="mb-2">¿Estás seguro de que quieres eliminar el proveedor:</p>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6 class="card-title">{{ $supplier->name }}</h6>
+                                @if($supplier->business_name)
+                                    <p class="card-text mb-1"><strong>Razón Social:</strong> {{ $supplier->business_name }}</p>
+                                @endif
+                                @if($supplier->contact_person)
+                                    <p class="card-text mb-1"><strong>Contacto:</strong> {{ $supplier->contact_person }}</p>
+                                @endif
+                                @if($supplier->email)
+                                    <p class="card-text mb-1"><strong>Email:</strong> {{ $supplier->email }}</p>
+                                @endif
+                                @if($supplier->phone)
+                                    <p class="card-text"><strong>Teléfono:</strong> {{ $supplier->phone }}</p>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        <strong>¡Atención!</strong> Esta acción eliminará el proveedor y <strong>NO SE PUEDE DESHACER</strong>.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>
+                        Cancelar
+                    </button>
+                    <form action="{{ route('hairdressing-suppliers.destroy', $supplier) }}" method="POST" style="display: inline;">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash me-1"></i>
+                            Eliminar Proveedor
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
-</div>
+@endforeach
 
-@endsection
-
-@push('scripts')
-<script>
-function confirmDelete(supplierId, supplierName) {
-    document.getElementById('supplierName').textContent = supplierName;
-    document.getElementById('deleteForm').action = `/hairdressing-suppliers/${supplierId}`;
-    new bootstrap.Modal(document.getElementById('deleteModal')).show();
-}
-</script>
-@endpush 
+@endsection 

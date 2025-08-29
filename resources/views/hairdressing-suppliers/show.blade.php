@@ -213,8 +213,9 @@
                                 {{ $hairdressingSupplier->is_active ? 'Desactivar' : 'Activar' }} Proveedor
                             </button>
                         </form>
-                        <button type="button" class="btn btn-danger btn-sm" 
-                                onclick="confirmDelete({{ $hairdressingSupplier->id }}, '{{ $hairdressingSupplier->name }}')">
+                        <button type="button" class="btn btn-danger btn-sm delete-supplier-btn" 
+                                data-supplier-id="{{ $hairdressingSupplier->id }}" 
+                                data-supplier-name="{{ $hairdressingSupplier->name }}">
                             <i class="fas fa-trash"></i> Eliminar Proveedor
                         </button>
                     </div>
@@ -253,10 +254,18 @@
 
 @push('scripts')
 <script>
-function confirmDelete(supplierId, supplierName) {
-    document.getElementById('supplierName').textContent = supplierName;
-    document.getElementById('deleteForm').action = `/hairdressing-suppliers/${supplierId}`;
-    new bootstrap.Modal(document.getElementById('deleteModal')).show();
-}
+document.addEventListener('DOMContentLoaded', function() {
+    // Event listener para el botón de eliminar
+    document.querySelectorAll('.delete-supplier-btn').forEach(function(button) {
+        button.addEventListener('click', function() {
+            const supplierId = this.getAttribute('data-supplier-id');
+            const supplierName = this.getAttribute('data-supplier-name');
+            
+            document.getElementById('supplierName').textContent = supplierName;
+            document.getElementById('deleteForm').action = `/hairdressing-suppliers/${supplierId}`;
+            new bootstrap.Modal(document.getElementById('deleteModal')).show();
+        });
+    });
+});
 </script>
 @endpush 

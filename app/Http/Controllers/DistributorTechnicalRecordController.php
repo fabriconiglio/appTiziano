@@ -52,12 +52,25 @@ class DistributorTechnicalRecordController extends Controller
             'total_amount' => 'nullable|numeric|min:0',
             'balance_adjustment' => 'nullable|numeric',
             'payment_method' => 'nullable|string',
+            'use_current_account' => 'nullable|boolean',
+            'use_current_account_hidden' => 'nullable|string',
             'products_purchased' => 'nullable|array',
             'products_purchased.*.product_id' => 'required|exists:supplier_inventories,id',
             'products_purchased.*.quantity' => 'required|integer|min:1',
             'observations' => 'nullable|string',
             'photos.*' => 'nullable|image|max:2048',
             'next_purchase_notes' => 'nullable|string'
+        ]);
+
+        // Asegurar que use_current_account siempre tenga un valor usando el campo oculto
+        $validated['use_current_account'] = ($request->input('use_current_account_hidden') === '1');
+        
+        // Debug: Log para verificar el campo use_current_account
+        Log::info('Debug use_current_account:', [
+            'request_has_use_current_account' => $request->has('use_current_account'),
+            'use_current_account_hidden_value' => $request->input('use_current_account_hidden'),
+            'use_current_account_final_value' => $validated['use_current_account'],
+            'all_request_data' => $request->all()
         ]);
 
         // Procesar las fotos
@@ -87,10 +100,6 @@ class DistributorTechnicalRecordController extends Controller
                             break;
                         case 'al_por_menor':
                             $price = $supplierInventory->precio_menor ?: 0;
-                            break;
-                        case 'especial':
-                            // Para compras especiales, usar el precio menor como base
-                            $price = $supplierInventory->precio_menor ?: $supplierInventory->precio_mayor ?: 0;
                             break;
                         default:
                             // Si no se especifica tipo, usar precio menor
@@ -155,8 +164,8 @@ class DistributorTechnicalRecordController extends Controller
                 }
             }
 
-            // Crear movimientos en cuenta corriente
-            if ($balanceAdjustment != 0) {
+            // Crear movimientos en cuenta corriente solo si está marcado el checkbox
+            if ($validated['use_current_account'] && $balanceAdjustment != 0) {
                 // Si hay ajuste de cuenta corriente
                 if ($balanceAdjustment < 0) {
                     // Si el cliente usa crédito, crear una deuda por el monto usado
@@ -185,8 +194,8 @@ class DistributorTechnicalRecordController extends Controller
                         'observations' => "Ficha técnica #{$technicalRecord->id} - " . ($validated['purchase_type'] ?: 'Compra') . " - Deuda aplicada: $" . number_format(abs($balanceAdjustment), 2)
                     ]);
                 }
-            } elseif ($finalAmount > 0) {
-                // Solo crear deuda si no hay ajuste y hay un monto final a pagar
+            } elseif ($validated['use_current_account'] && $finalAmount > 0) {
+                // Solo crear deuda si está marcado el checkbox, no hay ajuste y hay un monto final a pagar
                 \App\Models\DistributorCurrentAccount::create([
                     'distributor_client_id' => $distributorClient->id,
                     'user_id' => auth()->id(),
@@ -203,7 +212,8 @@ class DistributorTechnicalRecordController extends Controller
             DB::commit();
 
             return redirect()->route('distributor-clients.show', $distributorClient)
-                ->with('success', 'Ficha técnica de compra creada exitosamente.');
+                ->with('success', 'Ficha técnica de compra creada exitosamente.' . 
+                    ($validated['use_current_account'] ? ' Se registró en la cuenta corriente.' : ' No se registró en la cuenta corriente.'));
 
         } catch (\Exception $e) {
             DB::rollback();
@@ -261,12 +271,25 @@ class DistributorTechnicalRecordController extends Controller
             'total_amount' => 'nullable|numeric|min:0',
             'balance_adjustment' => 'nullable|numeric',
             'payment_method' => 'nullable|string',
+            'use_current_account' => 'nullable|boolean',
+            'use_current_account_hidden' => 'nullable|string',
             'products_purchased' => 'nullable|array',
             'products_purchased.*.product_id' => 'required|exists:supplier_inventories,id',
             'products_purchased.*.quantity' => 'required|integer|min:1',
             'observations' => 'nullable|string',
             'photos.*' => 'nullable|image|max:2048',
             'next_purchase_notes' => 'nullable|string'
+        ]);
+
+        // Asegurar que use_current_account siempre tenga un valor usando el campo oculto
+        $validated['use_current_account'] = ($request->input('use_current_account_hidden') === '1');
+        
+        // Debug: Log para verificar el campo use_current_account
+        Log::info('Debug use_current_account UPDATE:', [
+            'request_has_use_current_account' => $request->has('use_current_account'),
+            'use_current_account_hidden_value' => $request->input('use_current_account_hidden'),
+            'use_current_account_final_value' => $validated['use_current_account'],
+            'all_request_data' => $request->all()
         ]);
 
         // Procesar nuevas fotos
@@ -293,10 +316,6 @@ class DistributorTechnicalRecordController extends Controller
                             break;
                         case 'al_por_menor':
                             $price = $supplierInventory->precio_menor ?: 0;
-                            break;
-                        case 'especial':
-                            // Para compras especiales, usar el precio menor como base
-                            $price = $supplierInventory->precio_menor ?: $supplierInventory->precio_mayor ?: 0;
                             break;
                         default:
                             // Si no se especifica tipo, usar precio menor
@@ -366,8 +385,8 @@ class DistributorTechnicalRecordController extends Controller
                 $movement->delete();
             }
             
-            // Crear movimientos según la lógica actual
-            if ($balanceAdjustment != 0) {
+            // Crear movimientos según la lógica actual solo si está marcado el checkbox
+            if ($validated['use_current_account'] && $balanceAdjustment != 0) {
                 // Si hay ajuste de cuenta corriente
                 if ($balanceAdjustment < 0) {
                     // Si el cliente usa crédito, crear una deuda por el monto usado
@@ -396,8 +415,8 @@ class DistributorTechnicalRecordController extends Controller
                         'observations' => "Ficha técnica #{$distributorTechnicalRecord->id} - " . ($validated['purchase_type'] ?: 'Compra') . " - Deuda aplicada: $" . number_format(abs($balanceAdjustment), 2)
                     ]);
                 }
-            } elseif ($finalAmount > 0) {
-                // Solo crear deuda si no hay ajuste y hay un monto final a pagar
+            } elseif ($validated['use_current_account'] && $finalAmount > 0) {
+                // Solo crear deuda si está marcado el checkbox, no hay ajuste y hay un monto final a pagar
                 DistributorCurrentAccount::create([
                     'distributor_client_id' => $distributorClient->id,
                     'user_id' => auth()->id(),
@@ -414,7 +433,8 @@ class DistributorTechnicalRecordController extends Controller
             DB::commit();
 
             return redirect()->route('distributor-clients.show', $distributorClient)
-                ->with('success', 'Ficha técnica de compra actualizada exitosamente.');
+                ->with('success', 'Ficha técnica de compra actualizada exitosamente.' . 
+                    ($validated['use_current_account'] ? ' Se registró en la cuenta corriente.' : ' No se registró en la cuenta corriente.'));
 
         } catch (\Exception $e) {
             DB::rollback();
@@ -516,9 +536,6 @@ class DistributorTechnicalRecordController extends Controller
                             break;
                         case 'al_por_menor':
                             $unitPrice = $supplierInventory->precio_menor ?: 0;
-                            break;
-                        case 'especial':
-                            $unitPrice = $supplierInventory->precio_menor ?: $supplierInventory->precio_mayor ?: 0;
                             break;
                         default:
                             $unitPrice = $supplierInventory->precio_menor ?: $supplierInventory->precio_mayor ?: 0;

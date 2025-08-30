@@ -205,7 +205,6 @@
                                         <option value="">Seleccionar tipo</option>
                                         <option value="al_por_mayor" {{ old('purchase_type', $distributorTechnicalRecord->purchase_type) == 'al_por_mayor' ? 'selected' : '' }}>Al por Mayor</option>
                                         <option value="al_por_menor" {{ old('purchase_type', $distributorTechnicalRecord->purchase_type) == 'al_por_menor' ? 'selected' : '' }}>Al por Menor</option>
-                                        <option value="especial" {{ old('purchase_type', $distributorTechnicalRecord->purchase_type) == 'especial' ? 'selected' : '' }}>Compra Especial</option>
                                     </select>
                                     @error('purchase_type')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -280,11 +279,30 @@
                                             </small>
                                         </div>
                                     </div>
+                                    
+                                    <!-- Opción para decidir si registrar en cuenta corriente -->
+                                    <div class="row mt-3">
+                                        <div class="col-12">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="use_current_account" name="use_current_account" value="1" checked>
+                                                <label class="form-check-label" for="use_current_account">
+                                                    <strong>Registrar en cuenta corriente</strong>
+                                                </label>
+                                                <small class="form-text text-muted d-block">
+                                                    Marca esta opción si quieres que esta compra se registre en la cuenta corriente del cliente. 
+                                                    Si la desmarcas, la compra se registrará como pagada completamente sin afectar la cuenta corriente.
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             
                             <!-- Campo oculto para el balance_adjustment -->
                             <input type="hidden" id="balance_adjustment_hidden" name="balance_adjustment" value="0">
+                            
+                            <!-- Campo oculto para asegurar que use_current_account siempre se envíe -->
+                            <input type="hidden" name="use_current_account_hidden" id="use_current_account_hidden" value="1">
 
                             <div class="row mb-3">
                                 <div class="col-md-6">
@@ -750,9 +768,6 @@
                                     case 'al_por_menor':
                                         price = response.precio_menor || 0;
                                         break;
-                                    case 'especial':
-                                        price = response.precio_menor || response.precio_mayor || 0;
-                                        break;
                                     default:
                                         price = response.precio_menor || response.precio_mayor || 0;
                                         break;
@@ -896,9 +911,6 @@
                                     case 'al_por_menor':
                                         price = response.precio_menor || 0;
                                         break;
-                                    case 'especial':
-                                        price = response.precio_menor || response.precio_mayor || 0;
-                                        break;
                                     default:
                                         price = response.precio_menor || response.precio_mayor || 0;
                                         break;
@@ -953,23 +965,28 @@
         function calculateFinalAmount() {
             const total = parseFloat($('#total_amount').val()) || 0;
             
+            // Verificar si se debe usar la cuenta corriente
+            const useCurrentAccount = $('#use_current_account').is(':checked');
+            
             // Obtener el saldo de cuenta corriente
             const currentBalanceText = $('#current_balance').val().replace(/[^\d,-]/g, '').replace(',', '.');
             const currentBalance = parseFloat(currentBalanceText) || 0;
             
-            // Calcular ajuste de cuenta corriente
+            // Calcular ajuste de cuenta corriente solo si está marcado el checkbox
             let balanceAdjustment = 0;
-            if (currentBalance > 0) {
-                // Si tiene deuda, se suma a la compra
-                balanceAdjustment = currentBalance;
-            } else if (currentBalance < 0) {
-                // Si tiene crédito, se descuenta de la compra (valor negativo)
-                balanceAdjustment = currentBalance; // Mantener el valor negativo
+            if (useCurrentAccount) {
+                if (currentBalance > 0) {
+                    // Si tiene deuda, se suma a la compra
+                    balanceAdjustment = currentBalance;
+                } else if (currentBalance < 0) {
+                    // Si tiene crédito, se descuenta de la compra (valor negativo)
+                    balanceAdjustment = currentBalance; // Mantener el valor negativo
+                }
             }
             
-                            // Mostrar el ajuste en el campo correspondiente (valor absoluto para mostrar)
-                $('#balance_adjustment').val(Math.abs(balanceAdjustment).toFixed(2).replace('.', ','));
-                $('#balance_adjustment_hidden').val(balanceAdjustment.toString());
+            // Mostrar el ajuste en el campo correspondiente (valor absoluto para mostrar)
+            $('#balance_adjustment').val(Math.abs(balanceAdjustment).toFixed(2).replace('.', ','));
+            $('#balance_adjustment_hidden').val(balanceAdjustment.toString());
             
             // Calcular monto final: total + ajuste de cuenta corriente
             const finalAmount = Math.max(0, total + balanceAdjustment);
@@ -979,6 +996,13 @@
 
         // Calcular monto final inicial
         calculateFinalAmount();
+        
+        // Event listener para el checkbox de usar cuenta corriente
+        $('#use_current_account').on('change', function() {
+            // Actualizar el campo oculto
+            $('#use_current_account_hidden').val(this.checked ? '1' : '0');
+            calculateFinalAmount();
+        });
 
         function deletePhoto(photo) {
             if (confirm('¿Estás seguro de que quieres eliminar esta foto?')) {

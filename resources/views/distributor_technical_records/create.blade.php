@@ -220,9 +220,17 @@
                             </div>
 
                             <div class="mb-3">
-                                <label class="form-label">Productos Comprados</label>
+                                <label class="form-label">
+                                    Productos Comprados 
+                                    <span class="badge bg-primary" id="product-counter">0</span>
+                                </label>
+                                <!-- Debug: {{ count($distributorTechnicalRecord->products_purchased ?? []) }} productos -->
                                 <div id="products-container">
                                     <!-- Los productos se agregarán dinámicamente aquí -->
+                                    <div class="text-center text-muted py-4" id="no-products-message">
+                                        <i class="fas fa-shopping-cart fa-2x mb-2"></i>
+                                        <p>No hay productos agregados. Haz clic en "Agregar Producto" para comenzar.</p>
+                                    </div>
                                 </div>
                                 <button type="button" class="btn btn-outline-primary btn-sm" id="add-product">
                                     <i class="fas fa-plus"></i> Agregar Producto
@@ -269,8 +277,8 @@
                                 <a href="{{ route('distributor-clients.show', $distributorClient) }}" class="btn btn-secondary">
                                     Cancelar
                                 </a>
-                                <button type="submit" class="btn btn-primary">
-                                    Guardar Ficha Técnica de Compra
+                                <button type="submit" class="btn btn-primary" id="submit-btn">
+                                    <i class="fas fa-save"></i> Guardar Ficha Técnica
                                 </button>
                             </div>
                         </form>
@@ -337,7 +345,7 @@
                                 <div class="d-flex align-items-end">
                                     <input type="text" class="form-control subtotal-display" readonly style="flex: 1; margin-right: 8px;">
                                     <button type="button" class="btn btn-outline-danger btn-sm remove-product" 
-                                            onclick="removeProduct(${productIndex})" style="height: 45px; min-width: 45px; flex-shrink: 0;">
+                                            data-index="${productIndex}" style="height: 45px; min-width: 45px; flex-shrink: 0;">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
@@ -516,14 +524,57 @@
                     calculateSubtotal($(this).closest('.product-row'));
                 });
                 
+                // Actualizar el contador de productos
+                updateProductCounter();
             }
 
             $('#add-product').click(function() {
                 addProductRow();
             });
 
+            // Event listener para el botón de eliminar
+            $(document).on('click', '.remove-product', function() {
+                const index = $(this).data('index');
+                const productRow = $(this).closest('.product-row');
+                
+                // Verificar que estamos eliminando la fila correcta
+                if (productRow.length === 0) {
+                    return;
+                }
+                
+                // Eliminar la fila del producto
+                productRow.remove();
+                
+                // Esperar a que se complete la eliminación del DOM
+                setTimeout(function() {
+                    // Recalcular índices después de eliminar
+                    $('.product-row').each(function(newIndex) {
+                        $(this).attr('data-index', newIndex);
+                        
+                        // Actualizar los nombres de los campos
+                        $(this).find('select[name^="products_purchased["]').attr('name', `products_purchased[${newIndex}][product_id]`);
+                        $(this).find('input[name^="products_purchased["]').each(function() {
+                            const fieldName = $(this).attr('name').match(/\[([^\]]+)\]$/)[1];
+                            $(this).attr('name', `products_purchased[${newIndex}][${fieldName}]`);
+                        });
+                        
+                        // Actualizar el data-index del botón de eliminar
+                        $(this).find('.remove-product').attr('data-index', newIndex);
+                    });
+                    
+                    // Actualizar el productIndex global
+                    productIndex = $('.product-row').length;
+                    
+                    updateProductCounter();
+                    calculateTotal();
+                }, 10);
+            });
+
             // Agregar el primer producto por defecto
-            addProductRow();
+            // addProductRow();
+            
+            // Actualizar el contador inicial
+            updateProductCounter();
             
             // Evento para recalcular precios cuando cambie el tipo de compra
             $('#purchase_type').on('change', function() {
@@ -593,9 +644,23 @@
                 });
                 
                 $('#total_amount').val(total.toFixed(2));
+                updateProductCounter();
                 calculateFinalAmount();
             }
 
+            // Función para actualizar el contador de productos
+            function updateProductCounter() {
+                const count = $('.product-row').length;
+                $('#product-counter').text(count);
+                
+                // Mostrar/ocultar mensaje cuando no hay productos
+                if (count === 0) {
+                    $('#no-products-message').show();
+                } else {
+                    $('#no-products-message').hide();
+                }
+            }
+            
             // Función para calcular monto final
             function calculateFinalAmount() {
                 const total = parseFloat($('#total_amount').val()) || 0;
@@ -638,12 +703,16 @@
                 $('#use_current_account_hidden').val(this.checked ? '1' : '0');
                 calculateFinalAmount();
             });
-        });
 
-        function removeProduct(index) {
-            $(`.product-row[data-index="${index}"]`).remove();
-            calculateTotal();
-        }
+            // Validación para el botón de guardar
+            $('#submit-btn').on('click', function() {
+                if ($('#products-container').is(':visible') && $('#products-container').find('.product-row').length === 0) {
+                    alert('Por favor, agrega al menos un producto a la ficha técnica.');
+                    return false;
+                }
+                return true;
+            });
+        });
     </script>
 @endpush
 

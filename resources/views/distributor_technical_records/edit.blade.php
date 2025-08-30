@@ -322,7 +322,10 @@
                             </div>
 
                             <div class="mb-3">
-                                <label class="form-label">Productos Comprados</label>
+                                <label class="form-label">
+                                    Productos Comprados 
+                                    <span class="badge bg-primary" id="product-counter">{{ count($distributorTechnicalRecord->products_purchased ?? []) }}</span>
+                                </label>
                                 <!-- Debug: {{ count($distributorTechnicalRecord->products_purchased ?? []) }} productos -->
                                 <div id="products-container">
                                     @if(!empty($distributorTechnicalRecord->products_purchased))
@@ -371,6 +374,11 @@
                                                 </div>
                                             </div>
                                         @endforeach
+                                    @else
+                                        <div class="text-center text-muted py-4" id="no-products-message">
+                                            <i class="fas fa-shopping-cart fa-2x mb-2"></i>
+                                            <p>No hay productos agregados. Haz clic en "Agregar Producto" para comenzar.</p>
+                                        </div>
                                     @endif
                                 </div>
                                 <button type="button" class="btn btn-outline-primary btn-sm" id="add-product">
@@ -450,7 +458,7 @@
                                 <a href="{{ route('distributor-clients.show', $distributorClient) }}" class="btn btn-secondary">
                                     Cancelar
                                 </a>
-                                <button type="submit" class="btn btn-primary">
+                                <button type="submit" class="btn btn-primary" id="submit-btn">
                                     Actualizar Ficha Técnica de Compra
                                 </button>
                             </div>
@@ -817,6 +825,9 @@
                 
                 // Incrementar el índice para el próximo producto
                 productIndex++;
+                
+                // Actualizar el contador de productos
+                updateProductCounter();
             }
 
             $('#add-product').click(function() {
@@ -826,28 +837,39 @@
             // Evento para eliminar productos
             $(document).on('click', '.remove-product', function() {
                 const index = $(this).data('index');
-                $(`.product-row[data-index="${index}"]`).remove();
+                const productRow = $(this).closest('.product-row');
                 
-                // Recalcular índices después de eliminar
-                $('.product-row').each(function(newIndex) {
-                    const oldIndex = $(this).data('index');
-                    $(this).attr('data-index', newIndex);
-                    
-                    // Actualizar los nombres de los campos
-                    $(this).find('select[name^="products_purchased["]').attr('name', `products_purchased[${newIndex}][product_id]`);
-                    $(this).find('input[name^="products_purchased["]').each(function() {
-                        const fieldName = $(this).attr('name').match(/\[([^\]]+)\]$/)[1];
-                        $(this).attr('name', `products_purchased[${newIndex}][${fieldName}]`);
+                // Verificar que estamos eliminando la fila correcta
+                if (productRow.length === 0) {
+                    return;
+                }
+                
+                // Eliminar la fila del producto
+                productRow.remove();
+                
+                // Esperar a que se complete la eliminación del DOM
+                setTimeout(function() {
+                    // Recalcular índices después de eliminar
+                    $('.product-row').each(function(newIndex) {
+                        $(this).attr('data-index', newIndex);
+                        
+                        // Actualizar los nombres de los campos
+                        $(this).find('select[name^="products_purchased["]').attr('name', `products_purchased[${newIndex}][product_id]`);
+                        $(this).find('input[name^="products_purchased["]').each(function() {
+                            const fieldName = $(this).attr('name').match(/\[([^\]]+)\]$/)[1];
+                            $(this).attr('name', `products_purchased[${newIndex}][${fieldName}]`);
+                        });
+                        
+                        // Actualizar el data-index del botón de eliminar
+                        $(this).find('.remove-product').attr('data-index', newIndex);
                     });
                     
-                    // Actualizar el data-index del botón de eliminar
-                    $(this).find('.remove-product').attr('data-index', newIndex);
-                });
-                
-                // Actualizar el productIndex global
-                productIndex = $('.product-row').length;
-                
-                calculateTotal();
+                    // Actualizar el productIndex global
+                    productIndex = $('.product-row').length;
+                    
+                    updateProductCounter();
+                    calculateTotal();
+                }, 10);
             });
 
             // Inicializar eventos para productos existentes
@@ -958,7 +980,21 @@
             });
             
             $('#total_amount').val(total.toFixed(2));
+            updateProductCounter();
             calculateFinalAmount();
+        }
+
+        // Función para actualizar el contador de productos
+        function updateProductCounter() {
+            const count = $('.product-row').length;
+            $('#product-counter').text(count);
+            
+            // Mostrar/ocultar mensaje cuando no hay productos
+            if (count === 0) {
+                $('#no-products-message').show();
+            } else {
+                $('#no-products-message').hide();
+            }
         }
 
         // Función para calcular monto final
@@ -1002,6 +1038,15 @@
             // Actualizar el campo oculto
             $('#use_current_account_hidden').val(this.checked ? '1' : '0');
             calculateFinalAmount();
+        });
+
+        // Validación para el botón de guardar
+        $('#submit-btn').on('click', function() {
+            if ($('#products-container').is(':visible') && $('#products-container').find('.product-row').length === 0) {
+                alert('Por favor, agrega al menos un producto a la ficha técnica.');
+                return false;
+            }
+            return true;
         });
 
         function deletePhoto(photo) {

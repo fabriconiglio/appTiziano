@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Supplier;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class SupplierController extends Controller
 {
@@ -76,7 +77,7 @@ class SupplierController extends Controller
      */
     public function show(Supplier $supplier)
     {
-        $supplier->load('supplierInventories');
+        $supplier->load(['supplierInventories', 'supplierPurchases']);
         
         // Obtener estadísticas del proveedor
         $stats = [
@@ -162,5 +163,109 @@ class SupplierController extends Controller
 
         $status = $supplier->is_active ? 'activado' : 'desactivado';
         return back()->with('success', "Proveedor {$status} exitosamente.");
+    }
+
+    /**
+     * Mostrar formulario para crear una nueva compra
+     */
+    public function createPurchase(Supplier $supplier)
+    {
+        return view('suppliers.create-purchase', compact('supplier'));
+    }
+
+    /**
+     * Almacenar una nueva compra del proveedor
+     */
+    public function storePurchase(Request $request, Supplier $supplier)
+    {
+        $validated = $request->validate([
+            'purchase_date' => 'required|date',
+            'receipt_number' => 'required|string|max:255',
+            'total_amount' => 'required|numeric|min:0',
+            'payment_amount' => 'required|numeric|min:0',
+            'balance_amount' => 'nullable|numeric|min:0',
+            'receipt_file' => 'required|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240',
+            'notes' => 'nullable|string'
+        ]);
+
+        // Procesar el archivo de la boleta
+        if ($request->hasFile('receipt_file')) {
+            $filePath = $request->file('receipt_file')->store('supplier-receipts', 'public');
+            $validated['receipt_file'] = $filePath;
+        }
+
+        // Calcular el saldo pendiente
+        $validated['balance_amount'] = $validated['total_amount'] - $validated['payment_amount'];
+        
+        // Agregar el ID del proveedor y usuario
+        $validated['supplier_id'] = $supplier->id;
+        $validated['user_id'] = auth()->id();
+
+        // Crear la compra en la base de datos
+        \App\Models\SupplierPurchase::create($validated);
+        
+        return redirect()->route('suppliers.show', $supplier)
+            ->with('success', 'Compra registrada exitosamente.');
+    }
+
+    /**
+     * Mostrar formulario para editar una compra
+     */
+    public function editPurchase(Supplier $supplier, $purchase)
+    {
+        $purchase = \App\Models\SupplierPurchase::findOrFail($purchase);
+        
+        // Verificar que la compra pertenece al proveedor
+        if ($purchase->supplier_id !== $supplier->id) {
+            abort(404);
+        }
+        
+        return view('suppliers.edit-purchase', compact('supplier', 'purchase'));
+    }
+
+    /**
+     * Actualizar una compra existente
+     */
+    public function updatePurchase(Request $request, Supplier $supplier, $purchase)
+    {
+        $purchase = \App\Models\SupplierPurchase::findOrFail($purchase);
+        
+        // Verificar que la compra pertenece al proveedor
+        if ($purchase->supplier_id !== $supplier->id) {
+            abort(404);
+        }
+
+        $validated = $request->validate([
+            'purchase_date' => 'required|date',
+            'receipt_number' => 'required|string|max:255',
+            'total_amount' => 'required|numeric|min:0',
+            'payment_amount' => 'required|numeric|min:0',
+            'balance_amount' => 'nullable|numeric|min:0',
+            'receipt_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240',
+            'notes' => 'nullable|string'
+        ]);
+
+        // Procesar el archivo de la boleta si se proporciona uno nuevo
+        if ($request->hasFile('receipt_file')) {
+            // Eliminar archivo anterior si existe
+            if ($purchase->receipt_file && Storage::exists('public/' . $purchase->receipt_file)) {
+                Storage::delete('public/' . $purchase->receipt_file);
+            }
+            
+            $filePath = $request->file('receipt_file')->store('supplier-receipts', 'public');
+            $validated['receipt_file'] = $filePath;
+        } else {
+            // Mantener el archivo actual
+            $validated['receipt_file'] = $purchase->receipt_file;
+        }
+
+        // Calcular el saldo pendiente
+        $validated['balance_amount'] = $validated['total_amount'] - $validated['payment_amount'];
+
+        // Actualizar la compra
+        $purchase->update($validated);
+        
+        return redirect()->route('suppliers.show', $supplier)
+            ->with('success', 'Compra actualizada exitosamente.');
     }
 }

@@ -59,7 +59,6 @@
                             <th>Proveedor</th>
                             <th>Contacto</th>
                             <th>Información de Contacto</th>
-                            <th>Productos</th>
                             <th>Estado</th>
                             <th>Acciones</th>
                         </tr>
@@ -93,10 +92,6 @@
                                     @if($supplier->website)
                                         <div><i class="fas fa-globe text-muted"></i> <a href="{{ $supplier->website }}" target="_blank">{{ $supplier->website }}</a></div>
                                     @endif
-                                </td>
-                                <td>
-                                    <div class="fw-bold">{{ $supplier->products_count }}</div>
-                                    <small class="text-muted">productos</small>
                                 </td>
                                 <td>
                                     <span class="badge {{ $supplier->status_badge_class }}">
@@ -138,7 +133,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center py-4">
+                                <td colspan="5" class="text-center py-4">
                                     <div class="text-muted">
                                         <i class="fas fa-box-open fa-3x mb-3"></i>
                                         <h5>No hay proveedores registrados</h5>

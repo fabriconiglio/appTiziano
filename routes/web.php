@@ -113,6 +113,16 @@ Route::get('/api/supplier-inventories/get-product', [App\Http\Controllers\Suppli
     Route::post('suppliers/{id}/restore', [\App\Http\Controllers\SupplierController::class, 'restore'])
         ->name('suppliers.restore');
 
+    // Rutas para compras de proveedores
+    Route::get('suppliers/{supplier}/create-purchase', [\App\Http\Controllers\SupplierController::class, 'createPurchase'])
+        ->name('suppliers.create-purchase');
+    Route::post('suppliers/{supplier}/store-purchase', [\App\Http\Controllers\SupplierController::class, 'storePurchase'])
+        ->name('suppliers.store-purchase');
+    Route::get('suppliers/{supplier}/edit-purchase/{purchase}', [\App\Http\Controllers\SupplierController::class, 'editPurchase'])
+        ->name('suppliers.edit-purchase');
+    Route::put('suppliers/{supplier}/update-purchase/{purchase}', [\App\Http\Controllers\SupplierController::class, 'updatePurchase'])
+        ->name('suppliers.update-purchase');
+
     // CRUD de proveedores de peluquería
     Route::resource('hairdressing-suppliers', \App\Http\Controllers\HairdressingSupplierController::class);
     Route::patch('hairdressing-suppliers/{hairdressingSupplier}/toggle-status', [\App\Http\Controllers\HairdressingSupplierController::class, 'toggleStatus'])

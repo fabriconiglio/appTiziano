@@ -107,4 +107,28 @@ class Supplier extends Model
             ->where('stock_quantity', '<=', 0)
             ->get();
     }
+
+    /**
+     * Relación con las compras del proveedor
+     */
+    public function supplierPurchases()
+    {
+        return $this->hasMany(SupplierPurchase::class);
+    }
+
+    /**
+     * Obtener el total de deuda con el proveedor
+     */
+    public function getTotalDebtAttribute()
+    {
+        return $this->supplierPurchases()->sum('balance_amount');
+    }
+
+    /**
+     * Obtener el total pagado al proveedor
+     */
+    public function getTotalPaidAttribute()
+    {
+        return $this->supplierPurchases()->sum('payment_amount');
+    }
 } 

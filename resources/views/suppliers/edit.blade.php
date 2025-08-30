@@ -126,63 +126,6 @@
                             </div>
                         </div>
 
-                        <!-- Condiciones Comerciales -->
-                        <div class="row mb-4">
-                            <div class="col-12">
-                                <h6 class="text-primary mb-3">
-                                    <i class="fas fa-handshake"></i> Condiciones Comerciales
-                                </h6>
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label for="payment_terms" class="form-label">Condiciones de Pago</label>
-                                <input type="text" class="form-control @error('payment_terms') is-invalid @enderror" 
-                                       id="payment_terms" name="payment_terms" value="{{ old('payment_terms', $supplier->payment_terms) }}" 
-                                       placeholder="Ej: 30 días, contado, etc.">
-                                @error('payment_terms')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label for="delivery_time" class="form-label">Tiempo de Entrega</label>
-                                <input type="text" class="form-control @error('delivery_time') is-invalid @enderror" 
-                                       id="delivery_time" name="delivery_time" value="{{ old('delivery_time', $supplier->delivery_time) }}" 
-                                       placeholder="Ej: 24-48 horas, 1 semana, etc.">
-                                @error('delivery_time')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label for="minimum_order" class="form-label">Pedido Mínimo ($)</label>
-                                <input type="number" step="0.01" class="form-control @error('minimum_order') is-invalid @enderror" 
-                                       id="minimum_order" name="minimum_order" value="{{ old('minimum_order', $supplier->minimum_order) }}">
-                                @error('minimum_order')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label for="discount_percentage" class="form-label">Porcentaje de Descuento (%)</label>
-                                <input type="number" step="0.01" class="form-control @error('discount_percentage') is-invalid @enderror" 
-                                       id="discount_percentage" name="discount_percentage" value="{{ old('discount_percentage', $supplier->discount_percentage) }}">
-                                @error('discount_percentage')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <div class="col-12 mb-3">
-                                <label for="bank_account" class="form-label">Cuenta Bancaria</label>
-                                <input type="text" class="form-control @error('bank_account') is-invalid @enderror" 
-                                       id="bank_account" name="bank_account" value="{{ old('bank_account', $supplier->bank_account) }}" 
-                                       placeholder="Banco, tipo de cuenta, CBU, etc.">
-                                @error('bank_account')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-
                         <!-- Información Adicional -->
                         <div class="row mb-4">
                             <div class="col-12">

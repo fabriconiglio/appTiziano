@@ -1,6 +1,52 @@
 @extends('layouts.app')
 
+@php
+use Illuminate\Support\Facades\Storage;
+@endphp
+
 @section('title', 'Detalle del Proveedor')
+
+<style>
+.stats-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    border: none;
+    border-radius: 12px;
+}
+
+.stats-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.stats-card .card-body {
+    padding: 1.25rem 0.75rem;
+}
+
+.stats-card h3 {
+    font-size: 0.9rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.stats-card small {
+    font-size: 0.7rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.bg-info {
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%) !important;
+}
+
+.bg-warning {
+    background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%) !important;
+}
+
+.bg-success {
+    background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%) !important;
+}
+</style>
 
 @section('content')
 <div class="container">
@@ -108,45 +154,6 @@
                             </table>
                         </div>
 
-                        <!-- Condiciones Comerciales -->
-                        <div class="col-md-6 mb-4">
-                            <h6 class="text-primary mb-3">
-                                <i class="fas fa-handshake"></i> Condiciones Comerciales
-                            </h6>
-                            <table class="table table-borderless">
-                                @if($supplier->payment_terms)
-                                <tr>
-                                    <td><strong>Condiciones de Pago:</strong></td>
-                                    <td>{{ $supplier->payment_terms }}</td>
-                                </tr>
-                                @endif
-                                @if($supplier->delivery_time)
-                                <tr>
-                                    <td><strong>Tiempo de Entrega:</strong></td>
-                                    <td>{{ $supplier->delivery_time }}</td>
-                                </tr>
-                                @endif
-                                @if($supplier->minimum_order)
-                                <tr>
-                                    <td><strong>Pedido Mínimo:</strong></td>
-                                    <td>${{ number_format($supplier->minimum_order, 2, ',', '.') }}</td>
-                                </tr>
-                                @endif
-                                @if($supplier->discount_percentage)
-                                <tr>
-                                    <td><strong>Descuento:</strong></td>
-                                    <td>{{ $supplier->discount_percentage }}%</td>
-                                </tr>
-                                @endif
-                                @if($supplier->bank_account)
-                                <tr>
-                                    <td><strong>Cuenta Bancaria:</strong></td>
-                                    <td>{{ $supplier->bank_account }}</td>
-                                </tr>
-                                @endif
-                            </table>
-                        </div>
-
                         <!-- Información Adicional -->
                         <div class="col-md-6 mb-4">
                             <h6 class="text-primary mb-3">
@@ -162,63 +169,88 @@
                 </div>
             </div>
 
-            <!-- Productos del Proveedor -->
+            <!-- Compras al Proveedor -->
             <div class="card">
                 <div class="card-header">
                     <h6 class="mb-0">
-                        <i class="fas fa-boxes"></i> Productos del Proveedor
+                        <i class="fas fa-shopping-cart"></i> Compras al Proveedor
                     </h6>
                 </div>
                 <div class="card-body">
-                    @if($supplier->supplierInventories->count() > 0)
+                    @if($supplier->supplierPurchases->count() > 0)
                         <div class="table-responsive">
                             <table class="table table-sm">
                                 <thead>
                                     <tr>
-                                        <th>Producto</th>
-                                        <th>Stock</th>
-                                        <th>Precio Mayor</th>
-                                        <th>Precio Menor</th>
-                                        <th>Estado</th>
+                                        <th>Fecha</th>
+                                        <th>N° Boleta</th>
+                                        <th>Total</th>
+                                        <th>Pago</th>
+                                        <th>Saldo</th>
+                                        <th>Boleta</th>
+                                        <th>Observaciones</th>
+                                        <th>Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach($supplier->supplierInventories->take(10) as $product)
+                                    @foreach($supplier->supplierPurchases->sortByDesc('purchase_date') as $purchase)
                                         <tr>
                                             <td>
-                                                <div class="fw-bold">{{ $product->product_name }}</div>
-                                                @if($product->description)
-                                                    <small class="text-muted">{{ $product->description }}</small>
+                                                <div class="fw-bold">{{ $purchase->purchase_date->format('d/m/Y') }}</div>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-primary">{{ $purchase->receipt_number }}</span>
+                                            </td>
+                                            <td>
+                                                <div class="fw-bold text-success">${{ number_format($purchase->total_amount, 2, ',', '.') }}</div>
+                                            </td>
+                                            <td>
+                                                <div class="fw-bold text-primary">${{ number_format($purchase->payment_amount, 2, ',', '.') }}</div>
+                                            </td>
+                                            <td>
+                                                @if($purchase->balance_amount > 0)
+                                                    <span class="badge bg-danger text-white">${{ number_format($purchase->balance_amount, 2, ',', '.') }}</span>
+                                                @else
+                                                    <span class="badge bg-success">Pagado</span>
                                                 @endif
                                             </td>
                                             <td>
-                                                <span class="badge {{ $product->stock_quantity > 5 ? 'bg-success' : ($product->stock_quantity > 0 ? 'bg-warning' : 'bg-danger') }}">
-                                                    {{ $product->stock_quantity }}
-                                                </span>
+                                                @if($purchase->receipt_file)
+                                                    <a href="{{ Storage::url($purchase->receipt_file) }}" 
+                                                       target="_blank" 
+                                                       class="btn btn-sm btn-outline-primary">
+                                                        <i class="fas fa-download"></i> Ver
+                                                    </a>
+                                                @else
+                                                    <span class="text-muted">Sin archivo</span>
+                                                @endif
                                             </td>
-                                            <td>${{ number_format($product->precio_mayor ?? 0, 2, ',', '.') }}</td>
-                                            <td>${{ number_format($product->precio_menor ?? 0, 2, ',', '.') }}</td>
                                             <td>
-                                                <span class="badge {{ $product->status_badge_class }}">
-                                                    {{ $product->status_text }}
-                                                </span>
+                                                @if($purchase->notes)
+                                                    <small class="text-muted">{{ Str::limit($purchase->notes, 50) }}</small>
+                                                @else
+                                                    <span class="text-muted">Sin observaciones</span>
+                                                @endif
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a href="{{ route('suppliers.edit-purchase', ['supplier' => $supplier, 'purchase' => $purchase]) }}" 
+                                                       class="btn btn-warning btn-sm" 
+                                                       title="Editar compra">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                </div>
                                             </td>
                                         </tr>
                                     @endforeach
                                 </tbody>
                             </table>
                         </div>
-                        @if($supplier->supplierInventories->count() > 10)
-                            <div class="text-center mt-3">
-                                <small class="text-muted">
-                                    Mostrando 10 de {{ $supplier->supplierInventories->count() }} productos
-                                </small>
-                            </div>
-                        @endif
                     @else
                         <div class="text-center py-4">
-                            <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
-                            <h6 class="text-muted">No hay productos registrados para este proveedor</h6>
+                            <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                            <h6 class="text-muted">No hay compras registradas para este proveedor</h6>
+                            <p class="text-muted">Comienza registrando tu primera compra usando el botón "Agregar Compra"</p>
                         </div>
                     @endif
                 </div>
@@ -235,36 +267,28 @@
                     </h6>
                 </div>
                 <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-6 mb-3">
-                            <div class="card bg-primary text-white">
-                                <div class="card-body py-2">
-                                    <h4 class="mb-0">{{ $stats['total_products'] }}</h4>
-                                    <small>Productos</small>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="card bg-info text-white h-100 stats-card">
+                                <div class="card-body text-center d-flex flex-column justify-content-center">
+                                    <h3 class="mb-2 fw-bold">{{ $supplier->supplierPurchases->count() }}</h3>
+                                    <small class="text-white-50">Total de Compras</small>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-6 mb-3">
-                            <div class="card bg-success text-white">
-                                <div class="card-body py-2">
-                                    <h4 class="mb-0">${{ number_format($stats['total_value'], 2, ',', '.') }}</h4>
-                                    <small>Valor Total</small>
+                        <div class="col-md-4">
+                            <div class="card bg-warning text-dark h-100 stats-card">
+                                <div class="card-body text-center d-flex flex-column justify-content-center">
+                                    <h3 class="mb-2 fw-bold">${{ number_format($supplier->total_debt, 2, ',', '.') }}</h3>
+                                    <small class="text-dark-50">Le Debo</small>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-6 mb-3">
-                            <div class="card bg-warning text-dark">
-                                <div class="card-body py-2">
-                                    <h4 class="mb-0">{{ $stats['low_stock_products'] }}</h4>
-                                    <small>Bajo Stock</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-6 mb-3">
-                            <div class="card bg-danger text-white">
-                                <div class="card-body py-2">
-                                    <h4 class="mb-0">{{ $stats['out_of_stock_products'] }}</h4>
-                                    <small>Sin Stock</small>
+                        <div class="col-md-4">
+                            <div class="card bg-success text-white h-100 stats-card">
+                                <div class="card-body text-center d-flex flex-column justify-content-center">
+                                    <h3 class="mb-2 fw-bold">${{ number_format($supplier->total_paid, 2, ',', '.') }}</h3>
+                                    <small class="text-white-50">Pagué</small>
                                 </div>
                             </div>
                         </div>
@@ -281,8 +305,8 @@
                 </div>
                 <div class="card-body">
                     <div class="d-grid gap-2">
-                        <a href="{{ route('supplier-inventories.create') }}" class="btn btn-primary btn-sm">
-                            <i class="fas fa-plus"></i> Agregar Producto
+                        <a href="{{ route('suppliers.create-purchase', $supplier) }}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-plus"></i> Agregar Compra
                         </a>
                         <form action="{{ route('suppliers.toggle-status', $supplier) }}" method="POST">
                             @csrf

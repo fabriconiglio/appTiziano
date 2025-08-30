@@ -60,4 +60,28 @@ class HairdressingSupplier extends Model
     {
         return $this->products()->where('current_stock', '<=', 0);
     }
+
+    /**
+     * Relación con las compras del proveedor de peluquería
+     */
+    public function hairdressingSupplierPurchases()
+    {
+        return $this->hasMany(HairdressingSupplierPurchase::class);
+    }
+
+    /**
+     * Obtener el total de deuda con el proveedor
+     */
+    public function getTotalDebtAttribute()
+    {
+        return $this->hairdressingSupplierPurchases()->sum('balance_amount');
+    }
+
+    /**
+     * Obtener el total pagado al proveedor
+     */
+    public function getTotalPaidAttribute()
+    {
+        return $this->hairdressingSupplierPurchases()->sum('payment_amount');
+    }
 }

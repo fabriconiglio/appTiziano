@@ -61,8 +61,14 @@
 
                             <div class="col-md-6 mb-3">
                                 <label for="tax_category" class="form-label">Categoría Fiscal</label>
-                                <input type="text" class="form-control @error('tax_category') is-invalid @enderror" 
-                                       id="tax_category" name="tax_category" value="{{ old('tax_category') }}">
+                                <select class="form-select @error('tax_category') is-invalid @enderror" 
+                                        id="tax_category" name="tax_category">
+                                    <option value="">Seleccionar categoría</option>
+                                    <option value="Responsable Inscripto" {{ old('tax_category') == 'Responsable Inscripto' ? 'selected' : '' }}>Responsable Inscripto</option>
+                                    <option value="Monotributista" {{ old('tax_category') == 'Monotributista' ? 'selected' : '' }}>Monotributista</option>
+                                    <option value="Exento" {{ old('tax_category') == 'Exento' ? 'selected' : '' }}>Exento</option>
+                                    <option value="Consumidor Final" {{ old('tax_category') == 'Consumidor Final' ? 'selected' : '' }}>Consumidor Final</option>
+                                </select>
                                 @error('tax_category')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -114,62 +120,6 @@
                                 <textarea class="form-control @error('address') is-invalid @enderror" 
                                           id="address" name="address" rows="3">{{ old('address') }}</textarea>
                                 @error('address')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <!-- Información Comercial -->
-                        <div class="row mb-4">
-                            <h5>Información Comercial</h5>
-                            <hr>
-                            <div class="col-md-6 mb-3">
-                                <label for="payment_terms" class="form-label">Condiciones de Pago</label>
-                                <input type="text" class="form-control @error('payment_terms') is-invalid @enderror" 
-                                       id="payment_terms" name="payment_terms" value="{{ old('payment_terms') }}">
-                                @error('payment_terms')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label for="delivery_time" class="form-label">Tiempo de Entrega</label>
-                                <input type="text" class="form-control @error('delivery_time') is-invalid @enderror" 
-                                       id="delivery_time" name="delivery_time" value="{{ old('delivery_time') }}">
-                                @error('delivery_time')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label for="minimum_order" class="form-label">Pedido Mínimo</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">$</span>
-                                    <input type="number" step="0.01" class="form-control @error('minimum_order') is-invalid @enderror" 
-                                           id="minimum_order" name="minimum_order" value="{{ old('minimum_order') }}">
-                                    @error('minimum_order')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label for="discount_percentage" class="form-label">Porcentaje de Descuento</label>
-                                <div class="input-group">
-                                    <input type="number" step="0.01" class="form-control @error('discount_percentage') is-invalid @enderror" 
-                                           id="discount_percentage" name="discount_percentage" value="{{ old('discount_percentage') }}">
-                                    <span class="input-group-text">%</span>
-                                    @error('discount_percentage')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label for="bank_account" class="form-label">Cuenta Bancaria</label>
-                                <input type="text" class="form-control @error('bank_account') is-invalid @enderror" 
-                                       id="bank_account" name="bank_account" value="{{ old('bank_account') }}">
-                                @error('bank_account')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>

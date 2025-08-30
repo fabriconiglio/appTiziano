@@ -165,7 +165,7 @@
         </div>
         <div class="card-body">
             <div class="row">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <div class="card bg-primary text-white">
                         <div class="card-body text-center">
                             <h6 class="card-title">Total Proveedores</h6>
@@ -173,7 +173,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <div class="card bg-success text-white">
                         <div class="card-body text-center">
                             <h6 class="card-title">Proveedores Activos</h6>
@@ -181,19 +181,11 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <div class="card bg-warning text-dark">
                         <div class="card-body text-center">
                             <h6 class="card-title">Proveedores Inactivos</h6>
                             <h3 class="mb-0">{{ $suppliers->where('is_active', false)->count() }}</h3>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card bg-info text-white">
-                        <div class="card-body text-center">
-                            <h6 class="card-title">Con Productos</h6>
-                            <h3 class="mb-0">{{ $suppliers->where('products_count', '>', 0)->count() }}</h3>
                         </div>
                     </div>
                 </div>

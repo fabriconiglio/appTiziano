@@ -130,6 +130,16 @@ Route::get('/api/supplier-inventories/get-product', [App\Http\Controllers\Suppli
     Route::post('hairdressing-suppliers/{id}/restore', [\App\Http\Controllers\HairdressingSupplierController::class, 'restore'])
         ->name('hairdressing-suppliers.restore');
 
+    // Rutas para compras de proveedores de peluquería
+    Route::get('hairdressing-suppliers/{hairdressingSupplier}/create-purchase', [\App\Http\Controllers\HairdressingSupplierController::class, 'createPurchase'])
+        ->name('hairdressing-suppliers.create-purchase');
+    Route::post('hairdressing-suppliers/{hairdressingSupplier}/store-purchase', [\App\Http\Controllers\HairdressingSupplierController::class, 'storePurchase'])
+        ->name('hairdressing-suppliers.store-purchase');
+    Route::get('hairdressing-suppliers/{hairdressingSupplier}/edit-purchase/{purchase}', [\App\Http\Controllers\HairdressingSupplierController::class, 'editPurchase'])
+        ->name('hairdressing-suppliers.edit-purchase');
+    Route::put('hairdressing-suppliers/{hairdressingSupplier}/update-purchase/{purchase}', [\App\Http\Controllers\HairdressingSupplierController::class, 'updatePurchase'])
+        ->name('hairdressing-suppliers.update-purchase');
+
     Route::post('clients/{id}/restore', [App\Http\Controllers\ClientController::class, 'restore'])->name('clients.restore');
 
     // Alertas de stock

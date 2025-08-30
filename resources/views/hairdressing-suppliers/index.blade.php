@@ -59,7 +59,6 @@
                             <th>Proveedor</th>
                             <th>Contacto</th>
                             <th>Información de Contacto</th>
-                            <th>Productos</th>
                             <th>Estado</th>
                             <th>Acciones</th>
                         </tr>
@@ -92,12 +91,6 @@
                                     @endif
                                     @if($supplier->website)
                                         <div><i class="fas fa-globe text-muted"></i> <a href="{{ $supplier->website }}" target="_blank">{{ $supplier->website }}</a></div>
-                                    @endif
-                                </td>
-                                <td>
-                                    <span class="badge bg-info">{{ $supplier->products_count }} productos</span>
-                                    @if($supplier->total_inventory_value > 0)
-                                        <br><small class="text-muted">${{ number_format($supplier->total_inventory_value, 2) }}</small>
                                     @endif
                                 </td>
                                 <td>
@@ -136,7 +129,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center py-4">
+                                <td colspan="5" class="text-center py-4">
                                     <div class="text-muted">
                                         <i class="fas fa-building fa-3x mb-3"></i>
                                         <h5>No hay proveedores registrados</h5>
@@ -150,13 +143,119 @@
             </div>
 
             <!-- Paginación -->
-            @if($suppliers->hasPages())
-                <div class="d-flex justify-content-center mt-4">
-                    {{ $suppliers->links() }}
+            <div class="d-flex justify-content-between align-items-center mt-4">
+                <div class="text-muted">
+                    Mostrando {{ $suppliers->firstItem() ?? 0 }} a {{ $suppliers->lastItem() ?? 0 }} de {{ $suppliers->total() }} resultados
                 </div>
-            @endif
+                <div>
+                    {{ $suppliers->appends(request()->query())->links() }}
+                </div>
+            </div>
         </div>
     </div>
+
+    <!-- Resumen -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="mb-0">Resumen</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body text-center">
+                            <h6 class="card-title">Total Proveedores</h6>
+                            <h3 class="mb-0">{{ $suppliers->total() }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-success text-white">
+                        <div class="card-body text-center">
+                            <h6 class="card-title">Proveedores Activos</h6>
+                            <h3 class="mb-0">{{ $suppliers->where('is_active', true)->count() }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-warning text-dark">
+                        <div class="card-body text-center">
+                            <h6 class="card-title">Proveedores Inactivos</h6>
+                            <h3 class="mb-0">{{ $suppliers->where('is_active', false)->count() }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Proveedores Desactivados -->
+    @if($inactiveSuppliers->count() > 0)
+        <div class="card mt-4">
+            <div class="card-header bg-warning text-dark">
+                <strong>
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Proveedores Desactivados
+                </strong>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th>Proveedor</th>
+                                <th>Contacto</th>
+                                <th>Información de Contacto</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($inactiveSuppliers as $supplier)
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold">{{ $supplier->name }}</div>
+                                        @if($supplier->business_name)
+                                            <small class="text-muted">{{ $supplier->business_name }}</small>
+                                        @endif
+                                        @if($supplier->cuit)
+                                            <br><small class="text-muted">CUIT: {{ $supplier->cuit }}</small>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($supplier->contact_person)
+                                            <div class="fw-bold">{{ $supplier->contact_person }}</div>
+                                        @else
+                                            <span class="text-muted">No especificado</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($supplier->email)
+                                            <div><i class="fas fa-envelope text-muted"></i> {{ $supplier->email }}</div>
+                                        @endif
+                                        @if($supplier->phone)
+                                            <div><i class="fas fa-phone text-muted"></i> {{ $supplier->phone }}</div>
+                                        @endif
+                                        @if($supplier->website)
+                                            <div><i class="fas fa-globe text-muted"></i> <a href="{{ $supplier->website }}" target="_blank">{{ $supplier->website }}</a></div>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        <form action="{{ route('hairdressing-suppliers.toggle-status', $supplier) }}" method="POST" style="display: inline-block;">
+                                            @csrf
+                                            @method('PATCH')
+                                            <button type="submit" class="btn btn-success btn-sm" title="Reactivar">
+                                                <i class="fas fa-play me-1"></i> Reactivar
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    @endif
 </div>
 
 <!-- Modales de confirmación de eliminación -->

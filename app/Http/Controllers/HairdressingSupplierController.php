@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\HairdressingSupplier;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class HairdressingSupplierController extends Controller
 {
@@ -30,7 +31,10 @@ class HairdressingSupplierController extends Controller
 
         $suppliers = $query->paginate(15);
 
-        return view('hairdressing-suppliers.index', compact('suppliers'));
+        // Proveedores desactivados para mostrar en la vista
+        $inactiveSuppliers = HairdressingSupplier::where('is_active', false)->get();
+
+        return view('hairdressing-suppliers.index', compact('suppliers', 'inactiveSuppliers'));
     }
 
     /**
@@ -76,7 +80,7 @@ class HairdressingSupplierController extends Controller
      */
     public function show(HairdressingSupplier $hairdressingSupplier)
     {
-        $hairdressingSupplier->load('products');
+        $hairdressingSupplier->load(['products', 'hairdressingSupplierPurchases']);
         
         $stats = [
             'total_products' => $hairdressingSupplier->products_count,
@@ -145,7 +149,7 @@ class HairdressingSupplierController extends Controller
         $hairdressingSupplier->update(['is_active' => !$hairdressingSupplier->is_active]);
 
         $status = $hairdressingSupplier->is_active ? 'activado' : 'desactivado';
-        return redirect()->back()->with('success', "Proveedor de peluquería {$status} exitosamente.");
+        return back()->with('success', "Proveedor de peluquería {$status} exitosamente.");
     }
 
     /**
@@ -157,5 +161,109 @@ class HairdressingSupplierController extends Controller
         $supplier->restore();
 
         return redirect()->back()->with('success', 'Proveedor de peluquería restaurado exitosamente.');
+    }
+
+    /**
+     * Mostrar formulario para crear una nueva compra
+     */
+    public function createPurchase(HairdressingSupplier $hairdressingSupplier)
+    {
+        return view('hairdressing-suppliers.create-purchase', compact('hairdressingSupplier'));
+    }
+
+    /**
+     * Almacenar una nueva compra del proveedor de peluquería
+     */
+    public function storePurchase(Request $request, HairdressingSupplier $hairdressingSupplier)
+    {
+        $validated = $request->validate([
+            'purchase_date' => 'required|date',
+            'receipt_number' => 'required|string|max:255',
+            'total_amount' => 'required|numeric|min:0',
+            'payment_amount' => 'required|numeric|min:0',
+            'balance_amount' => 'nullable|numeric|min:0',
+            'receipt_file' => 'required|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240',
+            'notes' => 'nullable|string'
+        ]);
+
+        // Procesar el archivo de la boleta
+        if ($request->hasFile('receipt_file')) {
+            $filePath = $request->file('receipt_file')->store('hairdressing-supplier-receipts', 'public');
+            $validated['receipt_file'] = $filePath;
+        }
+
+        // Calcular el saldo pendiente
+        $validated['balance_amount'] = $validated['total_amount'] - $validated['payment_amount'];
+        
+        // Agregar el ID del proveedor y usuario
+        $validated['hairdressing_supplier_id'] = $hairdressingSupplier->id;
+        $validated['user_id'] = auth()->id();
+
+        // Crear la compra en la base de datos
+        \App\Models\HairdressingSupplierPurchase::create($validated);
+        
+        return redirect()->route('hairdressing-suppliers.show', $hairdressingSupplier)
+            ->with('success', 'Compra registrada exitosamente.');
+    }
+
+    /**
+     * Mostrar formulario para editar una compra
+     */
+    public function editPurchase(HairdressingSupplier $hairdressingSupplier, $purchase)
+    {
+        $purchase = \App\Models\HairdressingSupplierPurchase::findOrFail($purchase);
+        
+        // Verificar que la compra pertenece al proveedor
+        if ($purchase->hairdressing_supplier_id !== $hairdressingSupplier->id) {
+            abort(404);
+        }
+        
+        return view('hairdressing-suppliers.edit-purchase', compact('hairdressingSupplier', 'purchase'));
+    }
+
+    /**
+     * Actualizar una compra existente
+     */
+    public function updatePurchase(Request $request, HairdressingSupplier $hairdressingSupplier, $purchase)
+    {
+        $purchase = \App\Models\HairdressingSupplierPurchase::findOrFail($purchase);
+        
+        // Verificar que la compra pertenece al proveedor
+        if ($purchase->hairdressing_supplier_id !== $hairdressingSupplier->id) {
+            abort(404);
+        }
+
+        $validated = $request->validate([
+            'purchase_date' => 'required|date',
+            'receipt_number' => 'required|string|max:255',
+            'total_amount' => 'required|numeric|min:0',
+            'payment_amount' => 'required|numeric|min:0',
+            'balance_amount' => 'nullable|numeric|min:0',
+            'receipt_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240',
+            'notes' => 'nullable|string'
+        ]);
+
+        // Procesar el archivo de la boleta si se proporciona uno nuevo
+        if ($request->hasFile('receipt_file')) {
+            // Eliminar archivo anterior si existe
+            if ($purchase->receipt_file && Storage::exists('public/' . $purchase->receipt_file)) {
+                Storage::delete('public/' . $purchase->receipt_file);
+            }
+            
+            $filePath = $request->file('receipt_file')->store('hairdressing-supplier-receipts', 'public');
+            $validated['receipt_file'] = $filePath;
+        } else {
+            // Mantener el archivo actual
+            $validated['receipt_file'] = $purchase->receipt_file;
+        }
+
+        // Calcular el saldo pendiente
+        $validated['balance_amount'] = $validated['total_amount'] - $validated['payment_amount'];
+
+        // Actualizar la compra
+        $purchase->update($validated);
+        
+        return redirect()->route('hairdressing-suppliers.show', $hairdressingSupplier)
+            ->with('success', 'Compra actualizada exitosamente.');
     }
 }

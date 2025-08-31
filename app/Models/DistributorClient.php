@@ -38,6 +38,11 @@ class DistributorClient extends Model
         return $this->hasMany(DistributorCurrentAccount::class);
     }
 
+    public function quotations()
+    {
+        return $this->hasMany(DistributorQuotation::class);
+    }
+
     /**
      * Obtener el saldo actual de la cuenta corriente
      */

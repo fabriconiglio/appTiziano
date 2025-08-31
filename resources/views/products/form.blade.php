@@ -143,9 +143,13 @@
 
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-primary">
+                                <i class="fas {{ isset($product) ? 'fa-edit' : 'fa-plus' }} me-2"></i>
                                 {{ isset($product) ? 'Actualizar' : 'Crear' }} Producto
                             </button>
-                            <a href="{{ route('products.index') }}" class="btn btn-secondary">Cancelar</a>
+                            <a href="{{ route('products.index') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>
+                                Cancelar
+                            </a>
                         </div>
                     </form>
                 </div>

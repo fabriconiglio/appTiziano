@@ -5,6 +5,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\DistributorClientController;
 use App\Http\Controllers\DistributorCurrentAccountController;
+use App\Http\Controllers\DistributorQuotationController;
 use App\Http\Controllers\ArtisanController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\StockMovementController;
@@ -73,6 +74,14 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('distributor-clients/{distributorClient}/current-accounts', [DistributorCurrentAccountController::class, 'destroyAll'])->name('distributor-clients.current-accounts.destroy-all');
     Route::post('distributor-clients/{distributorClient}/current-accounts/create-from-technical-record/{technicalRecord}', [DistributorCurrentAccountController::class, 'createFromTechnicalRecord'])->name('distributor-clients.current-accounts.create-from-technical-record');
     Route::get('distributor-clients/{distributorClient}/current-accounts/export-pdf', [DistributorCurrentAccountController::class, 'exportToPdf'])->name('distributor-clients.current-accounts.export-pdf');
+    
+    // CRUD de presupuestos de distribuidores
+    Route::get('distributor-quotations', [DistributorQuotationController::class, 'index'])->name('distributor-quotations.index');
+    Route::get('distributor-quotations/create', [DistributorQuotationController::class, 'createSelectClient'])->name('distributor-quotations.create');
+    Route::resource('distributor-clients.quotations', DistributorQuotationController::class);
+    Route::get('distributor-clients/{distributorClient}/quotations/{quotation}/export-pdf', [DistributorQuotationController::class, 'exportToPdf'])->name('distributor-clients.quotations.export-pdf');
+    Route::post('distributor-clients/{distributorClient}/quotations/{quotation}/change-status', [DistributorQuotationController::class, 'changeStatus'])->name('distributor-clients.quotations.change-status');
+
     
     // Ruta para ejecutar comandos Artisan
     Route::post('artisan', [ArtisanController::class, 'executeCommand'])->name('artisan.execute');

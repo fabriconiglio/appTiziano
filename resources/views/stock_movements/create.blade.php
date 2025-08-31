@@ -69,8 +69,14 @@
             </div>
 
             <div class="mb-3">
-                <a href="{{ route('products.index') }}" class="btn btn-secondary me-2">Cancelar</a>
-                <button type="submit" class="btn btn-primary">Registrar Movimiento</button>
+                <a href="{{ route('products.index') }}" class="btn btn-secondary me-2">
+                    <i class="fas fa-arrow-left me-1"></i>
+                    Cancelar
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-1"></i>
+                    Registrar Movimiento
+                </button>
             </div>
         </form>
     </div>

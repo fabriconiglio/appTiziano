@@ -58,42 +58,61 @@
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="peluqueriaDropdown" role="button"
                                data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-cut me-1"></i>
                                 {{ __('Peluquería') }}
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="peluqueriaDropdown">
                                 <!-- Submenú Inventario Peluquería -->
                                 <li class="dropdown-submenu">
-                                    <a class="dropdown-item" href="{{ route('products.index') }}">{{ __('Inventario') }}</a>
+                                    <a class="dropdown-item" href="{{ route('products.index') }}">
+                                        <i class="fas fa-box me-2"></i>
+                                        {{ __('Inventario') }}
+                                    </a>
                                 </li>
                                 <!-- Submenú Clientes Peluquería -->
                                 <li class="dropdown-submenu">
-                                    <a class="dropdown-item" href="{{ route('clients.index') }}">{{ __('Clientes') }}</a>
+                                    <a class="dropdown-item" href="{{ route('clients.index') }}">
+                                        <i class="fas fa-users me-2"></i>
+                                        {{ __('Clientes') }}
+                                    </a>
                                 </li>
 
                                 <!-- Submenú Categorías Peluquería -->
                                 <li class="dropdown-submenu">
-                                    <a class="dropdown-item" href="{{ route('categories.index') }}">{{ __('Categorías') }}</a>
+                                    <a class="dropdown-item" href="{{ route('categories.index') }}">
+                                        <i class="fas fa-tags me-2"></i>
+                                        {{ __('Categorías') }}
+                                    </a>
                                 </li>
 
                                 <!-- Submenú Marcas Peluquería -->
                                 <li class="dropdown-submenu">
-                                    <a class="dropdown-item" href="{{ route('brands.index') }}">{{ __('Marcas') }}</a>
+                                    <a class="dropdown-item" href="{{ route('brands.index') }}">
+                                        <i class="fas fa-trademark me-2"></i>
+                                        {{ __('Marcas') }}
+                                    </a>
                                 </li>
 
                                 <!-- Submenú Cuentas Corrientes Peluquería -->
                                 <li class="dropdown-submenu">
-                                    <a class="dropdown-item" href="{{ route('client-current-accounts.index') }}">{{ __('Cuentas Corrientes') }}</a>
+                                    <a class="dropdown-item" href="{{ route('client-current-accounts.index') }}">
+                                        <i class="fas fa-calculator me-2"></i>
+                                        {{ __('Cuentas Corrientes') }}
+                                    </a>
                                 </li>
 
                                 <!-- Submenú Proveedores -->
                                 <li class="dropdown-submenu">
-                                    <a class="dropdown-item" href="{{ route('hairdressing-suppliers.index') }}">{{ __('Proveedores') }}</a>
+                                    <a class="dropdown-item" href="{{ route('hairdressing-suppliers.index') }}">
+                                        <i class="fas fa-truck me-2"></i>
+                                        {{ __('Proveedores') }}
+                                    </a>
                                 </li>
 
                                 <!-- Submenú Alertas de Stock -->
                                 <li class="dropdown-submenu">
                                     <a class="dropdown-item" href="{{ route('stock-alerts.peluqueria') }}">
-                                        <i class="fas fa-exclamation-triangle text-warning"></i>
+                                        <i class="fas fa-exclamation-triangle text-warning me-2"></i>
                                         {{ __('Alertas de Stock') }}
                                         <span class="badge bg-danger ms-1" id="alert-count">0</span>
                                     </a>
@@ -106,39 +125,63 @@
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="distribuidoraDropdown" role="button"
                                data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-warehouse me-1"></i>
                                 {{ __('Distribuidora') }}
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="distribuidoraDropdown">
                                 <!-- Submenú Clientes Distribuidora -->
                                 <li class="dropdown-submenu">
-                                    <a class="dropdown-item" href="{{ route('distributor-clients.index') }}">{{ __('Clientes Distribuidores') }}</a>
+                                    <a class="dropdown-item" href="{{ route('distributor-clients.index') }}">
+                                        <i class="fas fa-users-cog me-2"></i>
+                                        {{ __('Clientes Distribuidores') }}
+                                    </a>
                                 </li>
                                 <!-- Submenú Proveedores -->
                                 <li class="dropdown-submenu">
-                                    <a class="dropdown-item" href="{{ route('suppliers.index') }}">{{ __('Proveedores') }}</a>
+                                    <a class="dropdown-item" href="{{ route('suppliers.index') }}">
+                                        <i class="fas fa-building me-2"></i>
+                                        {{ __('Proveedores') }}
+                                    </a>
                                 </li>
                                 <!-- Submenú Inventario Proveedor -->
                                 <li class="dropdown-submenu">
-                                    <a class="dropdown-item" href="{{ route('supplier-inventories.index') }}">{{ __('Inventario Proveedor') }}</a>
+                                    <a class="dropdown-item" href="{{ route('supplier-inventories.index') }}">
+                                        <i class="fas fa-box-open me-2"></i>
+                                        {{ __('Inventario Proveedor') }}
+                                    </a>
                                 </li>
                                 <!-- Submenú Cuentas Corrientes -->
                                 <li class="dropdown-submenu">
                                     <a class="dropdown-item" href="{{ route('distributor-current-accounts.index') }}">
+                                        <i class="fas fa-calculator me-2"></i>
                                         {{ __('Cuentas Corrientes') }}
+                                    </a>
+                                </li>
+                                <!-- Submenú Presupuestos -->
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item" href="{{ route('distributor-quotations.index') }}">
+                                        <i class="fas fa-file-invoice-dollar text-dark me-2"></i>
+                                        {{ __('Presupuestos') }}
                                     </a>
                                 </li>
                                 <!-- Submenú Categorías Distribuidora -->
                                 <li class="dropdown-submenu">
-                                    <a class="dropdown-item" href="{{ route('distributor_categories.index') }}">{{ __('Categorías Distribuidora') }}</a>
+                                    <a class="dropdown-item" href="{{ route('distributor_categories.index') }}">
+                                        <i class="fas fa-tags me-2"></i>
+                                        {{ __('Categorías Distribuidora') }}
+                                    </a>
                                 </li>
                                 <!-- Submenú Marcas Distribuidora -->
                                 <li class="dropdown-submenu">
-                                    <a class="dropdown-item" href="{{ route('distributor_brands.index') }}">{{ __('Marcas Distribuidora') }}</a>
+                                    <a class="dropdown-item" href="{{ route('distributor_brands.index') }}">
+                                        <i class="fas fa-trademark me-2"></i>
+                                        {{ __('Marcas Distribuidora') }}
+                                    </a>
                                 </li>
                                 <!-- Submenú Alertas de Stock -->
                                 <li class="dropdown-submenu">
                                     <a class="dropdown-item" href="{{ route('stock-alerts.distribuidora') }}">
-                                        <i class="fas fa-exclamation-triangle text-warning"></i>
+                                        <i class="fas fa-exclamation-triangle text-warning me-2"></i>
                                         {{ __('Alertas de Stock') }}
                                         <span class="badge bg-danger ms-1" id="alert-count-distribuidora">0</span>
                                     </a>
@@ -153,18 +196,25 @@
                     @guest
                         @if (Route::has('login'))
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ route('login') }}">{{ __('Iniciar sesión') }}</a>
+                                <a class="nav-link" href="{{ route('login') }}">
+                                    <i class="fas fa-sign-in-alt me-1"></i>
+                                    {{ __('Iniciar sesión') }}
+                                </a>
                             </li>
                         @endif
 
                         @if (Route::has('register'))
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ route('register') }}">{{ __('Registrarse') }}</a>
+                                <a class="nav-link" href="{{ route('register') }}">
+                                    <i class="fas fa-user-plus me-1"></i>
+                                    {{ __('Registrarse') }}
+                                </a>
                             </li>
                         @endif
                     @else
                         <li class="nav-item dropdown">
                             <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                                <i class="fas fa-user-circle me-1"></i>
                                 {{ Auth::user()->name }}
                             </a>
 
@@ -172,6 +222,7 @@
                                 <a class="dropdown-item" href="{{ route('logout') }}"
                                    onclick="event.preventDefault();
                                                      document.getElementById('logout-form').submit();">
+                                    <i class="fas fa-sign-out-alt me-2"></i>
                                     {{ __('Cerrar sesión') }}
                                 </a>
 

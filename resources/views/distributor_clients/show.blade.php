@@ -9,6 +9,9 @@
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Información del Cliente Distribuidor: {{ $distributorClient->name }} {{ $distributorClient->surname }}</h5>
                 <div>
+                    <a href="{{ route('distributor-clients.quotations.create', $distributorClient) }}" class="btn btn-warning btn-sm me-2">
+                        <i class="fas fa-file-invoice-dollar"></i> Nuevo Presupuesto
+                    </a>
                     <a href="{{ route('distributor-clients.technical-records.create', $distributorClient) }}" class="btn btn-success btn-sm me-2">
                         <i class="fas fa-plus"></i> Nueva Ficha Técnica
                     </a>

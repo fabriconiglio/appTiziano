@@ -90,6 +90,12 @@
                                             <i class="fas fa-calculator me-2"></i>
                                             Cuentas Corrientes
                                         </a>
+
+                                        <a href="{{ route('distributor-quotations.index') }}"
+                                           class="btn btn-outline-success">
+                                            <i class="fas fa-file-invoice-dollar me-2"></i>
+                                            Presupuestos
+                                        </a>
                                     </div>
                                 </div>
                             </div>

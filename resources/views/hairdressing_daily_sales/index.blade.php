@@ -239,9 +239,15 @@
                                 <div class="list-group-item d-flex justify-content-between align-items-center">
                                     <div>
                                         <h6 class="mb-1">{{ $service->hair_treatments ?? 'Servicio General' }}</h6>
-                                        <small class="text-muted">Tratamiento de cabello</small>
+                                        <small class="text-muted">{{ $service->service_type ?? 'Tratamiento de cabello' }}</small>
+                                        <br>
+                                        <small class="text-success">${{ number_format($service->total_cost, 2) }}</small>
                                     </div>
-                                    <span class="badge bg-primary rounded-pill">{{ $service->total }}</span>
+                                    <div class="text-end">
+                                        <span class="badge bg-primary rounded-pill">{{ $service->total }}</span>
+                                        <br>
+                                        <small class="text-muted">servicios</small>
+                                    </div>
                                 </div>
                             @endforeach
                         </div>

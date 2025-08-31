@@ -76,9 +76,9 @@ class HairdressingDailySalesController extends Controller
             ->whereBetween('created_at', [$startOfDay, $endOfDay])
             ->sum('amount');
 
-        // Ventas de fichas técnicas (estimación basada en servicios)
+        // Ventas de fichas técnicas (costo real del servicio)
         $technicalRecordSales = TechnicalRecord::whereBetween('service_date', [$startOfDay, $endOfDay])
-            ->count() * 50; // Estimación de $50 por servicio
+            ->sum('service_cost');
 
         // Ventas de productos vendidos (estimación basada en salidas de stock)
         $productSales = StockMovement::where('type', 'salida')
@@ -86,9 +86,9 @@ class HairdressingDailySalesController extends Controller
             ->join('products', 'stock_movements.product_id', '=', 'products.id')
             ->sum(DB::raw('stock_movements.quantity * COALESCE(products.price, 0)'));
 
-        // Ventas de servicios adicionales (estimación)
+        // Ventas de servicios adicionales (50% del costo total)
         $additionalServices = TechnicalRecord::whereBetween('service_date', [$startOfDay, $endOfDay])
-            ->count() * 25; // Estimación de $25 por servicio adicional
+            ->sum('service_cost') * 0.5; // 50% del costo total como servicios adicionales
 
         $totalSales = $clientAccountSales + $technicalRecordSales + $productSales + $additionalServices;
 
@@ -123,7 +123,7 @@ class HairdressingDailySalesController extends Controller
             ->sum('amount');
 
         $monthlyTechnicalRecords = TechnicalRecord::whereBetween('service_date', [$startOfMonth, $endOfMonth])
-            ->count() * 50;
+            ->sum('service_cost');
 
         $monthlyProductSales = StockMovement::where('type', 'salida')
             ->whereBetween('stock_movements.created_at', [$startOfMonth, $endOfMonth])
@@ -131,7 +131,7 @@ class HairdressingDailySalesController extends Controller
             ->sum(DB::raw('stock_movements.quantity * COALESCE(products.price, 0)'));
 
         $monthlyAdditionalServices = TechnicalRecord::whereBetween('service_date', [$startOfMonth, $endOfMonth])
-            ->count() * 25;
+            ->sum('service_cost') * 0.5; // 50% del costo total como servicios adicionales
 
         return [
             'total' => $monthlyClientAccounts + $monthlyTechnicalRecords + $monthlyProductSales + $monthlyAdditionalServices,
@@ -161,7 +161,7 @@ class HairdressingDailySalesController extends Controller
                 ->sum('amount');
 
             $technicalRecordSales = TechnicalRecord::whereBetween('service_date', [$hourStart, $hourEnd])
-                ->count() * 50;
+                ->sum('service_cost');
 
             $productSales = StockMovement::where('type', 'salida')
                 ->whereBetween('stock_movements.created_at', [$hourStart, $hourEnd])
@@ -169,7 +169,7 @@ class HairdressingDailySalesController extends Controller
                 ->sum(DB::raw('stock_movements.quantity * COALESCE(products.price, 0)'));
 
             $additionalServices = TechnicalRecord::whereBetween('service_date', [$hourStart, $hourEnd])
-                ->count() * 25;
+                ->sum('service_cost') * 0.5; // 50% del costo total como servicios adicionales
 
             $hourlyData[$hour] = [
                 'hour' => $hour,
@@ -194,9 +194,9 @@ class HairdressingDailySalesController extends Controller
         $endOfDay = $date->copy()->endOfDay();
 
         return TechnicalRecord::whereBetween('service_date', [$startOfDay, $endOfDay])
-            ->select('hair_treatments', DB::raw('count(*) as total'))
+            ->select('hair_treatments', 'service_type', DB::raw('count(*) as total'), DB::raw('sum(service_cost) as total_cost'))
             ->whereNotNull('hair_treatments')
-            ->groupBy('hair_treatments')
+            ->groupBy('hair_treatments', 'service_type')
             ->orderBy('total', 'desc')
             ->limit(5)
             ->get();

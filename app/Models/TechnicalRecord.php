@@ -9,6 +9,9 @@ class TechnicalRecord extends Model
     protected $fillable = [
         'client_id',
         'service_date',
+        'service_cost',
+        'service_type',
+        'service_description',
         'hair_type',
         'scalp_condition',
         'current_hair_color',
@@ -24,7 +27,8 @@ class TechnicalRecord extends Model
     protected $casts = [
         'products_used' => 'array',
         'photos' => 'array',
-        'service_date' => 'datetime'
+        'service_date' => 'datetime',
+        'service_cost' => 'decimal:2'
     ];
 
     public function client()

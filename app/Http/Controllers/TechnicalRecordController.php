@@ -34,6 +34,7 @@ class TechnicalRecordController extends Controller
     {
         $validated = $request->validate([
             'service_date' => 'required|date',
+            'service_cost' => 'required|numeric|min:0|max:999999.99',
             'hair_type' => 'nullable|string',
             'scalp_condition' => 'nullable|string',
             'current_hair_color' => 'nullable|string',
@@ -97,6 +98,7 @@ class TechnicalRecordController extends Controller
     {
         $validated = $request->validate([
             'service_date' => 'required|date',
+            'service_cost' => 'required|numeric|min:0|max:999999.99',
             'hair_type' => 'nullable|string',
             'scalp_condition' => 'nullable|string',
             'current_hair_color' => 'nullable|string',

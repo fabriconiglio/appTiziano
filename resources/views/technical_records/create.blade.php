@@ -46,6 +46,21 @@
                                 </div>
 
                                 <div class="col-md-6">
+                                    <label for="service_cost" class="form-label">Costo del Servicio <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" step="0.01" min="0" class="form-control @error('service_cost') is-invalid @enderror"
+                                               id="service_cost" name="service_cost"
+                                               value="{{ old('service_cost', 0.00) }}" required>
+                                    </div>
+                                    @error('service_cost')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
                                     <label for="hair_type" class="form-label">Tipo de Cabello</label>
                                     <select class="form-select @error('hair_type') is-invalid @enderror"
                                             id="hair_type" name="hair_type">

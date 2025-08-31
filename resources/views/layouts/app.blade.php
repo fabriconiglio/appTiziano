@@ -118,6 +118,14 @@
                                     </a>
                                 </li>
 
+                                <!-- Submenú Ventas por Día -->
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item" href="{{ route('hairdressing-daily-sales.index') }}">
+                                        <i class="fas fa-chart-line text-info me-2"></i>
+                                        {{ __('Ventas por Día') }}
+                                    </a>
+                                </li>
+
                             </ul>
                         </li>
 

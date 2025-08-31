@@ -53,9 +53,14 @@ jobs:
            sudo systemctl reload nginx
            sudo systemctl reload php8.2-fpm
            
-           # Configurar cron job automáticamente para Ventas por Día
-           echo "⏰ Configurando cron job para Ventas por Día..."
-           chmod +x deploy_setup_cron.sh
-           ./deploy_setup_cron.sh
-           
-           echo "Deploy completado exitosamente!" 
+                       # Configurar cron job automáticamente para Ventas por Día - Distribuidora
+            echo "⏰ Configurando cron job para Ventas por Día - Distribuidora..."
+            chmod +x deploy_setup_cron.sh
+            ./deploy_setup_cron.sh
+            
+            # Configurar cron job automáticamente para Ventas por Día - Peluquería
+            echo "⏰ Configurando cron job para Ventas por Día - Peluquería..."
+            chmod +x deploy_setup_hairdressing_cron.sh
+            ./deploy_setup_hairdressing_cron.sh
+            
+            echo "Deploy completado exitosamente!" 

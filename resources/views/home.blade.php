@@ -49,6 +49,12 @@
                                             <i class="fas fa-calculator me-2"></i>
                                             Cuentas Corrientes
                                         </a>
+
+                                        <a href="{{ route('hairdressing-daily-sales.index') }}"
+                                           class="btn btn-outline-info">
+                                            <i class="fas fa-chart-line me-2"></i>
+                                            Ventas por Día
+                                        </a>
                                     </div>
                                 </div>
                             </div>

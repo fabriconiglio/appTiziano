@@ -9,6 +9,7 @@ use App\Models\DistributorCurrentAccount;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
 
@@ -63,22 +64,64 @@ class DailySalesController extends Controller
         $startOfDay = $date->copy()->startOfDay();
         $endOfDay = $date->copy()->endOfDay();
 
-        // Ventas de presupuestos convertidos
-        $quotationSales = DistributorQuotation::where('status', 'active')
-            ->whereBetween('created_at', [$startOfDay, $endOfDay])
-            ->sum('final_amount');
+        // Ventas de presupuestos convertidos (solo si la tabla existe)
+        $quotationSales = 0;
+        $countQuotations = 0;
+        try {
+            if (Schema::hasTable('distributor_quotations')) {
+                $quotationSales = DistributorQuotation::where('status', 'active')
+                    ->whereBetween('created_at', [$startOfDay, $endOfDay])
+                    ->sum('final_amount');
+                $countQuotations = DistributorQuotation::where('status', 'active')
+                    ->whereBetween('created_at', [$startOfDay, $endOfDay])->count();
+            }
+        } catch (\Exception $e) {
+            // Si hay error, asumir que la tabla no existe o no es accesible
+            $quotationSales = 0;
+            $countQuotations = 0;
+        }
 
-        // Ventas de fichas técnicas
-        $technicalRecordSales = DistributorTechnicalRecord::whereBetween('created_at', [$startOfDay, $endOfDay])
-            ->sum('final_amount');
+        // Ventas de fichas técnicas (solo si la tabla existe)
+        $technicalRecordSales = 0;
+        $countTechnicalRecords = 0;
+        try {
+            if (Schema::hasTable('distributor_technical_records')) {
+                $technicalRecordSales = DistributorTechnicalRecord::whereBetween('created_at', [$startOfDay, $endOfDay])
+                    ->sum('final_amount');
+                $countTechnicalRecords = DistributorTechnicalRecord::whereBetween('created_at', [$startOfDay, $endOfDay])->count();
+            }
+        } catch (\Exception $e) {
+            $technicalRecordSales = 0;
+            $countTechnicalRecords = 0;
+        }
 
-        // Ventas de cuentas corrientes de clientes
-        $clientAccountSales = ClientCurrentAccount::whereBetween('created_at', [$startOfDay, $endOfDay])
-            ->sum('amount');
+        // Ventas de cuentas corrientes de clientes (solo si la tabla existe)
+        $clientAccountSales = 0;
+        $countClientAccounts = 0;
+        try {
+            if (Schema::hasTable('client_current_accounts')) {
+                $clientAccountSales = ClientCurrentAccount::whereBetween('created_at', [$startOfDay, $endOfDay])
+                    ->sum('amount');
+                $countClientAccounts = ClientCurrentAccount::whereBetween('created_at', [$startOfDay, $endOfDay])->count();
+            }
+        } catch (\Exception $e) {
+            $clientAccountSales = 0;
+            $countClientAccounts = 0;
+        }
 
-        // Ventas de cuentas corrientes de distribuidores
-        $distributorAccountSales = DistributorCurrentAccount::whereBetween('created_at', [$startOfDay, $endOfDay])
-            ->sum('amount');
+        // Ventas de cuentas corrientes de distribuidores (solo si la tabla existe)
+        $distributorAccountSales = 0;
+        $countDistributorAccounts = 0;
+        try {
+            if (Schema::hasTable('distributor_current_accounts')) {
+                $distributorAccountSales = DistributorCurrentAccount::whereBetween('created_at', [$startOfDay, $endOfDay])
+                    ->sum('amount');
+                $countDistributorAccounts = DistributorCurrentAccount::whereBetween('created_at', [$startOfDay, $endOfDay])->count();
+            }
+        } catch (\Exception $e) {
+            $distributorAccountSales = 0;
+            $countDistributorAccounts = 0;
+        }
 
         $totalSales = $quotationSales + $technicalRecordSales + $clientAccountSales + $distributorAccountSales;
 
@@ -88,11 +131,10 @@ class DailySalesController extends Controller
             'technical_records' => $technicalRecordSales,
             'client_accounts' => $clientAccountSales,
             'distributor_accounts' => $distributorAccountSales,
-            'count_quotations' => DistributorQuotation::where('status', 'active')
-                ->whereBetween('created_at', [$startOfDay, $endOfDay])->count(),
-            'count_technical_records' => DistributorTechnicalRecord::whereBetween('created_at', [$startOfDay, $endOfDay])->count(),
-            'count_client_accounts' => ClientCurrentAccount::whereBetween('created_at', [$startOfDay, $endOfDay])->count(),
-            'count_distributor_accounts' => DistributorCurrentAccount::whereBetween('created_at', [$startOfDay, $endOfDay])->count(),
+            'count_quotations' => $countQuotations,
+            'count_technical_records' => $countTechnicalRecords,
+            'count_client_accounts' => $countClientAccounts,
+            'count_distributor_accounts' => $countDistributorAccounts,
         ];
     }
 
@@ -108,18 +150,50 @@ class DailySalesController extends Controller
         $startOfMonth = $date->copy()->startOfMonth();
         $endOfMonth = $date->copy()->endOfMonth();
 
-        $monthlySales = DistributorQuotation::where('status', 'active')
-            ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
-            ->sum('final_amount');
+        // Ventas mensuales de presupuestos (solo si la tabla existe)
+        $monthlySales = 0;
+        try {
+            if (Schema::hasTable('distributor_quotations')) {
+                $monthlySales = DistributorQuotation::where('status', 'active')
+                    ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
+                    ->sum('final_amount');
+            }
+        } catch (\Exception $e) {
+            $monthlySales = 0;
+        }
 
-        $monthlyTechnicalRecords = DistributorTechnicalRecord::whereBetween('created_at', [$startOfMonth, $endOfMonth])
-            ->sum('final_amount');
+        // Ventas mensuales de fichas técnicas (solo si la tabla existe)
+        $monthlyTechnicalRecords = 0;
+        try {
+            if (Schema::hasTable('distributor_technical_records')) {
+                $monthlyTechnicalRecords = DistributorTechnicalRecord::whereBetween('created_at', [$startOfMonth, $endOfMonth])
+                    ->sum('final_amount');
+            }
+        } catch (\Exception $e) {
+            $monthlyTechnicalRecords = 0;
+        }
 
-        $monthlyClientAccounts = ClientCurrentAccount::whereBetween('created_at', [$startOfMonth, $endOfMonth])
-            ->sum('amount');
+        // Ventas mensuales de cuentas corrientes de clientes (solo si la tabla existe)
+        $monthlyClientAccounts = 0;
+        try {
+            if (Schema::hasTable('client_current_accounts')) {
+                $monthlyClientAccounts = ClientCurrentAccount::whereBetween('created_at', [$startOfMonth, $endOfMonth])
+                    ->sum('amount');
+            }
+        } catch (\Exception $e) {
+            $monthlyClientAccounts = 0;
+        }
 
-        $monthlyDistributorAccounts = DistributorCurrentAccount::whereBetween('created_at', [$startOfMonth, $endOfMonth])
-            ->sum('amount');
+        // Ventas mensuales de cuentas corrientes de distribuidores (solo si la tabla existe)
+        $monthlyDistributorAccounts = 0;
+        try {
+            if (Schema::hasTable('distributor_current_accounts')) {
+                $monthlyDistributorAccounts = DistributorCurrentAccount::whereBetween('created_at', [$startOfMonth, $endOfMonth])
+                    ->sum('amount');
+            }
+        } catch (\Exception $e) {
+            $monthlyDistributorAccounts = 0;
+        }
 
         return [
             'total' => $monthlySales + $monthlyTechnicalRecords + $monthlyClientAccounts + $monthlyDistributorAccounts,
@@ -144,18 +218,50 @@ class DailySalesController extends Controller
             $hourStart = $startOfDay->copy()->addHours($hour);
             $hourEnd = $hourStart->copy()->addHour();
 
-            $quotationSales = DistributorQuotation::where('status', 'active')
-                ->whereBetween('created_at', [$hourStart, $hourEnd])
-                ->sum('final_amount');
+            // Ventas por hora de presupuestos (solo si la tabla existe)
+            $quotationSales = 0;
+            try {
+                if (Schema::hasTable('distributor_quotations')) {
+                    $quotationSales = DistributorQuotation::where('status', 'active')
+                        ->whereBetween('created_at', [$hourStart, $hourEnd])
+                        ->sum('final_amount');
+                }
+            } catch (\Exception $e) {
+                $quotationSales = 0;
+            }
 
-            $technicalRecordSales = DistributorTechnicalRecord::whereBetween('created_at', [$hourStart, $hourEnd])
-                ->sum('final_amount');
+            // Ventas por hora de fichas técnicas (solo si la tabla existe)
+            $technicalRecordSales = 0;
+            try {
+                if (Schema::hasTable('distributor_technical_records')) {
+                    $technicalRecordSales = DistributorTechnicalRecord::whereBetween('created_at', [$hourStart, $hourEnd])
+                        ->sum('final_amount');
+                }
+            } catch (\Exception $e) {
+                $technicalRecordSales = 0;
+            }
 
-            $clientAccountSales = ClientCurrentAccount::whereBetween('created_at', [$hourStart, $hourEnd])
-                ->sum('amount');
+            // Ventas por hora de cuentas corrientes de clientes (solo si la tabla existe)
+            $clientAccountSales = 0;
+            try {
+                if (Schema::hasTable('client_current_accounts')) {
+                    $clientAccountSales = ClientCurrentAccount::whereBetween('created_at', [$hourStart, $hourEnd])
+                        ->sum('amount');
+                }
+            } catch (\Exception $e) {
+                $clientAccountSales = 0;
+            }
 
-            $distributorAccountSales = DistributorCurrentAccount::whereBetween('created_at', [$hourStart, $hourEnd])
-                ->sum('amount');
+            // Ventas por hora de cuentas corrientes de distribuidores (solo si la tabla existe)
+            $distributorAccountSales = 0;
+            try {
+                if (Schema::hasTable('distributor_current_accounts')) {
+                    $distributorAccountSales = DistributorCurrentAccount::whereBetween('created_at', [$hourStart, $hourEnd])
+                        ->sum('amount');
+                }
+            } catch (\Exception $e) {
+                $distributorAccountSales = 0;
+            }
 
             $hourlyData[$hour] = [
                 'hour' => $hour,

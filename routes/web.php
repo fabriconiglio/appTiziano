@@ -7,6 +7,7 @@ use App\Http\Controllers\DistributorClientController;
 use App\Http\Controllers\DistributorCurrentAccountController;
 use App\Http\Controllers\DistributorQuotationController;
 use App\Http\Controllers\DailySalesController;
+use App\Http\Controllers\HairdressingDailySalesController;
 use App\Http\Controllers\ArtisanController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\StockMovementController;
@@ -168,9 +169,14 @@ Route::get('/api/supplier-inventories/get-product', [App\Http\Controllers\Suppli
     Route::get('stock-alerts/unread-count-peluqueria', [StockAlertController::class, 'getUnreadCountPeluqueria'])->name('stock-alerts.unread-count-peluqueria');
     Route::get('stock-alerts/unread-count-distribuidora', [StockAlertController::class, 'getUnreadCountDistribuidora'])->name('stock-alerts.unread-count-distribuidora');
 
-    // Módulo de Ventas por Día
+    // Módulo de Ventas por Día - Distribuidora
     Route::get('daily-sales', [DailySalesController::class, 'index'])->name('daily-sales.index');
     Route::get('daily-sales/chart-data', [DailySalesController::class, 'getChartData'])->name('daily-sales.chart-data');
     Route::get('daily-sales/export-pdf', [DailySalesController::class, 'exportPdf'])->name('daily-sales.export-pdf');
+
+    // Módulo de Ventas por Día - Peluquería
+    Route::get('hairdressing-daily-sales', [HairdressingDailySalesController::class, 'index'])->name('hairdressing-daily-sales.index');
+    Route::get('hairdressing-daily-sales/chart-data', [HairdressingDailySalesController::class, 'getChartData'])->name('hairdressing-daily-sales.chart-data');
+    Route::get('hairdressing-daily-sales/export-pdf', [HairdressingDailySalesController::class, 'exportPdf'])->name('hairdressing-daily-sales.export-pdf');
 
 });

@@ -5,6 +5,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\DistributorClientController;
 use App\Http\Controllers\DistributorCurrentAccountController;
+use App\Http\Controllers\ArtisanController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\StockMovementController;
 use App\Http\Controllers\SupplierInventoryController;
@@ -71,6 +72,10 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('distributor-clients/{distributorClient}/current-accounts/{currentAccount}', [DistributorCurrentAccountController::class, 'destroy'])->name('distributor-clients.current-accounts.destroy');
     Route::delete('distributor-clients/{distributorClient}/current-accounts', [DistributorCurrentAccountController::class, 'destroyAll'])->name('distributor-clients.current-accounts.destroy-all');
     Route::post('distributor-clients/{distributorClient}/current-accounts/create-from-technical-record/{technicalRecord}', [DistributorCurrentAccountController::class, 'createFromTechnicalRecord'])->name('distributor-clients.current-accounts.create-from-technical-record');
+    Route::get('distributor-clients/{distributorClient}/current-accounts/export-pdf', [DistributorCurrentAccountController::class, 'exportToPdf'])->name('distributor-clients.current-accounts.export-pdf');
+    
+    // Ruta para ejecutar comandos Artisan
+    Route::post('artisan', [ArtisanController::class, 'executeCommand'])->name('artisan.execute');
     
     // CRUD de fichas técnicas de distribuidores
     Route::resource('distributor-clients.technical-records', DistributorTechnicalRecordController::class);

@@ -8,6 +8,7 @@ use App\Models\DistributorTechnicalRecord;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class DistributorCurrentAccountController extends Controller
 {
@@ -270,5 +271,40 @@ class DistributorCurrentAccountController extends Controller
             DB::rollBack();
             return back()->with('error', 'Error al crear la deuda: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Exportar cuenta corriente a PDF
+     */
+    public function exportToPdf(DistributorClient $distributorClient)
+    {
+        $currentAccounts = $distributorClient->currentAccounts()
+            ->with(['user', 'distributorTechnicalRecord'])
+            ->orderBy('date', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $currentBalance = $distributorClient->getCurrentBalance();
+        $formattedBalance = $distributorClient->getFormattedBalance();
+
+        // Calcular totales
+        $totalDebts = $currentAccounts->where('type', 'debt')->sum('amount');
+        $totalPayments = $currentAccounts->where('type', 'payment')->sum('amount');
+
+        $data = [
+            'distributorClient' => $distributorClient,
+            'currentAccounts' => $currentAccounts,
+            'currentBalance' => $currentBalance,
+            'formattedBalance' => $formattedBalance,
+            'totalDebts' => $totalDebts,
+            'totalPayments' => $totalPayments,
+            'generatedAt' => now()->format('d/m/Y H:i:s')
+        ];
+
+        $pdf = Pdf::loadView('distributor_current_accounts.pdf', $data);
+        
+        $filename = 'cuenta_corriente_' . str_replace(' ', '_', $distributorClient->full_name) . '_' . now()->format('Y-m-d') . '.pdf';
+        
+        return $pdf->download($filename);
     }
 }

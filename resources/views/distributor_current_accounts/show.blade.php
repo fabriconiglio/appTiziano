@@ -8,6 +8,9 @@
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Cuenta Corriente: {{ $distributorClient->full_name }}</h5>
             <div>
+                <a href="{{ route('distributor-clients.current-accounts.export-pdf', $distributorClient) }}" class="btn btn-danger btn-sm me-2" target="_blank">
+                    <i class="fas fa-file-pdf"></i> Exportar PDF
+                </a>
                 <a href="{{ route('distributor-clients.current-accounts.create', $distributorClient) }}" class="btn btn-success btn-sm me-2">
                     <i class="fas fa-plus"></i> Nuevo Movimiento
                 </a>

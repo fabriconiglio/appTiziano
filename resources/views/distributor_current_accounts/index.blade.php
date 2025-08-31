@@ -7,9 +7,14 @@
     <!-- Cabecera -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>Cuentas Corrientes - Distribuidores</h1>
-        <a href="{{ route('distributor-clients.index') }}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left"></i> Volver a Clientes Distribuidores
-        </a>
+        <div>
+            <a href="{{ route('distributor-clients.index') }}" class="btn btn-secondary me-2">
+                <i class="fas fa-arrow-left"></i> Volver a Clientes Distribuidores
+            </a>
+            <button type="button" class="btn btn-danger" onclick="exportAllPdfs()">
+                <i class="fas fa-file-pdf"></i> Exportar Todas a PDF
+            </button>
+        </div>
     </div>
 
     @if(session('success'))
@@ -93,6 +98,12 @@
                                            class="btn btn-info btn-sm"
                                            title="Ver detalle">
                                             <i class="fas fa-eye"></i> Ver Detalle
+                                        </a>
+                                        <a href="{{ route('distributor-clients.current-accounts.export-pdf', $client) }}" 
+                                           class="btn btn-danger btn-sm"
+                                           title="Exportar PDF"
+                                           target="_blank">
+                                            <i class="fas fa-file-pdf"></i> PDF
                                         </a>
                                         <a href="{{ route('distributor-clients.current-accounts.create', $client) }}" 
                                            class="btn btn-success btn-sm"
@@ -241,5 +252,46 @@
         </div>
     </div>
 @endforeach
+
+<script>
+function exportAllPdfs() {
+    if (confirm('¿Estás seguro de que quieres exportar todas las cuentas corrientes a PDF? Esto puede tomar varios minutos.')) {
+        // Mostrar indicador de carga
+        const button = event.target;
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Exportando...';
+        button.disabled = true;
+        
+        // Ejecutar comando Artisan
+        fetch('/artisan', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({
+                command: 'distributor:export-all-pdfs'
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Exportación completada. Los archivos se han guardado en storage/app/exports/');
+            } else {
+                alert('Error en la exportación: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error en la exportación. Revisa la consola para más detalles.');
+        })
+        .finally(() => {
+            // Restaurar botón
+            button.innerHTML = originalText;
+            button.disabled = false;
+        });
+    }
+}
+</script>
 
 @endsection 

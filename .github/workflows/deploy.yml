@@ -49,8 +49,13 @@ jobs:
           chmod -R 775 storage bootstrap/cache
           chown -R www-data:www-data storage bootstrap/cache
           
-          # Reiniciar servicios si es necesario
-          sudo systemctl reload nginx
-          sudo systemctl reload php8.2-fpm
-          
-          echo "Deploy completado exitosamente!" 
+                     # Reiniciar servicios si es necesario
+           sudo systemctl reload nginx
+           sudo systemctl reload php8.2-fpm
+           
+           # Configurar cron job automáticamente para Ventas por Día
+           echo "⏰ Configurando cron job para Ventas por Día..."
+           chmod +x deploy_setup_cron.sh
+           ./deploy_setup_cron.sh
+           
+           echo "Deploy completado exitosamente!" 

@@ -96,6 +96,12 @@
                                             <i class="fas fa-file-invoice-dollar me-2"></i>
                                             Presupuestos
                                         </a>
+
+                                        <a href="{{ route('daily-sales.index') }}"
+                                           class="btn btn-outline-info">
+                                            <i class="fas fa-chart-line me-2"></i>
+                                            Ventas por Día
+                                        </a>
                                     </div>
                                 </div>
                             </div>

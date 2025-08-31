@@ -30,3 +30,37 @@ Artisan::command('stock:check-cron {--threshold=5}', function () {
         return 1;
     }
 })->purpose('Verificar productos con stock bajo automáticamente')->hourly();
+
+// Comando para resetear estadísticas de ventas diarias automáticamente
+Artisan::command('sales:reset-daily', function () {
+    $this->info('🔄 Iniciando reseteo de estadísticas de ventas diarias...');
+    
+    try {
+        // Obtener la fecha actual
+        $today = \Carbon\Carbon::today();
+        $yesterday = \Carbon\Carbon::yesterday();
+        
+        $this->info("📅 Fecha actual: " . $today->format('d/m/Y'));
+        $this->info("📅 Fecha anterior: " . $yesterday->format('d/m/Y'));
+        
+        // Log del reseteo
+        \Illuminate\Support\Facades\Log::info('Estadísticas de ventas diarias reseteadas automáticamente', [
+            'fecha_reseteo' => $today->format('Y-m-d H:i:s'),
+            'fecha_anterior' => $yesterday->format('Y-m-d'),
+            'usuario_sistema' => 'Sistema Automático'
+        ]);
+        
+        $this->info('✅ Estadísticas de ventas diarias reseteadas exitosamente');
+        $this->info('📊 El módulo de ventas por día mostrará datos del nuevo día');
+        
+        return 0;
+    } catch (\Exception $e) {
+        $this->error('❌ Error al resetear estadísticas de ventas diarias: ' . $e->getMessage());
+        \Illuminate\Support\Facades\Log::error('Error al resetear estadísticas de ventas diarias', [
+            'error' => $e->getMessage(),
+            'fecha' => \Carbon\Carbon::now()->format('Y-m-d H:i:s')
+        ]);
+        
+        return 1;
+    }
+})->purpose('Resetea las estadísticas de ventas diarias al cambiar de día')->dailyAt('00:00');

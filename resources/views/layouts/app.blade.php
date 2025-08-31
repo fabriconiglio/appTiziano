@@ -186,6 +186,13 @@
                                         <span class="badge bg-danger ms-1" id="alert-count-distribuidora">0</span>
                                     </a>
                                 </li>
+                                <!-- Submenú Ventas por Día -->
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item" href="{{ route('daily-sales.index') }}">
+                                        <i class="fas fa-chart-line text-success me-2"></i>
+                                        {{ __('Ventas por Día') }}
+                                    </a>
+                                </li>
                             </ul>
                         </li>
                     @endauth

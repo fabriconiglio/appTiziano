@@ -6,6 +6,7 @@ use App\Http\Controllers\ClientController;
 use App\Http\Controllers\DistributorClientController;
 use App\Http\Controllers\DistributorCurrentAccountController;
 use App\Http\Controllers\DistributorQuotationController;
+use App\Http\Controllers\DailySalesController;
 use App\Http\Controllers\ArtisanController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\StockMovementController;
@@ -166,5 +167,10 @@ Route::get('/api/supplier-inventories/get-product', [App\Http\Controllers\Suppli
     Route::get('stock-alerts/unread-count', [StockAlertController::class, 'getUnreadCount'])->name('stock-alerts.unread-count');
     Route::get('stock-alerts/unread-count-peluqueria', [StockAlertController::class, 'getUnreadCountPeluqueria'])->name('stock-alerts.unread-count-peluqueria');
     Route::get('stock-alerts/unread-count-distribuidora', [StockAlertController::class, 'getUnreadCountDistribuidora'])->name('stock-alerts.unread-count-distribuidora');
+
+    // Módulo de Ventas por Día
+    Route::get('daily-sales', [DailySalesController::class, 'index'])->name('daily-sales.index');
+    Route::get('daily-sales/chart-data', [DailySalesController::class, 'getChartData'])->name('daily-sales.chart-data');
+    Route::get('daily-sales/export-pdf', [DailySalesController::class, 'exportPdf'])->name('daily-sales.export-pdf');
 
 });

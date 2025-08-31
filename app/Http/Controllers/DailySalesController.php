@@ -43,14 +43,10 @@ class DailySalesController extends Controller
         // Obtener estadísticas del mes de la fecha seleccionada
         $monthlyStats = $this->getMonthlyStats($selectedDate);
         
-        // Obtener ventas por hora de la fecha seleccionada
-        $hourlySales = $this->getHourlySales($selectedDate);
-        
         return view('daily_sales.index', compact(
             'todaySales', 
             'yesterdaySales', 
             'monthlyStats', 
-            'hourlySales',
             'today',
             'selectedDate'
         ));
@@ -204,100 +200,9 @@ class DailySalesController extends Controller
         ];
     }
 
-    /**
-     * Obtener ventas por hora del día
-     */
-    private function getHourlySales($date)
-    {
-        $startOfDay = $date->copy()->startOfDay();
-        $endOfDay = $date->copy()->endOfDay();
 
-        $hourlyData = [];
 
-        for ($hour = 0; $hour < 24; $hour++) {
-            $hourStart = $startOfDay->copy()->addHours($hour);
-            $hourEnd = $hourStart->copy()->addHour();
 
-            // Ventas por hora de presupuestos (solo si la tabla existe)
-            $quotationSales = 0;
-            try {
-                if (Schema::hasTable('distributor_quotations')) {
-                    $quotationSales = DistributorQuotation::where('status', 'active')
-                        ->whereBetween('created_at', [$hourStart, $hourEnd])
-                        ->sum('final_amount');
-                }
-            } catch (\Exception $e) {
-                $quotationSales = 0;
-            }
-
-            // Ventas por hora de fichas técnicas (solo si la tabla existe)
-            $technicalRecordSales = 0;
-            try {
-                if (Schema::hasTable('distributor_technical_records')) {
-                    $technicalRecordSales = DistributorTechnicalRecord::whereBetween('created_at', [$hourStart, $hourEnd])
-                        ->sum('final_amount');
-                }
-            } catch (\Exception $e) {
-                $technicalRecordSales = 0;
-            }
-
-            // Ventas por hora de cuentas corrientes de clientes (solo si la tabla existe)
-            $clientAccountSales = 0;
-            try {
-                if (Schema::hasTable('client_current_accounts')) {
-                    $clientAccountSales = ClientCurrentAccount::whereBetween('created_at', [$hourStart, $hourEnd])
-                        ->sum('amount');
-                }
-            } catch (\Exception $e) {
-                $clientAccountSales = 0;
-            }
-
-            // Ventas por hora de cuentas corrientes de distribuidores (solo si la tabla existe)
-            $distributorAccountSales = 0;
-            try {
-                if (Schema::hasTable('distributor_current_accounts')) {
-                    $distributorAccountSales = DistributorCurrentAccount::whereBetween('created_at', [$hourStart, $hourEnd])
-                        ->sum('amount');
-                }
-            } catch (\Exception $e) {
-                $distributorAccountSales = 0;
-            }
-
-            $hourlyData[$hour] = [
-                'hour' => $hour,
-                'label' => sprintf('%02d:00', $hour),
-                'total' => $quotationSales + $technicalRecordSales + $clientAccountSales + $distributorAccountSales,
-                'quotations' => $quotationSales,
-                'technical_records' => $technicalRecordSales,
-                'client_accounts' => $clientAccountSales,
-                'distributor_accounts' => $distributorAccountSales,
-            ];
-        }
-
-        return $hourlyData;
-    }
-
-    /**
-     * Obtener datos para gráficos (API)
-     */
-    public function getChartData()
-    {
-        $today = Carbon::today();
-        $hourlySales = $this->getHourlySales($today);
-        
-        return response()->json([
-            'labels' => array_column($hourlySales, 'label'),
-            'datasets' => [
-                [
-                    'label' => 'Ventas por Hora',
-                    'data' => array_column($hourlySales, 'total'),
-                    'borderColor' => 'rgb(75, 192, 192)',
-                    'backgroundColor' => 'rgba(75, 192, 192, 0.2)',
-                    'tension' => 0.1
-                ]
-            ]
-        ]);
-    }
 
     /**
      * Exportar reporte diario a PDF
@@ -306,9 +211,8 @@ class DailySalesController extends Controller
     {
         $today = Carbon::today();
         $todaySales = $this->getDailySales($today);
-        $hourlySales = $this->getHourlySales($today);
         
-        $pdf = Pdf::loadView('daily_sales.pdf', compact('todaySales', 'hourlySales', 'today'));
+        $pdf = Pdf::loadView('daily_sales.pdf', compact('todaySales', 'today'));
         
         return $pdf->download('ventas-dia-' . $today->format('Y-m-d') . '.pdf');
     }

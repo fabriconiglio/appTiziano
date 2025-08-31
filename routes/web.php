@@ -171,12 +171,12 @@ Route::get('/api/supplier-inventories/get-product', [App\Http\Controllers\Suppli
 
     // Módulo de Ventas por Día - Distribuidora
     Route::get('daily-sales', [DailySalesController::class, 'index'])->name('daily-sales.index');
-    Route::get('daily-sales/chart-data', [DailySalesController::class, 'getChartData'])->name('daily-sales.chart-data');
+    
     Route::get('daily-sales/export-pdf', [DailySalesController::class, 'exportPdf'])->name('daily-sales.export-pdf');
 
     // Módulo de Ventas por Día - Peluquería
     Route::get('hairdressing-daily-sales', [HairdressingDailySalesController::class, 'index'])->name('hairdressing-daily-sales.index');
-    Route::get('hairdressing-daily-sales/chart-data', [HairdressingDailySalesController::class, 'getChartData'])->name('hairdressing-daily-sales.chart-data');
+    
     Route::get('hairdressing-daily-sales/export-pdf', [HairdressingDailySalesController::class, 'exportPdf'])->name('hairdressing-daily-sales.export-pdf');
 
 });

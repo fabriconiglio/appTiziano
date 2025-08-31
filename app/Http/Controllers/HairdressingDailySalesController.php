@@ -42,9 +42,6 @@ class HairdressingDailySalesController extends Controller
         // Obtener estadísticas del mes de la fecha seleccionada
         $monthlyStats = $this->getMonthlyStats($selectedDate);
         
-        // Obtener ventas por hora de la fecha seleccionada
-        $hourlySales = $this->getHourlySales($selectedDate);
-        
         // Obtener servicios más populares del día
         $popularServices = $this->getPopularServices($selectedDate);
         
@@ -55,7 +52,6 @@ class HairdressingDailySalesController extends Controller
             'todaySales', 
             'yesterdaySales', 
             'monthlyStats', 
-            'hourlySales',
             'popularServices',
             'popularProducts',
             'today',
@@ -142,48 +138,7 @@ class HairdressingDailySalesController extends Controller
         ];
     }
 
-    /**
-     * Obtener ventas por hora del día
-     */
-    private function getHourlySales($date)
-    {
-        $startOfDay = $date->copy()->startOfDay();
-        $endOfDay = $date->copy()->endOfDay();
 
-        $hourlyData = [];
-
-        for ($hour = 0; $hour < 24; $hour++) {
-            $hourStart = $startOfDay->copy()->addHours($hour);
-            $hourEnd = $hourStart->copy()->addHour();
-
-            $clientAccountSales = ClientCurrentAccount::where('type', 'debt')
-                ->whereBetween('created_at', [$hourStart, $hourEnd])
-                ->sum('amount');
-
-            $technicalRecordSales = TechnicalRecord::whereBetween('service_date', [$hourStart, $hourEnd])
-                ->sum('service_cost');
-
-            $productSales = StockMovement::where('type', 'salida')
-                ->whereBetween('stock_movements.created_at', [$hourStart, $hourEnd])
-                ->join('products', 'stock_movements.product_id', '=', 'products.id')
-                ->sum(DB::raw('stock_movements.quantity * COALESCE(products.price, 0)'));
-
-            $additionalServices = TechnicalRecord::whereBetween('service_date', [$hourStart, $hourEnd])
-                ->sum('service_cost') * 0.5; // 50% del costo total como servicios adicionales
-
-            $hourlyData[$hour] = [
-                'hour' => $hour,
-                'label' => sprintf('%02d:00', $hour),
-                'total' => $clientAccountSales + $technicalRecordSales + $productSales + $additionalServices,
-                'client_accounts' => $clientAccountSales,
-                'technical_records' => $technicalRecordSales,
-                'product_sales' => $productSales,
-                'additional_services' => $additionalServices,
-            ];
-        }
-
-        return $hourlyData;
-    }
 
     /**
      * Obtener servicios más populares del día
@@ -220,27 +175,7 @@ class HairdressingDailySalesController extends Controller
             ->get();
     }
 
-    /**
-     * Obtener datos para gráficos (API)
-     */
-    public function getChartData()
-    {
-        $today = Carbon::today();
-        $hourlySales = $this->getHourlySales($today);
-        
-        return response()->json([
-            'labels' => array_column($hourlySales, 'label'),
-            'datasets' => [
-                [
-                    'label' => 'Ventas por Hora',
-                    'data' => array_column($hourlySales, 'total'),
-                    'borderColor' => 'rgb(255, 99, 132)',
-                    'backgroundColor' => 'rgba(255, 99, 132, 0.2)',
-                    'tension' => 0.1
-                ]
-            ]
-        ]);
-    }
+
 
     /**
      * Exportar reporte diario a PDF
@@ -249,13 +184,11 @@ class HairdressingDailySalesController extends Controller
     {
         $today = Carbon::today();
         $todaySales = $this->getDailySales($today);
-        $hourlySales = $this->getHourlySales($today);
         $popularServices = $this->getPopularServices($today);
         $popularProducts = $this->getPopularProducts($today);
         
         $pdf = Pdf::loadView('hairdressing_daily_sales.pdf', compact(
             'todaySales', 
-            'hourlySales', 
             'popularServices', 
             'popularProducts', 
             'today'

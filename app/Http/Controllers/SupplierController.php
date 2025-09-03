@@ -184,14 +184,16 @@ class SupplierController extends Controller
             'total_amount' => 'required|numeric|min:0',
             'payment_amount' => 'required|numeric|min:0',
             'balance_amount' => 'nullable|numeric|min:0',
-            'receipt_file' => 'required|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240',
+            'receipt_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240',
             'notes' => 'nullable|string'
         ]);
 
-        // Procesar el archivo de la boleta
+        // Procesar el archivo de la boleta si se proporciona uno
         if ($request->hasFile('receipt_file')) {
             $filePath = $request->file('receipt_file')->store('supplier-receipts', 'public');
             $validated['receipt_file'] = $filePath;
+        } else {
+            $validated['receipt_file'] = null;
         }
 
         // Calcular el saldo pendiente

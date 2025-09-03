@@ -91,10 +91,10 @@
                             </div>
 
                             <div class="col-12 mb-3">
-                                <label for="receipt_file" class="form-label">Subir Boleta *</label>
+                                <label for="receipt_file" class="form-label">Subir Boleta</label>
                                 <input type="file" class="form-control @error('receipt_file') is-invalid @enderror" 
                                        id="receipt_file" name="receipt_file" 
-                                       accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" required>
+                                       accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
                                 <small class="text-muted">Formatos permitidos: PDF, JPG, PNG, DOC, DOCX</small>
                                 @error('receipt_file')
                                     <div class="invalid-feedback">{{ $message }}</div>

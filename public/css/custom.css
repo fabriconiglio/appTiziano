@@ -121,3 +121,236 @@
 body {
     background-color: #fcfbf8;  /* Un fondo muy suave */
 }
+
+/* Estilos específicos para los botones de acciones en la tabla de compras */
+.table .btn-group .btn {
+    border-radius: 6px !important;
+    margin: 0 2px;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: none;
+    font-weight: 500;
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+
+.table .btn-group .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.table .btn-group .btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Botón Editar específico de la tabla */
+.table .btn-warning {
+    background: linear-gradient(135deg, #ffc107, #ffb300) !important;
+    border: none !important;
+    color: #212529 !important;
+}
+
+.table .btn-warning:hover {
+    background: linear-gradient(135deg, #ffb300, #ff9800) !important;
+    color: #212529 !important;
+}
+
+/* Botón Eliminar específico de la tabla */
+.table .btn-danger {
+    background: linear-gradient(135deg, #dc3545, #c82333) !important;
+    border: none !important;
+    color: white !important;
+}
+
+.table .btn-danger:hover {
+    background: linear-gradient(135deg, #c82333, #a71e2a) !important;
+    color: white !important;
+}
+
+/* Mejoras en la tabla */
+.table .btn-group {
+    display: flex;
+    gap: 4px;
+    justify-content: center;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+/* Responsive para botones en móviles */
+@media (max-width: 768px) {
+    .btn-group .btn {
+        min-width: 32px;
+        height: 32px;
+        font-size: 0.875rem;
+    }
+    
+    .card .btn {
+        font-size: 0.8rem;
+        padding: 0.6rem 0.8rem !important;
+    }
+}
+
+/* Modal Personalizado */
+.custom-modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.custom-modal-content {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow: hidden;
+    animation: slideIn 0.3s ease-out;
+    border: 1px solid rgba(201, 188, 157, 0.2);
+}
+
+.custom-modal-header {
+    background: linear-gradient(135deg, #fcf3e4, #f8f0e0);
+    padding: 1.5rem 1.5rem 1rem;
+    border-bottom: 1px solid rgba(201, 188, 157, 0.3);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.custom-modal-title {
+    margin: 0;
+    color: #333;
+    font-weight: 600;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+}
+
+.custom-modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #666;
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.custom-modal-close:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+    color: #333;
+}
+
+.custom-modal-body {
+    padding: 1.5rem;
+    color: #333;
+}
+
+.custom-modal-body p {
+    margin-bottom: 1rem;
+    line-height: 1.6;
+}
+
+.custom-modal-footer {
+    padding: 1rem 1.5rem 1.5rem;
+    border-top: 1px solid rgba(201, 188, 157, 0.3);
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    background-color: #fafafa;
+}
+
+.custom-modal-footer .btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    border: none;
+    min-width: 120px;
+}
+
+.custom-modal-footer .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Alertas dentro del modal */
+.custom-modal .alert {
+    border-radius: 8px;
+    border: none;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.custom-modal .alert-warning {
+    background-color: #fff3cd;
+    color: #856404;
+    border-left: 4px solid #ffc107;
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-50px) scale(0.9);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+
+/* Responsive del modal */
+@media (max-width: 576px) {
+    .custom-modal-content {
+        width: 95%;
+        margin: 1rem;
+    }
+    
+    .custom-modal-header,
+    .custom-modal-body,
+    .custom-modal-footer {
+        padding: 1rem;
+    }
+    
+    .custom-modal-footer {
+        flex-direction: column;
+    }
+    
+    .custom-modal-footer .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+}

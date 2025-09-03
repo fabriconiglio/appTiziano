@@ -270,4 +270,28 @@ class SupplierController extends Controller
         return redirect()->route('suppliers.show', $supplier)
             ->with('success', 'Compra actualizada exitosamente.');
     }
+
+    /**
+     * Eliminar una compra del proveedor
+     */
+    public function destroyPurchase(Supplier $supplier, $purchase)
+    {
+        $purchase = \App\Models\SupplierPurchase::findOrFail($purchase);
+        
+        // Verificar que la compra pertenece al proveedor
+        if ($purchase->supplier_id !== $supplier->id) {
+            abort(404);
+        }
+
+        // Eliminar el archivo de la boleta si existe
+        if ($purchase->receipt_file && Storage::exists('public/' . $purchase->receipt_file)) {
+            Storage::delete('public/' . $purchase->receipt_file);
+        }
+
+        // Eliminar la compra
+        $purchase->delete();
+        
+        return redirect()->route('suppliers.show', $supplier)
+            ->with('success', 'Compra eliminada exitosamente.');
+    }
 }

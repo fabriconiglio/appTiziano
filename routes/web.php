@@ -138,6 +138,8 @@ Route::get('/api/supplier-inventories/get-product', [App\Http\Controllers\Suppli
         ->name('suppliers.edit-purchase');
     Route::put('suppliers/{supplier}/update-purchase/{purchase}', [\App\Http\Controllers\SupplierController::class, 'updatePurchase'])
         ->name('suppliers.update-purchase');
+    Route::delete('suppliers/{supplier}/destroy-purchase/{purchase}', [\App\Http\Controllers\SupplierController::class, 'destroyPurchase'])
+        ->name('suppliers.destroy-purchase');
 
     // CRUD de proveedores de peluquería
     Route::resource('hairdressing-suppliers', \App\Http\Controllers\HairdressingSupplierController::class);
@@ -155,6 +157,8 @@ Route::get('/api/supplier-inventories/get-product', [App\Http\Controllers\Suppli
         ->name('hairdressing-suppliers.edit-purchase');
     Route::put('hairdressing-suppliers/{hairdressingSupplier}/update-purchase/{purchase}', [\App\Http\Controllers\HairdressingSupplierController::class, 'updatePurchase'])
         ->name('hairdressing-suppliers.update-purchase');
+    Route::delete('hairdressing-suppliers/{hairdressingSupplier}/destroy-purchase/{purchase}', [\App\Http\Controllers\HairdressingSupplierController::class, 'destroyPurchase'])
+        ->name('hairdressing-suppliers.destroy-purchase');
 
     Route::post('clients/{id}/restore', [App\Http\Controllers\ClientController::class, 'restore'])->name('clients.restore');
 

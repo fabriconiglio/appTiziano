@@ -268,4 +268,28 @@ class HairdressingSupplierController extends Controller
         return redirect()->route('hairdressing-suppliers.show', $hairdressingSupplier)
             ->with('success', 'Compra actualizada exitosamente.');
     }
+
+    /**
+     * Eliminar una compra del proveedor de peluquería
+     */
+    public function destroyPurchase(HairdressingSupplier $hairdressingSupplier, $purchase)
+    {
+        $purchase = \App\Models\HairdressingSupplierPurchase::findOrFail($purchase);
+        
+        // Verificar que la compra pertenece al proveedor
+        if ($purchase->hairdressing_supplier_id !== $hairdressingSupplier->id) {
+            abort(404);
+        }
+
+        // Eliminar el archivo de la boleta si existe
+        if ($purchase->receipt_file && Storage::exists('public/' . $purchase->receipt_file)) {
+            Storage::delete('public/' . $purchase->receipt_file);
+        }
+
+        // Eliminar la compra
+        $purchase->delete();
+        
+        return redirect()->route('hairdressing-suppliers.show', $hairdressingSupplier)
+            ->with('success', 'Compra eliminada exitosamente.');
+    }
 }

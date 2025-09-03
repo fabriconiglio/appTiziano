@@ -239,6 +239,14 @@ use Illuminate\Support\Facades\Storage;
                                                        title="Editar compra">
                                                         <i class="fas fa-edit"></i>
                                                     </a>
+                                                    <button type="button" 
+                                                            class="btn btn-danger btn-sm delete-purchase-btn" 
+                                                            title="Eliminar compra"
+                                                            data-purchase-id="{{ $purchase->id }}"
+                                                            data-purchase-number="{{ $purchase->receipt_number }}"
+                                                            data-supplier-name="{{ $hairdressingSupplier->name }}">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -330,4 +338,96 @@ use Illuminate\Support\Facades\Storage;
         </div>
     </div>
 </div>
+
+<!-- Modal de Confirmación de Eliminación -->
+<div id="deletePurchaseModal" class="custom-modal">
+    <div class="custom-modal-content">
+        <div class="custom-modal-header">
+            <h5 class="custom-modal-title">
+                <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                Confirmar Eliminación
+            </h5>
+            <button type="button" class="custom-modal-close" id="closeDeleteModal">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="custom-modal-body">
+            <p class="mb-3">¿Estás seguro de que quieres eliminar esta compra?</p>
+            <div class="alert alert-warning">
+                <strong>Compra:</strong> <span id="modalPurchaseNumber"></span><br>
+                <strong>Proveedor:</strong> <span id="modalSupplierName"></span>
+            </div>
+            <p class="text-danger mb-0">
+                <i class="fas fa-info-circle me-1"></i>
+                <strong>Esta acción no se puede deshacer.</strong>
+            </p>
+        </div>
+        <div class="custom-modal-footer">
+            <button type="button" class="btn btn-secondary" id="cancelDelete">
+                <i class="fas fa-times me-1"></i> Cancelar
+            </button>
+            <form id="deletePurchaseForm" method="POST" style="display: inline;">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-trash me-1"></i> Sí, Eliminar
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Funcionalidad del modal de eliminación
+    const modal = document.getElementById('deletePurchaseModal');
+    const deleteButtons = document.querySelectorAll('.delete-purchase-btn');
+    const closeModal = document.getElementById('closeDeleteModal');
+    const cancelButton = document.getElementById('cancelDelete');
+    const deleteForm = document.getElementById('deletePurchaseForm');
+    const purchaseNumberSpan = document.getElementById('modalPurchaseNumber');
+    const supplierNameSpan = document.getElementById('modalSupplierName');
+
+    // Abrir modal
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const purchaseId = this.getAttribute('data-purchase-id');
+            const purchaseNumber = this.getAttribute('data-purchase-number');
+            const supplierName = this.getAttribute('data-supplier-name');
+            
+            purchaseNumberSpan.textContent = purchaseNumber;
+            supplierNameSpan.textContent = supplierName;
+            deleteForm.action = `/hairdressing-suppliers/{{ $hairdressingSupplier->id }}/destroy-purchase/${purchaseId}`;
+            
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        });
+    });
+
+    // Cerrar modal
+    function closeModalFunction() {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+
+    closeModal.addEventListener('click', closeModalFunction);
+    cancelButton.addEventListener('click', closeModalFunction);
+
+    // Cerrar modal al hacer clic fuera
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            closeModalFunction();
+        }
+    });
+
+    // Cerrar modal con ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && modal.style.display === 'flex') {
+            closeModalFunction();
+        }
+    });
+});
+</script>
 @endsection 

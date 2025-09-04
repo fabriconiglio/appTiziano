@@ -131,10 +131,10 @@
 
                         <div class="d-flex justify-content-end gap-2">
                             <a href="{{ route('client-current-accounts.index') }}" class="btn btn-secondary">
-                                Cancelar
+                                <i class="fas fa-times"></i>
                             </a>
                             <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save"></i> Guardar Movimiento
+                                <i class="fas fa-save"></i>
                             </button>
                         </div>
                     </form>

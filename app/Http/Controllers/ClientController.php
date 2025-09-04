@@ -12,7 +12,7 @@ class ClientController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Client::query();
+        $query = Client::with(['technicalRecords', 'currentAccounts']);
 
         if ($request->has('search')) {
             $search = $request->get('search');
@@ -26,6 +26,12 @@ class ClientController extends Controller
         }
 
         $clients = $query->latest()->paginate(10);
+
+        // Calcular información de cuenta corriente para cada cliente
+        foreach ($clients as $client) {
+            $client->current_balance = \App\Models\ClientCurrentAccount::getCurrentBalance($client->id);
+            $client->has_debt = \App\Models\ClientCurrentAccount::hasDebt($client->id);
+        }
 
         return view('clients.index', compact('clients'));
     }

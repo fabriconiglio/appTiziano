@@ -85,7 +85,7 @@
                         </p>
                         <div class="mt-3">
                             <a href="{{ route('clients.current-accounts.create', $client) }}" class="btn btn-success">
-                                <i class="fas fa-plus"></i> Nuevo Movimiento
+                                <i class="fas fa-plus"></i>
                             </a>
                         </div>
                     </div>
@@ -173,7 +173,7 @@
                     <h5 class="text-muted">No hay movimientos registrados</h5>
                     <p class="text-muted">Este cliente aún no tiene movimientos en su cuenta corriente.</p>
                     <a href="{{ route('clients.current-accounts.create', $client) }}" class="btn btn-success">
-                        <i class="fas fa-plus"></i> Crear Primer Movimiento
+                        <i class="fas fa-plus"></i>
                     </a>
                 </div>
             @endif

@@ -8,7 +8,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>Cuentas Corrientes - Peluquería</h1>
         <a href="{{ route('clients.index') }}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left"></i> Volver a Clientes
+            <i class="fas fa-arrow-left"></i>
         </a>
     </div>
 
@@ -37,11 +37,11 @@
                 </div>
                 <div class="col-auto">
                     <button type="submit" class="btn btn-secondary">
-                        <i class="fas fa-search"></i> Buscar
+                        <i class="fas fa-search"></i>
                     </button>
                     @if(request('search'))
                         <a href="{{ route('client-current-accounts.index') }}" class="btn btn-light">
-                            <i class="fas fa-times"></i> Limpiar
+                            <i class="fas fa-times"></i>
                         </a>
                     @endif
                 </div>
@@ -92,19 +92,19 @@
                                         <a href="{{ route('clients.current-accounts.show', $client) }}" 
                                            class="btn btn-info btn-sm"
                                            title="Ver detalle">
-                                            <i class="fas fa-eye"></i> Ver Detalle
+                                            <i class="fas fa-eye"></i>
                                         </a>
                                         <a href="{{ route('clients.current-accounts.create', $client) }}" 
                                            class="btn btn-success btn-sm"
                                            title="Nuevo movimiento">
-                                            <i class="fas fa-plus"></i> Nuevo Movimiento
+                                            <i class="fas fa-plus"></i>
                                         </a>
                                         <button type="button" 
                                                 class="btn btn-danger btn-sm"
                                                 title="Eliminar cuenta corriente"
                                                 data-bs-toggle="modal" 
                                                 data-bs-target="#deleteModal{{ $client->id }}">
-                                            <i class="fas fa-trash"></i> Eliminar
+                                            <i class="fas fa-trash"></i>
                                         </button>
                                     </div>
                                 </td>

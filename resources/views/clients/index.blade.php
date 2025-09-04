@@ -52,6 +52,7 @@
                             <th>Email</th>
                             <th>DNI</th>
                             <th>Última Visita</th>
+                            <th>Estado de Cuenta</th>
                             <th width="200">Acciones</th>
                         </tr>
                         </thead>
@@ -67,6 +68,25 @@
                                         <span class="badge bg-success">{{ $client->technicalRecords->max('service_date')?->format('d/m/Y') }}</span>
                                     @else
                                         <span class="badge bg-secondary">Sin visitas</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($client->has_debt)
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-exclamation-triangle"></i> Con Deuda
+                                        </span>
+                                        <br>
+                                        <small class="text-muted">${{ number_format($client->current_balance, 2) }}</small>
+                                    @elseif($client->current_balance > 0)
+                                        <span class="badge bg-warning">
+                                            <i class="fas fa-info-circle"></i> Con Crédito
+                                        </span>
+                                        <br>
+                                        <small class="text-muted">${{ number_format($client->current_balance, 2) }}</small>
+                                    @else
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check-circle"></i> Al Día
+                                        </span>
                                     @endif
                                 </td>
                                 <td>

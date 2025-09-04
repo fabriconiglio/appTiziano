@@ -97,25 +97,25 @@
                                         <a href="{{ route('distributor-clients.current-accounts.show', $client) }}" 
                                            class="btn btn-info btn-sm"
                                            title="Ver detalle">
-                                            <i class="fas fa-eye"></i> Ver Detalle
+                                            <i class="fas fa-eye"></i>
                                         </a>
                                         <a href="{{ route('distributor-clients.current-accounts.export-pdf', $client) }}" 
                                            class="btn btn-danger btn-sm"
                                            title="Exportar PDF"
                                            target="_blank">
-                                            <i class="fas fa-file-pdf"></i> PDF
+                                            <i class="fas fa-file-pdf"></i>
                                         </a>
                                         <a href="{{ route('distributor-clients.current-accounts.create', $client) }}" 
                                            class="btn btn-success btn-sm"
                                            title="Nuevo movimiento">
-                                            <i class="fas fa-plus"></i> Nuevo Movimiento
+                                            <i class="fas fa-plus"></i>
                                         </a>
                                         <button type="button" 
                                                 class="btn btn-danger btn-sm"
                                                 title="Eliminar cuenta corriente"
                                                 data-bs-toggle="modal" 
                                                 data-bs-target="#deleteModal{{ $client->id }}">
-                                            <i class="fas fa-trash"></i> Eliminar
+                                            <i class="fas fa-trash"></i>
                                         </button>
                                     </div>
                                 </td>

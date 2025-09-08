@@ -45,6 +45,11 @@ class DistributorTechnicalRecord extends Model
         return $this->belongsToMany(SupplierInventory::class, 'distributor_technical_record_supplier_inventory');
     }
 
+    public function currentAccounts()
+    {
+        return $this->hasMany(DistributorCurrentAccount::class);
+    }
+
     /**
      * Get the route key name for Laravel.
      */

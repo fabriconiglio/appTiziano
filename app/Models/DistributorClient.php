@@ -43,6 +43,11 @@ class DistributorClient extends Model
         return $this->hasMany(DistributorQuotation::class);
     }
 
+    public function discounts()
+    {
+        return $this->hasMany(DistributorDiscount::class);
+    }
+
     /**
      * Obtener el saldo actual de la cuenta corriente
      */

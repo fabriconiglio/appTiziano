@@ -6,6 +6,7 @@ use App\Models\DistributorClient;
 use App\Models\SupplierInventory;
 use App\Models\DistributorTechnicalRecord;
 use App\Models\DistributorCurrentAccount;
+use App\Models\DistributorDiscount;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
@@ -83,11 +84,15 @@ class DistributorTechnicalRecordController extends Controller
             $validated['photos'] = $photos;
         }
 
-        $validated['distributor_client_id'] = $distributorClient->id;
+        $validated['distributor_client_id'] = $distributorClient->getKey();
         $validated['user_id'] = auth()->id();
 
         // Calcular el total automáticamente basado en los productos comprados
         $calculatedTotal = 0;
+        $totalDiscountAmount = 0;
+        $giftProducts = [];
+        $discountDetails = [];
+        
         if (!empty($validated['products_purchased'])) {
             foreach ($validated['products_purchased'] as $productData) {
                 $supplierInventory = SupplierInventory::find($productData['product_id']);
@@ -106,11 +111,85 @@ class DistributorTechnicalRecordController extends Controller
                             $price = $supplierInventory->precio_menor ?: $supplierInventory->precio_mayor ?: 0;
                             break;
                     }
-                    $calculatedTotal += $price * $productData['quantity'];
+                    
+                    $subtotalProduct = $price * $productData['quantity'];
+                    $calculatedTotal += $subtotalProduct;
+                    
+                    // Buscar descuentos aplicables para este producto
+                    $availableDiscounts = DistributorDiscount::valid()
+                                                            ->forDistributor($distributorClient->getKey())
+                                                            ->get()
+                                                            ->filter(function ($discount) use ($supplierInventory) {
+                                                                return $discount->appliesTo($supplierInventory->sku, $supplierInventory->product_name, $supplierInventory->id);
+                                                            });
+                    
+                    foreach ($availableDiscounts as $discount) {
+                        $calculation = $discount->calculateDiscount($productData['quantity'], $price);
+                        
+                        // Aplicar descuento si hay monto de descuento o si es un regalo (final_price = 0)
+                        if ($calculation['discount_amount'] > 0 || $calculation['final_price'] == 0) {
+                            $totalDiscountAmount += $calculation['discount_amount'];
+                            $discountDetails[] = [
+                                'discount_id' => $discount->id,
+                                'product_name' => $supplierInventory->product_name,
+                                'discount_description' => $discount->description,
+                                'discount_amount' => $calculation['discount_amount'],
+                                'final_price' => $calculation['final_price'],
+                                'message' => $calculation['message']
+                            ];
+                            
+                            // Incrementar el uso del descuento
+                            $discount->incrementUsage();
+                        }
+                        
+                        if (!empty($calculation['gift_products'])) {
+                            $giftProducts = array_merge($giftProducts, $calculation['gift_products']);
+                            $discountDetails[] = [
+                                'discount_id' => $discount->id,
+                                'product_name' => $supplierInventory->product_name,
+                                'discount_description' => $discount->description,
+                                'gift_products' => $calculation['gift_products'],
+                                'message' => $calculation['message']
+                            ];
+                            
+                            // Incrementar el uso del descuento
+                            $discount->incrementUsage();
+                        }
+                    }
                 }
             }
         }
-        $validated['total_amount'] = $calculatedTotal;
+        
+        // Aplicar descuentos al total
+        $totalAfterDiscounts = $calculatedTotal - $totalDiscountAmount;
+        $validated['total_amount'] = $totalAfterDiscounts;
+        
+        // Agregar información de descuentos y regalos a las observaciones
+        if (!empty($discountDetails) || !empty($giftProducts)) {
+            $discountInfo = "\n\n--- DESCUENTOS Y REGALOS APLICADOS ---\n";
+            
+            if ($totalDiscountAmount > 0) {
+                $discountInfo .= "Total descuentos aplicados: $" . number_format($totalDiscountAmount, 2) . "\n";
+                $discountInfo .= "Total original: $" . number_format($calculatedTotal, 2) . "\n";
+                $discountInfo .= "Total con descuentos: $" . number_format($totalAfterDiscounts, 2) . "\n\n";
+            }
+            
+            foreach ($discountDetails as $detail) {
+                $discountInfo .= "• {$detail['discount_description']} ({$detail['product_name']}): {$detail['message']}\n";
+                if (isset($detail['discount_amount'])) {
+                    $discountInfo .= "  Descuento: $" . number_format($detail['discount_amount'], 2) . "\n";
+                }
+                if (isset($detail['gift_products'])) {
+                    $discountInfo .= "  Regalos: " . implode(', ', $detail['gift_products']) . "\n";
+                }
+            }
+            
+            if (!empty($giftProducts)) {
+                $discountInfo .= "\nRegalos totales incluidos: " . implode(', ', array_unique($giftProducts)) . "\n";
+            }
+            
+            $validated['observations'] = ($validated['observations'] ?? '') . $discountInfo;
+        }
 
         // Debug: Log los valores para verificar
         Log::info('Debug Ficha Técnica STORE:', [
@@ -126,10 +205,11 @@ class DistributorTechnicalRecordController extends Controller
         // Debug: Log el cálculo del monto final
         Log::info('Debug Cálculo Final:', [
             'calculatedTotal' => $calculatedTotal,
+            'totalAfterDiscounts' => $totalAfterDiscounts,
             'balanceAdjustment' => $balanceAdjustment,
             'balanceAdjustment_type' => gettype($balanceAdjustment),
-            'finalAmount_calculation' => $calculatedTotal + $balanceAdjustment,
-            'finalAmount' => max(0, $calculatedTotal + $balanceAdjustment)
+            'finalAmount_calculation' => $totalAfterDiscounts + $balanceAdjustment,
+            'finalAmount' => max(0, $totalAfterDiscounts + $balanceAdjustment)
         ]);
         
         // Calcular el monto final considerando el ajuste de cuenta corriente
@@ -137,7 +217,7 @@ class DistributorTechnicalRecordController extends Controller
         
         // Si el balanceAdjustment es positivo, significa que tiene deuda (se suma)
         // Si el balanceAdjustment es negativo, significa que tiene crédito (se resta)
-        $finalAmount = max(0, $calculatedTotal + $balanceAdjustment);
+        $finalAmount = max(0, $totalAfterDiscounts + $balanceAdjustment);
         $validated['final_amount'] = $finalAmount;
 
         // Iniciar transacción para asegurar consistencia
@@ -170,7 +250,7 @@ class DistributorTechnicalRecordController extends Controller
                 if ($balanceAdjustment < 0) {
                     // Si el cliente usa crédito, crear una deuda por el monto usado
                     \App\Models\DistributorCurrentAccount::create([
-                        'distributor_client_id' => $distributorClient->id,
+                        'distributor_client_id' => $distributorClient->getKey(),
                         'user_id' => auth()->id(),
                         'distributor_technical_record_id' => $technicalRecord->id,
                         'type' => 'debt',
@@ -183,7 +263,7 @@ class DistributorTechnicalRecordController extends Controller
                 } else {
                     // Si el cliente aplica deuda, crear un pago por el monto aplicado
                     \App\Models\DistributorCurrentAccount::create([
-                        'distributor_client_id' => $distributorClient->id,
+                        'distributor_client_id' => $distributorClient->getKey(),
                         'user_id' => auth()->id(),
                         'distributor_technical_record_id' => $technicalRecord->id,
                         'type' => 'payment',
@@ -304,6 +384,10 @@ class DistributorTechnicalRecordController extends Controller
 
         // Calcular el total automáticamente basado en los productos comprados
         $calculatedTotal = 0;
+        $totalDiscountAmount = 0;
+        $giftProducts = [];
+        $discountDetails = [];
+        
         if (!empty($validated['products_purchased'])) {
             foreach ($validated['products_purchased'] as $productData) {
                 $supplierInventory = SupplierInventory::find($productData['product_id']);
@@ -322,15 +406,90 @@ class DistributorTechnicalRecordController extends Controller
                             $price = $supplierInventory->precio_menor ?: $supplierInventory->precio_mayor ?: 0;
                             break;
                     }
-                    $calculatedTotal += $price * $productData['quantity'];
+                    
+                    $subtotalProduct = $price * $productData['quantity'];
+                    $calculatedTotal += $subtotalProduct;
+                    
+                    // Buscar descuentos aplicables para este producto
+                    $availableDiscounts = DistributorDiscount::valid()
+                                                            ->forDistributor($distributorClient->getKey())
+                                                            ->get()
+                                                            ->filter(function ($discount) use ($supplierInventory) {
+                                                                return $discount->appliesTo($supplierInventory->sku, $supplierInventory->product_name, $supplierInventory->id);
+                                                            });
+                    
+                    foreach ($availableDiscounts as $discount) {
+                        $calculation = $discount->calculateDiscount($productData['quantity'], $price);
+                        
+                        // Aplicar descuento si hay monto de descuento o si es un regalo (final_price = 0)
+                        if ($calculation['discount_amount'] > 0 || $calculation['final_price'] == 0) {
+                            $totalDiscountAmount += $calculation['discount_amount'];
+                            $discountDetails[] = [
+                                'discount_id' => $discount->id,
+                                'product_name' => $supplierInventory->product_name,
+                                'discount_description' => $discount->description,
+                                'discount_amount' => $calculation['discount_amount'],
+                                'final_price' => $calculation['final_price'],
+                                'message' => $calculation['message']
+                            ];
+                            
+                            // Incrementar el uso del descuento
+                            $discount->incrementUsage();
+                        }
+                        
+                        if (!empty($calculation['gift_products'])) {
+                            $giftProducts = array_merge($giftProducts, $calculation['gift_products']);
+                            $discountDetails[] = [
+                                'discount_id' => $discount->id,
+                                'product_name' => $supplierInventory->product_name,
+                                'discount_description' => $discount->description,
+                                'gift_products' => $calculation['gift_products'],
+                                'message' => $calculation['message']
+                            ];
+                            
+                            // Incrementar el uso del descuento
+                            $discount->incrementUsage();
+                        }
+                    }
                 }
             }
         }
-        $validated['total_amount'] = $calculatedTotal;
+        
+        // Aplicar descuentos al total
+        $totalAfterDiscounts = $calculatedTotal - $totalDiscountAmount;
+        $validated['total_amount'] = $totalAfterDiscounts;
+        
+        // Agregar información de descuentos y regalos a las observaciones
+        if (!empty($discountDetails) || !empty($giftProducts)) {
+            $discountInfo = "\n\n--- DESCUENTOS Y REGALOS APLICADOS ---\n";
+            
+            if ($totalDiscountAmount > 0) {
+                $discountInfo .= "Total descuentos aplicados: $" . number_format($totalDiscountAmount, 2) . "\n";
+                $discountInfo .= "Total original: $" . number_format($calculatedTotal, 2) . "\n";
+                $discountInfo .= "Total con descuentos: $" . number_format($totalAfterDiscounts, 2) . "\n\n";
+            }
+            
+            foreach ($discountDetails as $detail) {
+                $discountInfo .= "• {$detail['discount_description']} ({$detail['product_name']}): {$detail['message']}\n";
+                if (isset($detail['discount_amount'])) {
+                    $discountInfo .= "  Descuento: $" . number_format($detail['discount_amount'], 2) . "\n";
+                }
+                if (isset($detail['gift_products'])) {
+                    $discountInfo .= "  Regalos: " . implode(', ', $detail['gift_products']) . "\n";
+                }
+            }
+            
+            if (!empty($giftProducts)) {
+                $discountInfo .= "\nRegalos totales incluidos: " . implode(', ', array_unique($giftProducts)) . "\n";
+            }
+            
+            $validated['observations'] = ($validated['observations'] ?? '') . $discountInfo;
+        }
 
         // Debug: Log los valores para verificar
         Log::info('Debug Ficha Técnica UPDATE:', [
-            'total_amount' => $calculatedTotal,
+            'total_amount' => $totalAfterDiscounts,
+            'total_discount_amount' => $totalDiscountAmount,
             'balance_adjustment' => $validated['balance_adjustment'] ?? 0,
             'request_data' => $request->all()
         ]);
@@ -340,7 +499,7 @@ class DistributorTechnicalRecordController extends Controller
         
         // Si el balanceAdjustment es positivo, significa que tiene deuda (se suma)
         // Si el balanceAdjustment es negativo, significa que tiene crédito (se resta)
-        $finalAmount = max(0, $calculatedTotal + $balanceAdjustment);
+        $finalAmount = max(0, $totalAfterDiscounts + $balanceAdjustment);
         $validated['final_amount'] = $finalAmount;
 
         // Iniciar transacción
@@ -391,7 +550,7 @@ class DistributorTechnicalRecordController extends Controller
                 if ($balanceAdjustment < 0) {
                     // Si el cliente usa crédito, crear una deuda por el monto usado
                     DistributorCurrentAccount::create([
-                        'distributor_client_id' => $distributorClient->id,
+                        'distributor_client_id' => $distributorClient->getKey(),
                         'user_id' => auth()->id(),
                         'distributor_technical_record_id' => $distributorTechnicalRecord->id,
                         'type' => 'debt',
@@ -404,7 +563,7 @@ class DistributorTechnicalRecordController extends Controller
                 } else {
                     // Si el cliente aplica deuda, crear un pago por el monto aplicado
                     DistributorCurrentAccount::create([
-                        'distributor_client_id' => $distributorClient->id,
+                        'distributor_client_id' => $distributorClient->getKey(),
                         'user_id' => auth()->id(),
                         'distributor_technical_record_id' => $distributorTechnicalRecord->id,
                         'type' => 'payment',

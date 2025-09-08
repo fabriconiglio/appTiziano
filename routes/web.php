@@ -14,6 +14,7 @@ use App\Http\Controllers\StockMovementController;
 use App\Http\Controllers\SupplierInventoryController;
 use App\Http\Controllers\TechnicalRecordController;
 use App\Http\Controllers\DistributorTechnicalRecordController;
+use App\Http\Controllers\DistributorDiscountController;
 use App\Http\Controllers\StockAlertController;
 use App\Http\Controllers\ClientCurrentAccountController;
 use App\Models\DistributorTechnicalRecord;
@@ -84,6 +85,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('distributor-clients/{distributorClient}/quotations/{quotation}/export-pdf', [DistributorQuotationController::class, 'exportToPdf'])->name('distributor-clients.quotations.export-pdf');
     Route::post('distributor-clients/{distributorClient}/quotations/{quotation}/change-status', [DistributorQuotationController::class, 'changeStatus'])->name('distributor-clients.quotations.change-status');
 
+    // CRUD de descuentos de distribuidores
+    Route::resource('distributor-discounts', DistributorDiscountController::class);
+    Route::patch('distributor-discounts/{distributorDiscount}/toggle-status', [DistributorDiscountController::class, 'toggleStatus'])->name('distributor-discounts.toggle-status');
+    Route::get('distributor-discounts/available-discounts', [DistributorDiscountController::class, 'getAvailableDiscounts'])->name('distributor-discounts.available');
     
     // Ruta para ejecutar comandos Artisan
     Route::post('artisan', [ArtisanController::class, 'executeCommand'])->name('artisan.execute');

@@ -103,6 +103,12 @@
                                             Presupuestos
                                         </a>
 
+                                        <a href="{{ route('distributor-discounts.index') }}"
+                                           class="btn btn-outline-success">
+                                            <i class="fas fa-percent me-2"></i>
+                                            Descuentos y Regalos
+                                        </a>
+
                                         <a href="{{ route('daily-sales.index') }}"
                                            class="btn btn-outline-info">
                                             <i class="fas fa-chart-line me-2"></i>

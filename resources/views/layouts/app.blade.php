@@ -28,11 +28,6 @@
     <!-- Después de los otros estilos -->
     <link href="{{ asset('css/custom.css') }}" rel="stylesheet">
 
-    <!-- CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
-    <!-- JS -->
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
-
     <!-- CSS de Select2 -->
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
@@ -170,6 +165,13 @@
                                     <a class="dropdown-item" href="{{ route('distributor-quotations.index') }}">
                                         <i class="fas fa-file-invoice-dollar text-dark me-2"></i>
                                         {{ __('Presupuestos') }}
+                                    </a>
+                                </li>
+                                <!-- Submenú Descuentos -->
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item" href="{{ route('distributor-discounts.index') }}">
+                                        <i class="fas fa-percent text-primary me-2"></i>
+                                        {{ __('Descuentos y Regalos') }}
                                     </a>
                                 </li>
                                 <!-- Submenú Categorías Distribuidora -->

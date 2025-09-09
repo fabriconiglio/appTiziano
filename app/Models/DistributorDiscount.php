@@ -313,7 +313,7 @@ class DistributorDiscount extends Model
     {
         return $query->where(function($q) use ($distributorClientId) {
             $q->where('distributor_client_id', $distributorClientId)
-              ->orWhereRaw("JSON_CONTAINS(distributor_client_ids, ?)", [$distributorClientId]);
+              ->orWhereRaw("JSON_CONTAINS(distributor_client_ids, ?)", [json_encode((string)$distributorClientId)]);
         });
     }
 }

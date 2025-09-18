@@ -48,7 +48,7 @@
                                 </div>
 
                                 <div class="col-md-6">
-                                    <label for="service_cost" class="form-label">Costo del Servicio <span class="text-danger">*</span></label>
+                                    <label for="service_cost" class="form-label">Valor del Servicio <span class="text-danger">*</span></label>
                                     <div class="input-group">
                                         <span class="input-group-text">$</span>
                                         <input type="number" step="0.01" min="0" class="form-control @error('service_cost') is-invalid @enderror"

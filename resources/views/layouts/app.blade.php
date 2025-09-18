@@ -72,6 +72,14 @@
                                     </a>
                                 </li>
 
+                                <!-- Submenú Clientes No Frecuentes -->
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item" href="{{ route('cliente-no-frecuentes.index') }}">
+                                        <i class="fas fa-user-clock me-2"></i>
+                                        {{ __('Clientes No Frecuentes') }}
+                                    </a>
+                                </li>
+
                                 <!-- Submenú Categorías Peluquería -->
                                 <li class="dropdown-submenu">
                                     <a class="dropdown-item" href="{{ route('categories.index') }}">

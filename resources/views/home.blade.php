@@ -32,6 +32,12 @@
                                             Clientes Peluquería
                                         </a>
 
+                                        <a href="{{ route('cliente-no-frecuentes.index') }}"
+                                           class="btn btn-outline-primary">
+                                            <i class="fas fa-user-clock me-2"></i>
+                                            Clientes No Frecuentes
+                                        </a>
+
                                         <a href="{{ route('products.index') }}"
                                            class="btn btn-outline-primary">
                                             <i class="fas fa-box me-2"></i>

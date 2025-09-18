@@ -8,38 +8,53 @@
     <div class="row mb-4">
         <div class="col-12">
             <h1 class="h2 text-dark mb-2">
-                Ventas por Día - Peluquería - {{ $selectedDate->format('d/m/Y') }}
-                @if($selectedDate->ne($today))
-                    <span class="badge bg-info ms-2">Fecha Histórica</span>
+                Ventas por Período - Peluquería
+                @if($startDate->ne($endDate))
+                    - {{ $startDate->format('d/m/Y') }} al {{ $endDate->format('d/m/Y') }}
+                @else
+                    - {{ $startDate->format('d/m/Y') }}
+                @endif
+                @if($startDate->ne($today) || $endDate->ne($today))
+                    <span class="badge bg-info ms-2">Período Histórico</span>
                 @endif
             </h1>
             <p class="text-muted">
-                Dashboard de ventas diarias de peluquería
-                @if($selectedDate->ne($today))
-                    para el {{ $selectedDate->format('d/m/Y') }}
+                Dashboard de ventas de peluquería
+                @if($startDate->ne($endDate))
+                    del período {{ $startDate->format('d/m/Y') }} al {{ $endDate->format('d/m/Y') }}
                 @else
-                    que se actualiza automáticamente cada día
+                    @if($startDate->ne($today))
+                        para el {{ $startDate->format('d/m/Y') }}
+                    @else
+                        que se actualiza automáticamente cada día
+                    @endif
                 @endif
             </p>
         </div>
     </div>
 
-    <!-- Filtro de fecha -->
+    <!-- Filtro de fechas -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="card-title mb-0">Seleccionar Fecha</h5>
+                    <h5 class="card-title mb-0">Seleccionar Período</h5>
                 </div>
                 <div class="card-body">
                     <form method="GET" action="{{ route('hairdressing-daily-sales.index') }}" class="row g-3">
-                        <div class="col-md-4">
-                            <label for="selected_date" class="form-label">Fecha a consultar:</label>
-                            <input type="date" class="form-control" id="selected_date" name="selected_date" 
-                                   value="{{ request('selected_date', $selectedDate->format('Y-m-d')) }}" 
+                        <div class="col-md-3">
+                            <label for="start_date" class="form-label">Fecha de Inicio:</label>
+                            <input type="date" class="form-control" id="start_date" name="start_date" 
+                                   value="{{ request('start_date', $startDate->format('Y-m-d')) }}" 
                                    max="{{ $today->format('Y-m-d') }}">
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
+                            <label for="end_date" class="form-label">Fecha de Fin:</label>
+                            <input type="date" class="form-control" id="end_date" name="end_date" 
+                                   value="{{ request('end_date', $endDate->format('Y-m-d')) }}" 
+                                   max="{{ $today->format('Y-m-d') }}">
+                        </div>
+                        <div class="col-md-3">
                             <label class="form-label">&nbsp;</label>
                             <div>
                                 <button type="submit" class="btn btn-primary me-2">
@@ -50,10 +65,10 @@
                                 </a>
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="form-label">Información:</label>
                             <div class="text-muted small">
-                                @if($selectedDate->ne($today))
+                                @if($startDate->ne($today) || $endDate->ne($today))
                                     <i class="fas fa-info-circle"></i> Mostrando datos históricos
                                 @else
                                     <i class="fas fa-clock"></i> Datos en tiempo real
@@ -69,74 +84,116 @@
     <!-- Tarjetas de resumen del día -->
     <div class="row mb-4">
         <!-- Total del día -->
-        <div class="col-md-3 mb-3">
-            <div class="card bg-primary text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="card-title">Total del Día</h6>
-                            <h3 class="card-text">${{ number_format($todaySales['total'] ?? 0, 2) }}</h3>
-                        </div>
-                        <div>
-                            <i class="fas fa-cut fa-2x"></i>
+        <div class="col-md-4 mb-3">
+            <a href="{{ route('hairdressing-daily-sales.detail', ['category' => 'total', 'start_date' => $startDate->format('Y-m-d'), 'end_date' => $endDate->format('Y-m-d')]) }}" 
+               class="text-decoration-none">
+                <div class="card bg-primary text-white" style="cursor: pointer;">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title">
+                                    @if($startDate->ne($endDate))
+                                        Total del Período
+                                    @else
+                                        Total del Día
+                                    @endif
+                                </h6>
+                                <h3 class="card-text">${{ number_format($todaySales['total'] ?? 0, 2) }}</h3>
+                            </div>
+                            <div>
+                                <i class="fas fa-cut fa-2x"></i>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </a>
         </div>
 
         <!-- Cuentas corrientes -->
-        <div class="col-md-3 mb-3">
-            <div class="card bg-success text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="card-title">Cuentas Corrientes</h6>
-                            <h3 class="card-text">${{ number_format($todaySales['client_accounts'] ?? 0, 2) }}</h3>
-                            <small>{{ $todaySales['count_client_accounts'] ?? 0 }} ventas</small>
-                        </div>
-                        <div>
-                            <i class="fas fa-calculator fa-2x"></i>
+        <div class="col-md-4 mb-3">
+            <a href="{{ route('hairdressing-daily-sales.detail', ['category' => 'client_accounts', 'start_date' => $startDate->format('Y-m-d'), 'end_date' => $endDate->format('Y-m-d')]) }}" 
+               class="text-decoration-none">
+                <div class="card bg-success text-white" style="cursor: pointer;">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title">Cuentas Corrientes</h6>
+                                <h3 class="card-text">${{ number_format($todaySales['client_accounts'] ?? 0, 2) }}</h3>
+                                <small>{{ $todaySales['count_client_accounts'] ?? 0 }} ventas</small>
+                            </div>
+                            <div>
+                                <i class="fas fa-calculator fa-2x"></i>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </a>
         </div>
 
         <!-- Servicios -->
-        <div class="col-md-3 mb-3">
-            <div class="card bg-info text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="card-title">Servicios</h6>
-                            <h3 class="card-text">${{ number_format($todaySales['technical_records'] ?? 0, 2) }}</h3>
-                            <small>{{ $todaySales['count_technical_records'] ?? 0 }} servicios</small>
-                        </div>
-                        <div>
-                            <i class="fas fa-scissors fa-2x"></i>
+        <div class="col-md-4 mb-3">
+            <a href="{{ route('hairdressing-daily-sales.detail', ['category' => 'technical_records', 'start_date' => $startDate->format('Y-m-d'), 'end_date' => $endDate->format('Y-m-d')]) }}" 
+               class="text-decoration-none">
+                <div class="card bg-info text-white" style="cursor: pointer;">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title">Servicios</h6>
+                                <h3 class="card-text">${{ number_format($todaySales['technical_records'] ?? 0, 2) }}</h3>
+                                <small>{{ $todaySales['count_technical_records'] ?? 0 }} servicios</small>
+                            </div>
+                            <div>
+                                <i class="fas fa-scissors fa-2x"></i>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Segunda fila de tarjetas -->
+    <div class="row mb-4">
+        <!-- Productos -->
+        <div class="col-md-6 mb-3">
+            <a href="{{ route('hairdressing-daily-sales.detail', ['category' => 'product_sales', 'start_date' => $startDate->format('Y-m-d'), 'end_date' => $endDate->format('Y-m-d')]) }}" 
+               class="text-decoration-none">
+                <div class="card bg-warning text-white" style="cursor: pointer;">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title">Productos</h6>
+                                <h3 class="card-text">${{ number_format($todaySales['product_sales'] ?? 0, 2) }}</h3>
+                                <small>{{ $todaySales['count_product_sales'] ?? 0 }} ventas</small>
+                            </div>
+                            <div>
+                                <i class="fas fa-box fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
         </div>
 
-        <!-- Productos -->
-        <div class="col-md-3 mb-3">
-            <div class="card bg-warning text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="card-title">Productos</h6>
-                            <h3 class="card-text">${{ number_format($todaySales['product_sales'] ?? 0, 2) }}</h3>
-                            <small>{{ $todaySales['count_product_sales'] ?? 0 }} ventas</small>
-                        </div>
-                        <div>
-                            <i class="fas fa-box fa-2x"></i>
+        <!-- Clientes No Frecuentes -->
+        <div class="col-md-6 mb-3">
+            <a href="{{ route('hairdressing-daily-sales.detail', ['category' => 'cliente_no_frecuente', 'start_date' => $startDate->format('Y-m-d'), 'end_date' => $endDate->format('Y-m-d')]) }}" 
+               class="text-decoration-none">
+                <div class="card bg-secondary text-white" style="cursor: pointer;">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title">Clientes No Frecuentes</h6>
+                                <h3 class="card-text">${{ number_format($todaySales['cliente_no_frecuente_sales'] ?? 0, 2) }}</h3>
+                                <small>{{ $todaySales['count_cliente_no_frecuente'] ?? 0 }} clientes</small>
+                            </div>
+                            <div>
+                                <i class="fas fa-user-clock fa-2x"></i>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </a>
         </div>
     </div>
 
@@ -205,7 +262,7 @@
                             <span class="text-muted">Promedio diario:</span>
                         </div>
                         <div class="col-6 text-end">
-                            <span class="fw-bold text-dark">${{ number_format(($monthlyStats['total'] ?? 0) / max(1, $selectedDate->day), 2) }}</span>
+                            <span class="fw-bold text-dark">${{ number_format(($monthlyStats['total'] ?? 0) / max(1, $startDate->day), 2) }}</span>
                         </div>
                     </div>
                     <div class="row">
@@ -213,7 +270,7 @@
                             <span class="text-muted">Proyección mensual:</span>
                         </div>
                         <div class="col-6 text-end">
-                            <span class="fw-bold text-info">${{ number_format((($monthlyStats['total'] ?? 0) / max(1, $selectedDate->day)) * $selectedDate->daysInMonth, 2) }}</span>
+                            <span class="fw-bold text-info">${{ number_format((($monthlyStats['total'] ?? 0) / max(1, $startDate->day)) * $startDate->daysInMonth, 2) }}</span>
                         </div>
                     </div>
                 </div>

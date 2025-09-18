@@ -6,6 +6,7 @@ use App\Models\ClientCurrentAccount;
 use App\Models\TechnicalRecord;
 use App\Models\Product;
 use App\Models\StockMovement;
+use App\Models\ClienteNoFrecuente;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -21,42 +22,114 @@ class HairdressingDailySalesController extends Controller
     {
         $today = Carbon::today();
         
-        // Obtener fecha seleccionada o usar hoy por defecto
-        $selectedDate = $request->has('selected_date') && $request->selected_date 
-            ? Carbon::parse($request->selected_date) 
+        // Validar fechas de entrada
+        $request->validate([
+            'start_date' => 'nullable|date|before_or_equal:today',
+            'end_date' => 'nullable|date|before_or_equal:today|after_or_equal:start_date'
+        ], [
+            'start_date.before_or_equal' => 'La fecha de inicio no puede ser futura',
+            'end_date.before_or_equal' => 'La fecha de fin no puede ser futura',
+            'end_date.after_or_equal' => 'La fecha de fin no puede ser anterior a la fecha de inicio'
+        ]);
+        
+        // Obtener fechas de filtro
+        $startDate = $request->has('start_date') && $request->start_date 
+            ? Carbon::parse($request->start_date) 
+            : $today;
+        
+        $endDate = $request->has('end_date') && $request->end_date 
+            ? Carbon::parse($request->end_date) 
             : $today;
         
         // Asegurar que no se pueda seleccionar una fecha futura
-        if ($selectedDate->gt($today)) {
-            $selectedDate = $today;
+        if ($startDate->gt($today)) {
+            $startDate = $today;
+        }
+        if ($endDate->gt($today)) {
+            $endDate = $today;
         }
         
-        $yesterday = $selectedDate->copy()->subDay();
+        // Asegurar que la fecha de inicio no sea posterior a la fecha de fin
+        if ($startDate->gt($endDate)) {
+            $startDate = $endDate;
+        }
         
-        // Obtener ventas de la fecha seleccionada
-        $todaySales = $this->getDailySales($selectedDate);
+        $yesterday = $startDate->copy()->subDay();
+        
+        // Obtener ventas del período seleccionado
+        $todaySales = $this->getPeriodSales($startDate, $endDate);
         
         // Obtener ventas del día anterior para comparación
         $yesterdaySales = $this->getDailySales($yesterday);
         
-        // Obtener estadísticas del mes de la fecha seleccionada
-        $monthlyStats = $this->getMonthlyStats($selectedDate);
+        // Obtener estadísticas del mes de la fecha de inicio
+        $monthlyStats = $this->getMonthlyStats($startDate);
         
-        // Obtener servicios más populares del día
-        $popularServices = $this->getPopularServices($selectedDate);
+        // Obtener servicios más populares del período
+        $popularServices = $this->getPopularServices($startDate, $endDate);
         
-        // Obtener productos más vendidos del día
-        $popularProducts = $this->getPopularProducts($selectedDate);
+        // Obtener productos más vendidos del período
+        $popularProducts = $this->getPopularProducts($startDate, $endDate);
         
         return view('hairdressing_daily_sales.index', compact(
             'todaySales', 
             'yesterdaySales', 
-            'monthlyStats', 
+            'monthlyStats',
             'popularServices',
             'popularProducts',
             'today',
-            'selectedDate'
+            'startDate',
+            'endDate'
         ));
+    }
+
+    /**
+     * Obtener ventas de un período específico para peluquería
+     */
+    private function getPeriodSales($startDate, $endDate)
+    {
+        $startOfPeriod = $startDate->copy()->startOfDay();
+        $endOfPeriod = $endDate->copy()->endOfDay();
+
+        // Ventas de cuentas corrientes de clientes (deudas)
+        $clientAccountSales = ClientCurrentAccount::where('type', 'debt')
+            ->whereBetween('created_at', [$startOfPeriod, $endOfPeriod])
+            ->sum('amount');
+
+        // Ventas de fichas técnicas (costo real del servicio)
+        $technicalRecordSales = TechnicalRecord::whereBetween('service_date', [$startOfPeriod, $endOfPeriod])
+            ->sum('service_cost');
+
+        // Ventas de productos vendidos (estimación basada en salidas de stock)
+        $productSales = StockMovement::where('type', 'salida')
+            ->whereBetween('stock_movements.created_at', [$startOfPeriod, $endOfPeriod])
+            ->join('products', 'stock_movements.product_id', '=', 'products.id')
+            ->sum(DB::raw('stock_movements.quantity * COALESCE(products.price, 0)'));
+
+        // Ventas de servicios adicionales (50% del costo total)
+        $additionalServices = TechnicalRecord::whereBetween('service_date', [$startOfPeriod, $endOfPeriod])
+            ->sum('service_cost') * 0.5; // 50% del costo total como servicios adicionales
+
+        // Ventas de clientes no frecuentes
+        $clienteNoFrecuenteSales = ClienteNoFrecuente::whereBetween('fecha', [$startOfPeriod, $endOfPeriod])
+            ->sum('monto');
+
+        $totalSales = $clientAccountSales + $technicalRecordSales + $productSales + $additionalServices + $clienteNoFrecuenteSales;
+
+        return [
+            'total' => $totalSales,
+            'client_accounts' => $clientAccountSales,
+            'technical_records' => $technicalRecordSales,
+            'product_sales' => $productSales,
+            'additional_services' => $additionalServices,
+            'cliente_no_frecuente_sales' => $clienteNoFrecuenteSales,
+            'count_client_accounts' => ClientCurrentAccount::where('type', 'debt')
+                ->whereBetween('created_at', [$startOfPeriod, $endOfPeriod])->count(),
+            'count_technical_records' => TechnicalRecord::whereBetween('service_date', [$startOfPeriod, $endOfPeriod])->count(),
+            'count_product_sales' => StockMovement::where('type', 'salida')
+                ->whereBetween('stock_movements.created_at', [$startOfPeriod, $endOfPeriod])->count(),
+            'count_cliente_no_frecuente' => ClienteNoFrecuente::whereBetween('fecha', [$startOfPeriod, $endOfPeriod])->count(),
+        ];
     }
 
     /**
@@ -86,7 +159,11 @@ class HairdressingDailySalesController extends Controller
         $additionalServices = TechnicalRecord::whereBetween('service_date', [$startOfDay, $endOfDay])
             ->sum('service_cost') * 0.5; // 50% del costo total como servicios adicionales
 
-        $totalSales = $clientAccountSales + $technicalRecordSales + $productSales + $additionalServices;
+        // Ventas de clientes no frecuentes
+        $clienteNoFrecuenteSales = ClienteNoFrecuente::whereDate('fecha', $date)
+            ->sum('monto');
+
+        $totalSales = $clientAccountSales + $technicalRecordSales + $productSales + $additionalServices + $clienteNoFrecuenteSales;
 
         return [
             'total' => $totalSales,
@@ -94,11 +171,13 @@ class HairdressingDailySalesController extends Controller
             'technical_records' => $technicalRecordSales,
             'product_sales' => $productSales,
             'additional_services' => $additionalServices,
+            'cliente_no_frecuente_sales' => $clienteNoFrecuenteSales,
             'count_client_accounts' => ClientCurrentAccount::where('type', 'debt')
                 ->whereBetween('created_at', [$startOfDay, $endOfDay])->count(),
             'count_technical_records' => TechnicalRecord::whereBetween('service_date', [$startOfDay, $endOfDay])->count(),
             'count_product_sales' => StockMovement::where('type', 'salida')
                 ->whereBetween('stock_movements.created_at', [$startOfDay, $endOfDay])->count(),
+            'count_cliente_no_frecuente' => ClienteNoFrecuente::whereDate('fecha', $date)->count(),
         ];
     }
 
@@ -141,12 +220,18 @@ class HairdressingDailySalesController extends Controller
 
 
     /**
-     * Obtener servicios más populares del día
+     * Obtener servicios más populares del período
      */
-    private function getPopularServices($date)
+    private function getPopularServices($startDate, $endDate = null)
     {
-        $startOfDay = $date->copy()->startOfDay();
-        $endOfDay = $date->copy()->endOfDay();
+        if ($endDate === null) {
+            // Si solo se pasa una fecha, usar el método original
+            $startOfDay = $startDate->copy()->startOfDay();
+            $endOfDay = $startDate->copy()->endOfDay();
+        } else {
+            $startOfDay = $startDate->copy()->startOfDay();
+            $endOfDay = $endDate->copy()->endOfDay();
+        }
 
         return TechnicalRecord::whereBetween('service_date', [$startOfDay, $endOfDay])
             ->select('hair_treatments', 'service_type', DB::raw('count(*) as total'), DB::raw('sum(service_cost) as total_cost'))
@@ -158,12 +243,18 @@ class HairdressingDailySalesController extends Controller
     }
 
     /**
-     * Obtener productos más vendidos del día
+     * Obtener productos más vendidos del período
      */
-    private function getPopularProducts($date)
+    private function getPopularProducts($startDate, $endDate = null)
     {
-        $startOfDay = $date->copy()->startOfDay();
-        $endOfDay = $date->copy()->endOfDay();
+        if ($endDate === null) {
+            // Si solo se pasa una fecha, usar el método original
+            $startOfDay = $startDate->copy()->startOfDay();
+            $endOfDay = $startDate->copy()->endOfDay();
+        } else {
+            $startOfDay = $startDate->copy()->startOfDay();
+            $endOfDay = $endDate->copy()->endOfDay();
+        }
 
         return StockMovement::where('type', 'salida')
             ->whereBetween('stock_movements.created_at', [$startOfDay, $endOfDay])
@@ -176,6 +267,113 @@ class HairdressingDailySalesController extends Controller
     }
 
 
+
+    /**
+     * Mostrar detalles de una categoría específica
+     */
+    public function detail(Request $request)
+    {
+        $today = Carbon::today();
+        
+        // Validar fechas de entrada
+        $request->validate([
+            'start_date' => 'nullable|date|before_or_equal:today',
+            'end_date' => 'nullable|date|before_or_equal:today|after_or_equal:start_date',
+            'category' => 'required|string|in:total,client_accounts,technical_records,product_sales,cliente_no_frecuente'
+        ], [
+            'start_date.before_or_equal' => 'La fecha de inicio no puede ser futura',
+            'end_date.before_or_equal' => 'La fecha de fin no puede ser futura',
+            'end_date.after_or_equal' => 'La fecha de fin no puede ser anterior a la fecha de inicio',
+            'category.required' => 'La categoría es requerida',
+            'category.in' => 'La categoría seleccionada no es válida'
+        ]);
+        
+        $startDate = $request->has('start_date') && $request->start_date 
+            ? Carbon::parse($request->start_date) 
+            : $today;
+        
+        $endDate = $request->has('end_date') && $request->end_date 
+            ? Carbon::parse($request->end_date) 
+            : $today;
+        
+        $category = $request->get('category');
+        
+        // Obtener datos según la categoría
+        $data = $this->getCategoryDetail($category, $startDate, $endDate);
+        
+        return view('hairdressing_daily_sales.detail', compact(
+            'data', 
+            'category', 
+            'startDate', 
+            'endDate', 
+            'today'
+        ));
+    }
+
+    /**
+     * Obtener detalles de una categoría específica
+     */
+    private function getCategoryDetail($category, $startDate, $endDate)
+    {
+        $startOfPeriod = $startDate->copy()->startOfDay();
+        $endOfPeriod = $endDate->copy()->endOfDay();
+        
+        switch ($category) {
+            case 'total':
+                // Para el total, devolvemos un resumen de todas las categorías
+                return collect([
+                    'client_accounts' => ClientCurrentAccount::where('type', 'debt')
+                        ->whereBetween('created_at', [$startOfPeriod, $endOfPeriod])
+                        ->with('client')
+                        ->orderBy('created_at', 'desc')
+                        ->get(),
+                    'technical_records' => TechnicalRecord::whereBetween('service_date', [$startOfPeriod, $endOfPeriod])
+                        ->with('client')
+                        ->orderBy('service_date', 'desc')
+                        ->get(),
+                    'product_sales' => StockMovement::where('type', 'salida')
+                        ->whereBetween('stock_movements.created_at', [$startOfPeriod, $endOfPeriod])
+                        ->join('products', 'stock_movements.product_id', '=', 'products.id')
+                        ->select('stock_movements.*', 'products.name as product_name', 'products.price')
+                        ->orderBy('stock_movements.created_at', 'desc')
+                        ->get(),
+                    'cliente_no_frecuente' => ClienteNoFrecuente::whereBetween('fecha', [$startOfPeriod, $endOfPeriod])
+                        ->with('user')
+                        ->orderBy('fecha', 'desc')
+                        ->get()
+                ]);
+                    
+            case 'client_accounts':
+                return ClientCurrentAccount::where('type', 'debt')
+                    ->whereBetween('created_at', [$startOfPeriod, $endOfPeriod])
+                    ->with('client')
+                    ->orderBy('created_at', 'desc')
+                    ->get();
+                    
+            case 'technical_records':
+                return TechnicalRecord::whereBetween('service_date', [$startOfPeriod, $endOfPeriod])
+                    ->with('client')
+                    ->orderBy('service_date', 'desc')
+                    ->get();
+                    
+            case 'product_sales':
+                return StockMovement::where('type', 'salida')
+                    ->whereBetween('stock_movements.created_at', [$startOfPeriod, $endOfPeriod])
+                    ->join('products', 'stock_movements.product_id', '=', 'products.id')
+                    ->select('stock_movements.*', 'products.name as product_name', 'products.price')
+                    ->orderBy('stock_movements.created_at', 'desc')
+                    ->get();
+                    
+            case 'cliente_no_frecuente':
+                return ClienteNoFrecuente::whereBetween('fecha', [$startOfPeriod, $endOfPeriod])
+                    ->with('user')
+                    ->orderBy('fecha', 'desc')
+                    ->get();
+                    
+            default:
+                return collect();
+        }
+    }
 
     /**
      * Exportar reporte diario a PDF

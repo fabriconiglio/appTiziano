@@ -166,6 +166,13 @@ Route::get('/api/supplier-inventories/get-product', [App\Http\Controllers\Suppli
         ->name('hairdressing-suppliers.destroy-purchase');
     Route::get('hairdressing-suppliers/{hairdressingSupplier}/get-receipt-total', [\App\Http\Controllers\HairdressingSupplierController::class, 'getReceiptTotal'])
         ->name('hairdressing-suppliers.get-receipt-total');
+    
+    // Clientes No Frecuentes
+    Route::resource('cliente-no-frecuentes', \App\Http\Controllers\ClienteNoFrecuenteController::class);
+    
+    // Detalles de ventas diarias de peluquería
+    Route::get('hairdressing-daily-sales/detail', [\App\Http\Controllers\HairdressingDailySalesController::class, 'detail'])
+        ->name('hairdressing-daily-sales.detail');
 
     Route::post('clients/{id}/restore', [App\Http\Controllers\ClientController::class, 'restore'])->name('clients.restore');
 

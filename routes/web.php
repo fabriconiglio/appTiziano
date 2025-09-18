@@ -164,6 +164,8 @@ Route::get('/api/supplier-inventories/get-product', [App\Http\Controllers\Suppli
         ->name('hairdressing-suppliers.update-purchase');
     Route::delete('hairdressing-suppliers/{hairdressingSupplier}/destroy-purchase/{purchase}', [\App\Http\Controllers\HairdressingSupplierController::class, 'destroyPurchase'])
         ->name('hairdressing-suppliers.destroy-purchase');
+    Route::get('hairdressing-suppliers/{hairdressingSupplier}/get-receipt-total', [\App\Http\Controllers\HairdressingSupplierController::class, 'getReceiptTotal'])
+        ->name('hairdressing-suppliers.get-receipt-total');
 
     Route::post('clients/{id}/restore', [App\Http\Controllers\ClientController::class, 'restore'])->name('clients.restore');
 

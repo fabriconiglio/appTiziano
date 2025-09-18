@@ -199,7 +199,7 @@ class HairdressingSupplierController extends Controller
         
         // Agregar el ID del proveedor y usuario
         $validated['hairdressing_supplier_id'] = $hairdressingSupplier->id;
-        $validated['user_id'] = auth()->id();
+        $validated['user_id'] = \Illuminate\Support\Facades\Auth::id();
 
         // Crear la compra en la base de datos
         \App\Models\HairdressingSupplierPurchase::create($validated);
@@ -291,5 +291,40 @@ class HairdressingSupplierController extends Controller
         
         return redirect()->route('hairdressing-suppliers.show', $hairdressingSupplier)
             ->with('success', 'Compra eliminada exitosamente.');
+    }
+
+    /**
+     * Buscar el total de una boleta existente por número y proveedor
+     */
+    public function getReceiptTotal(Request $request, HairdressingSupplier $hairdressingSupplier)
+    {
+        $receiptNumber = $request->input('receipt_number');
+        
+        if (!$receiptNumber) {
+            return response()->json(['error' => 'Número de boleta requerido'], 400);
+        }
+
+        // Buscar la boleta más reciente que tenga saldo pendiente
+        $purchase = \App\Models\HairdressingSupplierPurchase::where('hairdressing_supplier_id', $hairdressingSupplier->id)
+            ->where('receipt_number', $receiptNumber)
+            ->where('balance_amount', '>', 0) // Solo boletas con saldo pendiente
+            ->orderBy('created_at', 'desc') // La más reciente primero
+            ->first();
+
+        if ($purchase) {
+            return response()->json([
+                'success' => true,
+                'total_amount' => $purchase->total_amount,
+                'balance_amount' => $purchase->balance_amount,
+                'payment_amount' => $purchase->payment_amount,
+                'purchase_date' => $purchase->purchase_date->format('d/m/Y'),
+                'message' => 'Boleta encontrada'
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'No se encontró una boleta con ese número para este proveedor'
+        ]);
     }
 }

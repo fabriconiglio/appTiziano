@@ -26,58 +26,22 @@
         </div>
     @endif
 
-    <!-- Filtros -->
+    <!-- Buscador -->
     <div class="card mb-4">
         <div class="card-body">
             <form action="{{ route('distributor-discounts.index') }}" method="GET" class="row g-3">
-                <div class="col-md-3">
-                    <label for="search" class="form-label">Buscar</label>
-                    <input type="text" name="search" id="search" class="form-control"
-                           placeholder="Descripción, producto, SKU..."
+                <div class="col-md-4">
+                    <input type="text" name="search" class="form-control"
+                           placeholder="Buscar por descripción, producto, SKU o distribuidor..."
                            value="{{ request('search') }}">
                 </div>
-                
-                <div class="col-md-3">
-                    <label for="distributor_client_id" class="form-label">Distribuidor</label>
-                    <select name="distributor_client_id" id="distributor_client_id" class="form-select">
-                        <option value="">Todos los distribuidores</option>
-                        @foreach($distributorClients as $client)
-                            <option value="{{ $client->id }}" {{ request('distributor_client_id') == $client->id ? 'selected' : '' }}>
-                                {{ $client->full_name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-                
-                <div class="col-md-2">
-                    <label for="discount_type" class="form-label">Tipo</label>
-                    <select name="discount_type" id="discount_type" class="form-select">
-                        <option value="">Todos los tipos</option>
-                        @foreach($discountTypes as $key => $label)
-                            <option value="{{ $key }}" {{ request('discount_type') == $key ? 'selected' : '' }}>
-                                {{ $label }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-                
-                <div class="col-md-2">
-                    <label for="status" class="form-label">Estado</label>
-                    <select name="status" id="status" class="form-select">
-                        <option value="">Todos</option>
-                        <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Activos</option>
-                        <option value="valid" {{ request('status') == 'valid' ? 'selected' : '' }}>Válidos</option>
-                        <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactivos</option>
-                    </select>
-                </div>
-                
-                <div class="col-md-2 d-flex align-items-end">
-                    <button type="submit" class="btn btn-secondary me-2">
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-secondary">
                         <i class="fas fa-search"></i> Buscar
                     </button>
-                    @if(request()->hasAny(['search', 'distributor_client_id', 'discount_type', 'status']))
+                    @if(request('search'))
                         <a href="{{ route('distributor-discounts.index') }}" class="btn btn-light">
-                            <i class="fas fa-times"></i>
+                            <i class="fas fa-times"></i> Limpiar
                         </a>
                     @endif
                 </div>
@@ -90,7 +54,7 @@
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-striped table-hover">
-                    <thead>
+                    <thead class="table-dark">
                         <tr>
                             <th>Distribuidor</th>
                             <th>Descripción</th>
@@ -99,7 +63,7 @@
                             <th>Validez</th>
                             <th>Estado</th>
                             <th>Usos</th>
-                            <th>Acciones</th>
+                            <th class="text-center">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -160,13 +124,13 @@
                                             $progressWidth = min($percentage, 100);
                                         @endphp
                                         <div class="progress mt-1" style="height: 5px;">
-                                            <div class="progress-bar" style="width: {{ $progressWidth }}%;"></div>
+                                            <div class="progress-bar" data-width="{{ $progressWidth }}"></div>
                                         </div>
                                     @else
                                         <span class="text-muted">{{ $discount->current_uses }}</span>
                                     @endif
                                 </td>
-                                <td>
+                                <td class="text-center">
                                     <div class="btn-group" role="group" aria-label="Acciones">
                                         <a href="{{ route('distributor-discounts.show', $discount) }}" 
                                            class="btn btn-info btn-sm" title="Ver detalles">
@@ -197,11 +161,11 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="text-center py-4">
+                                <td colspan="8" class="text-center py-5">
                                     <div class="text-muted">
-                                        <i class="fas fa-percent fa-3x mb-3"></i>
+                                        <i class="fas fa-percent fa-4x mb-3"></i>
                                         <h5>No hay descuentos registrados</h5>
-                                        <p>Agrega tu primer descuento para distribuidores</p>
+                                        <p class="mb-0">Comienza agregando tu primer descuento usando el botón "Nuevo Descuento"</p>
                                     </div>
                                 </td>
                             </tr>
@@ -217,7 +181,7 @@
         <div class="d-flex justify-content-between align-items-center mt-4">
             <div class="text-muted">
                 Mostrando {{ $discounts->firstItem() ?? 0 }} a {{ $discounts->lastItem() ?? 0 }} 
-                de {{ $discounts->total() }} resultados
+                de {{ $discounts->total() }} descuentos
             </div>
             <div>
                 {{ $discounts->appends(request()->query())->links() }}
@@ -284,4 +248,16 @@
     </div>
 @endforeach
 
+@endsection
+
+@section('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Aplicar ancho dinámico a las barras de progreso
+    document.querySelectorAll('.progress-bar[data-width]').forEach(function(bar) {
+        const width = bar.getAttribute('data-width');
+        bar.style.width = width + '%';
+    });
+});
+</script>
 @endsection

@@ -180,6 +180,7 @@ Route::get('/api/supplier-inventories/get-product', [App\Http\Controllers\Suppli
 
     // Módulo de Ventas por Día - Distribuidora
     Route::get('daily-sales', [DailySalesController::class, 'index'])->name('daily-sales.index');
+    Route::get('daily-sales/detail/{category}', [DailySalesController::class, 'showDetail'])->name('daily-sales.detail');
     
     Route::get('daily-sales/export-pdf', [DailySalesController::class, 'exportPdf'])->name('daily-sales.export-pdf');
 

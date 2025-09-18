@@ -1207,7 +1207,7 @@
         // Validación para el botón de guardar
         $('#submit-btn').on('click', function() {
             if ($('#products-container').is(':visible') && $('#products-container').find('.product-row').length === 0) {
-                alert('Por favor, agrega al menos un producto a la ficha técnica.');
+                showCustomAlert('Por favor, agrega al menos un producto a la ficha técnica.');
                 return false;
             }
             return true;
@@ -1225,7 +1225,7 @@
             // Verificar que hay un producto seleccionado
             const productId = currentProductRow.find('.product-description-select').val();
             if (!productId) {
-                alert('Por favor, selecciona un producto primero.');
+                showCustomAlert('Por favor, selecciona un producto primero.');
                 return;
             }
             
@@ -1324,7 +1324,7 @@
             const discountReason = $('#discount_reason').val();
             
             if (!discountType || discountValue <= 0) {
-                alert('Por favor, completa todos los campos del descuento.');
+                showCustomAlert('Por favor, completa todos los campos del descuento.');
                 return;
             }
             
@@ -1401,12 +1401,45 @@
                         }
                     },
                     error: function() {
-                        alert('Error al eliminar la foto');
+                        showCustomAlert('Error al eliminar la foto');
                     }
                 });
             }
         }
+
+        // Función para mostrar modal personalizado en lugar de alert
+        function showCustomAlert(message) {
+            $('#customAlertMessage').text(message);
+            $('#customAlertModal').modal('show');
+        }
     </script>
 @endpush
+
+<!-- Modal personalizado para alertas -->
+<div class="modal fade" id="customAlertModal" tabindex="-1" aria-labelledby="customAlertModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="customAlertModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Advertencia
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-info-circle text-info me-3 fs-4"></i>
+                    <p class="mb-0" id="customAlertMessage">Mensaje de alerta</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                    <i class="fas fa-check me-1"></i>
+                    Entendido
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 @endsection 

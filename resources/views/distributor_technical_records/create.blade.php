@@ -174,9 +174,9 @@
                                             </div>
                                             <small class="form-text text-muted">
                                                 @if($distributorClient->getCurrentBalance() > 0)
-                                                    Se sumará a la compra
+                                                    La compra se sumará a la deuda existente
                                                 @elseif($distributorClient->getCurrentBalance() < 0)
-                                                    Se descontará de la compra
+                                                    El crédito se aplicará a esta compra
                                                 @else
                                                     Sin ajuste necesario
                                                 @endif
@@ -199,6 +199,33 @@
                                             </div>
                                         </div>
                                     </div>
+                                    
+                                    <!-- Explicación del cálculo -->
+                                    @if($distributorClient->getCurrentBalance() != 0)
+                                    <div class="row mt-3">
+                                        <div class="col-12">
+                                            <div class="alert alert-info">
+                                                <h6 class="alert-heading">
+                                                    <i class="fas fa-info-circle me-2"></i>
+                                                    Cálculo del Monto Final
+                                                </h6>
+                                                @if($distributorClient->getCurrentBalance() > 0)
+                                                    <p class="mb-1">
+                                                        <strong>Deuda actual:</strong> ${{ number_format($distributorClient->getCurrentBalance(), 2, ',', '.') }}<br>
+                                                        <strong>+ Compra actual:</strong> $<span id="purchase_amount_display">0,00</span><br>
+                                                        <strong>= Total a pagar:</strong> $<span id="total_debt_display">0,00</span>
+                                                    </p>
+                                                @else
+                                                    <p class="mb-1">
+                                                        <strong>Crédito disponible:</strong> ${{ number_format(abs($distributorClient->getCurrentBalance()), 2, ',', '.') }}<br>
+                                                        <strong>- Compra actual:</strong> $<span id="purchase_amount_display">0,00</span><br>
+                                                        <strong>= Total a pagar:</strong> $<span id="total_debt_display">0,00</span>
+                                                    </p>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @endif
                                 </div>
                             </div>
 
@@ -722,38 +749,50 @@
                 }
             }
             
-            // Función para calcular monto final
-            function calculateFinalAmount() {
-                const total = parseFloat($('#total_amount').val()) || 0;
-                
-                // Verificar si se debe usar la cuenta corriente
-                const useCurrentAccount = $('#use_current_account').is(':checked');
-                
-                // Obtener el saldo de cuenta corriente
-                const currentBalanceText = $('#current_balance').val().replace(/[^\d,-]/g, '').replace(',', '.');
-                const currentBalance = parseFloat(currentBalanceText) || 0;
-                
-                // Calcular ajuste de cuenta corriente solo si está marcado el checkbox
-                let balanceAdjustment = 0;
-                if (useCurrentAccount) {
-                    if (currentBalance > 0) {
-                        // Si tiene deuda, se suma a la compra
-                        balanceAdjustment = currentBalance;
-                    } else if (currentBalance < 0) {
-                        // Si tiene crédito, se descuenta de la compra (valor negativo)
-                        balanceAdjustment = currentBalance; // Mantener el valor negativo
-                    }
+        // Función para calcular monto final
+        function calculateFinalAmount() {
+            const total = parseFloat($('#total_amount').val()) || 0;
+            
+            // Verificar si se debe usar la cuenta corriente
+            const useCurrentAccount = $('#use_current_account').is(':checked');
+            
+            // Obtener el saldo de cuenta corriente
+            const currentBalanceText = $('#current_balance').val().replace(/[^\d,-]/g, '').replace(',', '.');
+            const currentBalance = parseFloat(currentBalanceText) || 0;
+            
+            // Calcular ajuste de cuenta corriente solo si está marcado el checkbox
+            let balanceAdjustment = 0;
+            if (useCurrentAccount) {
+                if (currentBalance > 0) {
+                    // Si tiene deuda, se suma a la compra
+                    balanceAdjustment = currentBalance;
+                } else if (currentBalance < 0) {
+                    // Si tiene crédito, se descuenta de la compra (valor negativo)
+                    balanceAdjustment = currentBalance; // Mantener el valor negativo
                 }
-                
-                // Mostrar el ajuste en el campo correspondiente (valor absoluto para mostrar)
-                $('#balance_adjustment').val(Math.abs(balanceAdjustment).toFixed(2).replace('.', ','));
-                $('#balance_adjustment_hidden').val(balanceAdjustment.toString());
-                
-                // Calcular monto final: total + ajuste de cuenta corriente
-                const finalAmount = Math.max(0, total + balanceAdjustment);
-                
-                $('#final_amount').val('$' + finalAmount.toFixed(2));
             }
+            
+            // Mostrar el ajuste en el campo correspondiente (valor absoluto para mostrar)
+            $('#balance_adjustment').val(Math.abs(balanceAdjustment).toFixed(2).replace('.', ','));
+            $('#balance_adjustment_hidden').val(balanceAdjustment.toString());
+            
+            // Calcular monto final: total + ajuste de cuenta corriente
+            const finalAmount = Math.max(0, total + balanceAdjustment);
+            
+            $('#final_amount').val('$' + finalAmount.toFixed(2));
+            
+            // Actualizar la explicación del cálculo
+            updateCalculationExplanation(total, currentBalance, finalAmount);
+        }
+        
+        // Función para actualizar la explicación del cálculo
+        function updateCalculationExplanation(total, currentBalance, finalAmount) {
+            const purchaseAmountDisplay = total.toFixed(2).replace('.', ',');
+            const totalDebtDisplay = finalAmount.toFixed(2).replace('.', ',');
+            
+            $('#purchase_amount_display').text(purchaseAmountDisplay);
+            $('#total_debt_display').text(totalDebtDisplay);
+        }
 
             // Calcular monto final inicial
             calculateFinalAmount();

@@ -245,16 +245,16 @@
                                             <div class="input-group">
                                                 <span class="input-group-text">$</span>
                                                 <input type="text" class="form-control" id="current_balance" 
-                                                       value="{{ number_format($distributorClient->getCurrentBalance(), 2, ',', '.') }}" 
+                                                       value="{{ number_format($currentBalanceWithoutThisRecord, 2, ',', '.') }}" 
                                                        readonly style="background-color: #e9ecef;">
                                             </div>
                                         </div>
                                         <div class="col-md-4">
                                             <label class="form-label">Estado</label>
                                             <div class="mt-2">
-                                                @if($distributorClient->getCurrentBalance() > 0)
+                                                @if($currentBalanceWithoutThisRecord > 0)
                                                     <span class="badge bg-danger fs-6">Con Deuda</span>
-                                                @elseif($distributorClient->getCurrentBalance() < 0)
+                                                @elseif($currentBalanceWithoutThisRecord < 0)
                                                     <span class="badge bg-success fs-6">A Favor</span>
                                                 @else
                                                     <span class="badge bg-secondary fs-6">Al Día</span>
@@ -269,10 +269,10 @@
                                                        value="0,00" readonly style="background-color: #e9ecef;">
                                             </div>
                                             <small class="form-text text-muted">
-                                                @if($distributorClient->getCurrentBalance() > 0)
-                                                    Se sumará a la compra
-                                                @elseif($distributorClient->getCurrentBalance() < 0)
-                                                    Se descontará de la compra
+                                                @if($currentBalanceWithoutThisRecord > 0)
+                                                    La compra se sumará a la deuda existente
+                                                @elseif($currentBalanceWithoutThisRecord < 0)
+                                                    El crédito se aplicará a esta compra
                                                 @else
                                                     Sin ajuste necesario
                                                 @endif
@@ -295,6 +295,37 @@
                                             </div>
                                         </div>
                                     </div>
+                                    
+                                    <!-- Explicación del cálculo -->
+                                    @if($currentBalanceWithoutThisRecord != 0)
+                                    <div class="row mt-3">
+                                        <div class="col-12">
+                                            <div class="alert alert-info">
+                                                <h6 class="alert-heading">
+                                                    <i class="fas fa-info-circle me-2"></i>
+                                                    Cálculo del Monto Final (Editando Ficha Técnica)
+                                                </h6>
+                                                @if($currentBalanceWithoutThisRecord > 0)
+                                                    <p class="mb-1">
+                                                        <strong>Deuda actual (sin esta ficha):</strong> ${{ number_format($currentBalanceWithoutThisRecord, 2, ',', '.') }}<br>
+                                                        <strong>+ Compra actual:</strong> $<span id="purchase_amount_display">0,00</span><br>
+                                                        <strong>= Total a pagar:</strong> $<span id="total_debt_display">0,00</span>
+                                                    </p>
+                                                @else
+                                                    <p class="mb-1">
+                                                        <strong>Crédito disponible (sin esta ficha):</strong> ${{ number_format(abs($currentBalanceWithoutThisRecord), 2, ',', '.') }}<br>
+                                                        <strong>- Compra actual:</strong> $<span id="purchase_amount_display">0,00</span><br>
+                                                        <strong>= Total a pagar:</strong> $<span id="total_debt_display">0,00</span>
+                                                    </p>
+                                                @endif
+                                                <small class="text-muted">
+                                                    <i class="fas fa-exclamation-triangle me-1"></i>
+                                                    Nota: El saldo mostrado excluye esta ficha técnica para evitar duplicación en el cálculo.
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @endif
                                 </div>
                             </div>
                             
@@ -358,9 +389,32 @@
                                                         @php
                                                             // Determinar si hay descuento aplicado
                                                             $hasDiscount = !empty($productData['discount_type']) && !empty($productData['discount_value']);
-                                                            $originalPrice = $productData['original_price'] ?? ($productData['price'] ?? 0);
+                                                            
+                                                            // Obtener el producto para calcular el precio original
+                                                            $supplierInventory = $supplierInventories->firstWhere('id', $productData['product_id']);
+                                                            
+                                                            // Calcular el precio original basado en el tipo de compra
+                                                            $calculatedOriginalPrice = 0;
+                                                            if ($supplierInventory) {
+                                                                switch ($distributorTechnicalRecord->purchase_type) {
+                                                                    case 'al_por_mayor':
+                                                                        $calculatedOriginalPrice = $supplierInventory->precio_mayor ?: 0;
+                                                                        break;
+                                                                    case 'al_por_menor':
+                                                                        $calculatedOriginalPrice = $supplierInventory->precio_menor ?: 0;
+                                                                        break;
+                                                                    default:
+                                                                        $calculatedOriginalPrice = $supplierInventory->precio_menor ?: $supplierInventory->precio_mayor ?: 0;
+                                                                        break;
+                                                                }
+                                                            }
+                                                            
+                                                            // Usar el precio original guardado si existe, sino calcularlo
+                                                            $originalPrice = $productData['original_price'] ?? $calculatedOriginalPrice;
                                                             $discountedPrice = $productData['price'] ?? 0;
-                                                            $displayPrice = $hasDiscount ? $discountedPrice : $originalPrice;
+                                                            
+                                                            // En edición, siempre mostrar el precio original sin descuento
+                                                            $displayPrice = $originalPrice;
                                                         @endphp
                                                         <input type="text" class="form-control price-display" readonly 
                                                                value="${{ number_format($displayPrice, 2) }}">
@@ -379,7 +433,7 @@
                                                         <label class="form-label">Subtotal</label>
                                                         <div class="d-flex align-items-end">
                                                             <input type="text" class="form-control subtotal-display" readonly style="flex: 1; margin-right: 8px;"
-                                                                   value="${{ number_format($productData['quantity'] * $displayPrice, 2) }}">
+                                                                   value="${{ number_format($productData['quantity'] * $discountedPrice, 2) }}">
                                                             <button type="button" class="btn {{ $hasDiscount ? 'btn-warning' : 'btn-outline-warning' }} btn-sm discount-product" 
                                                                     data-index="{{ $index }}" style="height: 45px; min-width: 45px; flex-shrink: 0; margin-right: 4px;" 
                                                                     title="Aplicar descuento">
@@ -963,11 +1017,12 @@
                 
                 if (hasDiscount) {
                     // Si ya tiene descuento, usar los valores existentes
+                    const originalPrice = parseFloat(productRow.find('.original-price-value').val()) || 0;
                     const discountedPrice = parseFloat(productRow.find('.price-value').val()) || 0;
                     const quantity = parseInt(productRow.find('.quantity-input').val()) || 0;
-                    const subtotal = discountedPrice * quantity;
+                    const subtotal = discountedPrice * quantity; // Usar precio con descuento para el subtotal
                     
-                    productRow.find('.price-display').val('$' + discountedPrice.toFixed(2));
+                    productRow.find('.price-display').val('$' + originalPrice.toFixed(2));
                     productRow.find('.subtotal-display').val('$' + subtotal.toFixed(2));
                     
                     // Marcar botón como con descuento
@@ -1125,6 +1180,18 @@
             const finalAmount = Math.max(0, total + balanceAdjustment);
             
             $('#final_amount').val('$' + finalAmount.toFixed(2));
+            
+            // Actualizar la explicación del cálculo
+            updateCalculationExplanation(total, currentBalance, finalAmount);
+        }
+        
+        // Función para actualizar la explicación del cálculo
+        function updateCalculationExplanation(total, currentBalance, finalAmount) {
+            const purchaseAmountDisplay = total.toFixed(2).replace('.', ',');
+            const totalDebtDisplay = finalAmount.toFixed(2).replace('.', ',');
+            
+            $('#purchase_amount_display').text(purchaseAmountDisplay);
+            $('#total_debt_display').text(totalDebtDisplay);
         }
 
         // Calcular monto final inicial
@@ -1164,7 +1231,7 @@
             
             // Obtener datos del producto
             const productName = currentProductRow.find('.product-description-select option:selected').text();
-            const originalPrice = parseFloat(currentProductRow.find('.price-value').val()) || 0;
+            const originalPrice = parseFloat(currentProductRow.find('.original-price-value').val()) || 0;
             const quantity = parseInt(currentProductRow.find('.quantity-input').val()) || 0;
             const originalSubtotal = originalPrice * quantity;
             
@@ -1266,8 +1333,8 @@
             currentProductRow.find('.discount-value').val(discountValue);
             currentProductRow.find('.discount-reason').val(discountReason);
             
-            // Calcular nuevo precio unitario
-            const originalPrice = parseFloat(currentProductRow.find('.price-value').val()) || 0;
+            // Calcular nuevo precio unitario usando el precio original real
+            const originalPrice = parseFloat(currentProductRow.find('.original-price-value').val()) || 0;
             const quantity = parseInt(currentProductRow.find('.quantity-input').val()) || 0;
             const originalSubtotal = originalPrice * quantity;
             
@@ -1282,10 +1349,9 @@
             // Actualizar precio unitario (dividir por cantidad)
             const newUnitPrice = quantity > 0 ? newSubtotal / quantity : 0;
             
-            // Actualizar campos
-            currentProductRow.find('.original-price-value').val(originalPrice);
+            // Actualizar campos (NO sobrescribir el precio original)
             currentProductRow.find('.price-value').val(newUnitPrice);
-            currentProductRow.find('.price-display').val('$' + newUnitPrice.toFixed(2));
+            currentProductRow.find('.price-display').val('$' + originalPrice.toFixed(2));
             
             // Recalcular subtotal
             calculateSubtotal(currentProductRow);

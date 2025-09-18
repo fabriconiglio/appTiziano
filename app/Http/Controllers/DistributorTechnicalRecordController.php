@@ -58,6 +58,11 @@ class DistributorTechnicalRecordController extends Controller
             'products_purchased' => 'nullable|array',
             'products_purchased.*.product_id' => 'required|exists:supplier_inventories,id',
             'products_purchased.*.quantity' => 'required|integer|min:1',
+            'products_purchased.*.price' => 'nullable|numeric|min:0',
+            'products_purchased.*.original_price' => 'nullable|numeric|min:0',
+            'products_purchased.*.discount_type' => 'nullable|string|in:percentage,fixed',
+            'products_purchased.*.discount_value' => 'nullable|numeric|min:0',
+            'products_purchased.*.discount_reason' => 'nullable|string',
             'observations' => 'nullable|string',
             'photos.*' => 'nullable|image|max:2048',
             'next_purchase_notes' => 'nullable|string'
@@ -97,19 +102,25 @@ class DistributorTechnicalRecordController extends Controller
             foreach ($validated['products_purchased'] as $productData) {
                 $supplierInventory = SupplierInventory::find($productData['product_id']);
                 if ($supplierInventory) {
-                    // Determinar el precio según el tipo de compra
+                    // Usar precio con descuento si está disponible, sino calcular según tipo de compra
                     $price = 0;
-                    switch ($validated['purchase_type']) {
-                        case 'al_por_mayor':
-                            $price = $supplierInventory->precio_mayor ?: 0;
-                            break;
-                        case 'al_por_menor':
-                            $price = $supplierInventory->precio_menor ?: 0;
-                            break;
-                        default:
-                            // Si no se especifica tipo, usar precio menor
-                            $price = $supplierInventory->precio_menor ?: $supplierInventory->precio_mayor ?: 0;
-                            break;
+                    if (!empty($productData['price']) && $productData['price'] > 0) {
+                        // Usar precio con descuento aplicado
+                        $price = $productData['price'];
+                    } else {
+                        // Determinar el precio según el tipo de compra
+                        switch ($validated['purchase_type']) {
+                            case 'al_por_mayor':
+                                $price = $supplierInventory->precio_mayor ?: 0;
+                                break;
+                            case 'al_por_menor':
+                                $price = $supplierInventory->precio_menor ?: 0;
+                                break;
+                            default:
+                                // Si no se especifica tipo, usar precio menor
+                                $price = $supplierInventory->precio_menor ?: $supplierInventory->precio_mayor ?: 0;
+                                break;
+                        }
                     }
                     
                     $subtotalProduct = $price * $productData['quantity'];
@@ -189,6 +200,29 @@ class DistributorTechnicalRecordController extends Controller
             }
             
             $validated['observations'] = ($validated['observations'] ?? '') . $discountInfo;
+        }
+
+        // Agregar información de descuentos manuales aplicados
+        $manualDiscounts = [];
+        if (!empty($validated['products_purchased'])) {
+            foreach ($validated['products_purchased'] as $productData) {
+                if (!empty($productData['discount_type']) && !empty($productData['discount_value'])) {
+                    $supplierInventory = SupplierInventory::find($productData['product_id']);
+                    if ($supplierInventory) {
+                        $discountType = $productData['discount_type'] === 'percentage' ? '%' : '$';
+                        $discountValue = $productData['discount_value'];
+                        $discountReason = $productData['discount_reason'] ?? 'Sin motivo especificado';
+                        
+                        $manualDiscounts[] = "• {$supplierInventory->product_name}: {$discountValue}{$discountType} - {$discountReason}";
+                    }
+                }
+            }
+        }
+        
+        if (!empty($manualDiscounts)) {
+            $manualDiscountInfo = "\n\n--- DESCUENTOS MANUALES APLICADOS ---\n";
+            $manualDiscountInfo .= implode("\n", $manualDiscounts) . "\n";
+            $validated['observations'] = ($validated['observations'] ?? '') . $manualDiscountInfo;
         }
 
         // Debug: Log los valores para verificar
@@ -356,6 +390,11 @@ class DistributorTechnicalRecordController extends Controller
             'products_purchased' => 'nullable|array',
             'products_purchased.*.product_id' => 'required|exists:supplier_inventories,id',
             'products_purchased.*.quantity' => 'required|integer|min:1',
+            'products_purchased.*.price' => 'nullable|numeric|min:0',
+            'products_purchased.*.original_price' => 'nullable|numeric|min:0',
+            'products_purchased.*.discount_type' => 'nullable|string|in:percentage,fixed',
+            'products_purchased.*.discount_value' => 'nullable|numeric|min:0',
+            'products_purchased.*.discount_reason' => 'nullable|string',
             'observations' => 'nullable|string',
             'photos.*' => 'nullable|image|max:2048',
             'next_purchase_notes' => 'nullable|string'
@@ -392,19 +431,25 @@ class DistributorTechnicalRecordController extends Controller
             foreach ($validated['products_purchased'] as $productData) {
                 $supplierInventory = SupplierInventory::find($productData['product_id']);
                 if ($supplierInventory) {
-                    // Determinar el precio según el tipo de compra
+                    // Usar precio con descuento si está disponible, sino calcular según tipo de compra
                     $price = 0;
-                    switch ($validated['purchase_type']) {
-                        case 'al_por_mayor':
-                            $price = $supplierInventory->precio_mayor ?: 0;
-                            break;
-                        case 'al_por_menor':
-                            $price = $supplierInventory->precio_menor ?: 0;
-                            break;
-                        default:
-                            // Si no se especifica tipo, usar precio menor
-                            $price = $supplierInventory->precio_menor ?: $supplierInventory->precio_mayor ?: 0;
-                            break;
+                    if (!empty($productData['price']) && $productData['price'] > 0) {
+                        // Usar precio con descuento aplicado
+                        $price = $productData['price'];
+                    } else {
+                        // Determinar el precio según el tipo de compra
+                        switch ($validated['purchase_type']) {
+                            case 'al_por_mayor':
+                                $price = $supplierInventory->precio_mayor ?: 0;
+                                break;
+                            case 'al_por_menor':
+                                $price = $supplierInventory->precio_menor ?: 0;
+                                break;
+                            default:
+                                // Si no se especifica tipo, usar precio menor
+                                $price = $supplierInventory->precio_menor ?: $supplierInventory->precio_mayor ?: 0;
+                                break;
+                        }
                     }
                     
                     $subtotalProduct = $price * $productData['quantity'];
@@ -484,6 +529,29 @@ class DistributorTechnicalRecordController extends Controller
             }
             
             $validated['observations'] = ($validated['observations'] ?? '') . $discountInfo;
+        }
+
+        // Agregar información de descuentos manuales aplicados
+        $manualDiscounts = [];
+        if (!empty($validated['products_purchased'])) {
+            foreach ($validated['products_purchased'] as $productData) {
+                if (!empty($productData['discount_type']) && !empty($productData['discount_value'])) {
+                    $supplierInventory = SupplierInventory::find($productData['product_id']);
+                    if ($supplierInventory) {
+                        $discountType = $productData['discount_type'] === 'percentage' ? '%' : '$';
+                        $discountValue = $productData['discount_value'];
+                        $discountReason = $productData['discount_reason'] ?? 'Sin motivo especificado';
+                        
+                        $manualDiscounts[] = "• {$supplierInventory->product_name}: {$discountValue}{$discountType} - {$discountReason}";
+                    }
+                }
+            }
+        }
+        
+        if (!empty($manualDiscounts)) {
+            $manualDiscountInfo = "\n\n--- DESCUENTOS MANUALES APLICADOS ---\n";
+            $manualDiscountInfo .= implode("\n", $manualDiscounts) . "\n";
+            $validated['observations'] = ($validated['observations'] ?? '') . $manualDiscountInfo;
         }
 
         // Debug: Log los valores para verificar
@@ -676,6 +744,7 @@ class DistributorTechnicalRecordController extends Controller
         // Obtener los productos con sus detalles
         $products = [];
         $total = 0;
+        $manualDiscounts = [];
 
         if (!empty($distributorTechnicalRecord->products_purchased)) {
             foreach ($distributorTechnicalRecord->products_purchased as $productData) {
@@ -687,28 +756,68 @@ class DistributorTechnicalRecordController extends Controller
                     $brand = $supplierInventory->distributorBrand ? $supplierInventory->distributorBrand->name : '';
                     $displayText = !empty($brand) ? $description . ' - ' . $brand : $description;
                     
-                    // Determinar el precio según el tipo de compra
+                    // Usar precio con descuento si está disponible, sino calcular según tipo de compra
                     $unitPrice = 0;
-                    switch ($distributorTechnicalRecord->purchase_type) {
-                        case 'al_por_mayor':
-                            $unitPrice = $supplierInventory->precio_mayor ?: 0;
-                            break;
-                        case 'al_por_menor':
-                            $unitPrice = $supplierInventory->precio_menor ?: 0;
-                            break;
-                        default:
-                            $unitPrice = $supplierInventory->precio_menor ?: $supplierInventory->precio_mayor ?: 0;
-                            break;
+                    $originalPrice = 0;
+                    $hasDiscount = false;
+                    
+                    if (!empty($productData['price']) && $productData['price'] > 0) {
+                        // Usar precio con descuento aplicado
+                        $unitPrice = $productData['price'];
+                        $originalPrice = $productData['original_price'] ?? $unitPrice;
+                        $hasDiscount = !empty($productData['discount_type']) && !empty($productData['discount_value']);
+                    } else {
+                        // Determinar el precio según el tipo de compra
+                        switch ($distributorTechnicalRecord->purchase_type) {
+                            case 'al_por_mayor':
+                                $unitPrice = $supplierInventory->precio_mayor ?: 0;
+                                break;
+                            case 'al_por_menor':
+                                $unitPrice = $supplierInventory->precio_menor ?: 0;
+                                break;
+                            default:
+                                $unitPrice = $supplierInventory->precio_menor ?: $supplierInventory->precio_mayor ?: 0;
+                                break;
+                        }
+                        $originalPrice = $unitPrice;
                     }
                     
                     $totalPrice = $unitPrice * $productData['quantity'];
+                    $originalTotalPrice = $originalPrice * $productData['quantity'];
+                    
+                    // Agregar información de descuento manual si existe
+                    if ($hasDiscount) {
+                        $discountType = $productData['discount_type'] === 'percentage' ? '%' : '$';
+                        $discountValue = $productData['discount_value'];
+                        $discountReason = $productData['discount_reason'] ?? 'Sin motivo especificado';
+                        
+                        $manualDiscounts[] = [
+                            'product_name' => $supplierInventory->product_name,
+                            'discount_type' => $discountType,
+                            'discount_value' => $discountValue,
+                            'discount_reason' => $discountReason,
+                            'original_price' => $originalPrice,
+                            'discounted_price' => $unitPrice,
+                            'original_total' => $originalTotalPrice,
+                            'discounted_total' => $totalPrice,
+                            'savings' => $originalTotalPrice - $totalPrice
+                        ];
+                    }
                     
                     $products[] = [
                         'name' => $supplierInventory->product_name,
                         'description' => $displayText,
                         'quantity' => $productData['quantity'],
                         'unit_price' => $unitPrice,
-                        'total_price' => $totalPrice
+                        'original_unit_price' => $originalPrice,
+                        'total_price' => $totalPrice,
+                        'original_total_price' => $originalTotalPrice,
+                        'has_discount' => $hasDiscount,
+                        'discount_info' => $hasDiscount ? [
+                            'type' => $productData['discount_type'],
+                            'value' => $productData['discount_value'],
+                            'reason' => $productData['discount_reason'] ?? 'Sin motivo especificado'
+                        ] : null
                     ];
                     
                     $total += $totalPrice;
@@ -720,6 +829,7 @@ class DistributorTechnicalRecordController extends Controller
             'technicalRecord' => $distributorTechnicalRecord,
             'distributorClient' => $distributorTechnicalRecord->distributorClient,
             'products' => $products,
+            'manualDiscounts' => $manualDiscounts,
             'generatedDate' => now()->format('d/m/Y H:i:s')
         ];
 

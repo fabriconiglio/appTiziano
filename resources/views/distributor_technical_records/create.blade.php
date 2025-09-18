@@ -288,6 +288,58 @@
         </div>
     </div>
 
+    <!-- Modal para aplicar descuento -->
+    <div class="modal fade" id="discountModal" tabindex="-1" aria-labelledby="discountModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="discountModalLabel">Aplicar Descuento al Producto</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="discountForm">
+                        <div class="mb-3">
+                            <label for="product_name_discount" class="form-label">Producto</label>
+                            <input type="text" class="form-control" id="product_name_discount" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="discount_type" class="form-label">Tipo de Descuento</label>
+                            <select class="form-select" id="discount_type" required>
+                                <option value="">Seleccionar tipo</option>
+                                <option value="percentage">Porcentaje (%)</option>
+                                <option value="fixed">Monto fijo ($)</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="discount_value" class="form-label">Valor del Descuento</label>
+                            <div class="input-group">
+                                <span class="input-group-text" id="discount_symbol">$</span>
+                                <input type="number" step="0.01" class="form-control" id="discount_value" 
+                                       placeholder="0.00" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="discount_reason" class="form-label">Motivo del Descuento</label>
+                            <textarea class="form-control" id="discount_reason" rows="2" 
+                                      placeholder="Ej: Cliente frecuente, promoción especial, etc."></textarea>
+                        </div>
+                        <div class="alert alert-info">
+                            <strong>Precio original:</strong> $<span id="original_price">0.00</span><br>
+                            <strong>Subtotal original:</strong> $<span id="original_subtotal">0.00</span><br>
+                            <strong>Nuevo subtotal:</strong> $<span id="new_subtotal">0.00</span>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-warning" id="apply_discount">
+                        <i class="fas fa-percentage"></i> Aplicar Descuento
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
@@ -339,11 +391,20 @@
                                 <label class="form-label">Precio</label>
                                 <input type="text" class="form-control price-display" readonly>
                                 <input type="hidden" class="price-value" name="products_purchased[${productIndex}][price]">
+                                <input type="hidden" class="original-price-value" name="products_purchased[${productIndex}][original_price]">
+                                <input type="hidden" class="discount-type" name="products_purchased[${productIndex}][discount_type]">
+                                <input type="hidden" class="discount-value" name="products_purchased[${productIndex}][discount_value]">
+                                <input type="hidden" class="discount-reason" name="products_purchased[${productIndex}][discount_reason]">
                             </div>
                             <div class="col-md-2">
                                 <label class="form-label">Subtotal</label>
                                 <div class="d-flex align-items-end">
                                     <input type="text" class="form-control subtotal-display" readonly style="flex: 1; margin-right: 8px;">
+                                    <button type="button" class="btn btn-outline-warning btn-sm discount-product" 
+                                            data-index="${productIndex}" style="height: 45px; min-width: 45px; flex-shrink: 0; margin-right: 4px;" 
+                                            title="Aplicar descuento">
+                                        <i class="fas fa-percentage"></i>
+                                    </button>
                                     <button type="button" class="btn btn-outline-danger btn-sm remove-product" 
                                             data-index="${productIndex}" style="height: 45px; min-width: 45px; flex-shrink: 0;">
                                         <i class="fas fa-trash"></i>
@@ -711,6 +772,151 @@
                     return false;
                 }
                 return true;
+            });
+
+            // Variables para el modal de descuento
+            let currentProductRow = null;
+            let currentProductIndex = null;
+
+            // Event listener para el botón de descuento
+            $(document).on('click', '.discount-product', function() {
+                currentProductRow = $(this).closest('.product-row');
+                currentProductIndex = $(this).data('index');
+                
+                // Verificar que hay un producto seleccionado
+                const productId = currentProductRow.find('.product-description-select').val();
+                if (!productId) {
+                    alert('Por favor, selecciona un producto primero.');
+                    return;
+                }
+                
+                // Obtener datos del producto
+                const productName = currentProductRow.find('.product-description-select option:selected').text();
+                const originalPrice = parseFloat(currentProductRow.find('.price-value').val()) || 0;
+                const quantity = parseInt(currentProductRow.find('.quantity-input').val()) || 0;
+                const originalSubtotal = originalPrice * quantity;
+                
+                // Llenar el modal
+                $('#product_name_discount').val(productName);
+                $('#original_price').text(originalPrice.toFixed(2));
+                $('#original_subtotal').text(originalSubtotal.toFixed(2));
+                $('#new_subtotal').text(originalSubtotal.toFixed(2));
+                
+                // Limpiar formulario
+                $('#discount_type').val('');
+                $('#discount_value').val('');
+                $('#discount_reason').val('');
+                
+                // Mostrar modal
+                $('#discountModal').modal('show');
+            });
+
+            // Cambiar símbolo según tipo de descuento
+            $('#discount_type').on('change', function() {
+                const symbol = $(this).val() === 'percentage' ? '%' : '$';
+                $('#discount_symbol').text(symbol);
+                
+                // Limpiar valor cuando cambie el tipo
+                $('#discount_value').val('');
+                updateDiscountPreview();
+            });
+
+            // Actualizar preview del descuento
+            $('#discount_value').on('input', function() {
+                updateDiscountPreview();
+            });
+
+            // Función para actualizar el preview del descuento
+            function updateDiscountPreview() {
+                const discountType = $('#discount_type').val();
+                const discountValue = parseFloat($('#discount_value').val()) || 0;
+                const originalPrice = parseFloat($('#original_price').text()) || 0;
+                const quantity = parseInt(currentProductRow.find('.quantity-input').val()) || 0;
+                const originalSubtotal = originalPrice * quantity;
+                
+                let newSubtotal = originalSubtotal;
+                
+                if (discountType && discountValue > 0) {
+                    if (discountType === 'percentage') {
+                        if (discountValue > 100) {
+                            $('#discount_value').addClass('is-invalid');
+                            return;
+                        } else {
+                            $('#discount_value').removeClass('is-invalid');
+                            const discountAmount = (originalSubtotal * discountValue) / 100;
+                            newSubtotal = Math.max(0, originalSubtotal - discountAmount);
+                        }
+                    } else if (discountType === 'fixed') {
+                        if (discountValue > originalSubtotal) {
+                            $('#discount_value').addClass('is-invalid');
+                            return;
+                        } else {
+                            $('#discount_value').removeClass('is-invalid');
+                            newSubtotal = Math.max(0, originalSubtotal - discountValue);
+                        }
+                    }
+                }
+                
+                $('#new_subtotal').text(newSubtotal.toFixed(2));
+            }
+
+            // Aplicar descuento
+            $('#apply_discount').on('click', function() {
+                const discountType = $('#discount_type').val();
+                const discountValue = parseFloat($('#discount_value').val()) || 0;
+                const discountReason = $('#discount_reason').val();
+                
+                if (!discountType || discountValue <= 0) {
+                    alert('Por favor, completa todos los campos del descuento.');
+                    return;
+                }
+                
+                // Guardar datos del descuento en los campos ocultos
+                currentProductRow.find('.discount-type').val(discountType);
+                currentProductRow.find('.discount-value').val(discountValue);
+                currentProductRow.find('.discount-reason').val(discountReason);
+                
+                // Calcular nuevo precio unitario
+                const originalPrice = parseFloat(currentProductRow.find('.price-value').val()) || 0;
+                const quantity = parseInt(currentProductRow.find('.quantity-input').val()) || 0;
+                const originalSubtotal = originalPrice * quantity;
+                
+                let newSubtotal = originalSubtotal;
+                if (discountType === 'percentage') {
+                    const discountAmount = (originalSubtotal * discountValue) / 100;
+                    newSubtotal = Math.max(0, originalSubtotal - discountAmount);
+                } else if (discountType === 'fixed') {
+                    newSubtotal = Math.max(0, originalSubtotal - discountValue);
+                }
+                
+                // Actualizar precio unitario (dividir por cantidad)
+                const newUnitPrice = quantity > 0 ? newSubtotal / quantity : 0;
+                
+                // Actualizar campos
+                currentProductRow.find('.original-price-value').val(originalPrice);
+                currentProductRow.find('.price-value').val(newUnitPrice);
+                currentProductRow.find('.price-display').val('$' + newUnitPrice.toFixed(2));
+                
+                // Recalcular subtotal
+                calculateSubtotal(currentProductRow);
+                
+                // Cerrar modal
+                $('#discountModal').modal('hide');
+                
+                // Mostrar indicador visual de descuento aplicado
+                currentProductRow.find('.discount-product').removeClass('btn-outline-warning').addClass('btn-warning');
+                currentProductRow.find('.discount-product').html('<i class="fas fa-check"></i>');
+            });
+
+            // Limpiar descuento al cambiar producto
+            $(document).on('select2:select', '.product-description-select', function() {
+                const productRow = $(this).closest('.product-row');
+                productRow.find('.discount-type').val('');
+                productRow.find('.discount-value').val('');
+                productRow.find('.discount-reason').val('');
+                productRow.find('.original-price-value').val('');
+                productRow.find('.discount-product').removeClass('btn-warning').addClass('btn-outline-warning');
+                productRow.find('.discount-product').html('<i class="fas fa-percentage"></i>');
             });
         });
     </script>

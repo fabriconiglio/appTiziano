@@ -93,6 +93,42 @@
             color: #0c5460;
             font-weight: bold;
         }
+        .discount-row {
+            background-color: #fff3cd !important;
+            color: #856404;
+            font-weight: bold;
+        }
+        .discount-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid #ffc107;
+        }
+        .discount-section h3 {
+            margin: 0 0 15px 0;
+            color: #856404;
+            font-size: 16px;
+        }
+        .discount-item {
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: white;
+            border-radius: 3px;
+            border: 1px solid #dee2e6;
+        }
+        .discount-item:last-child {
+            margin-bottom: 0;
+        }
+        .discount-header {
+            font-weight: bold;
+            color: #495057;
+            margin-bottom: 5px;
+        }
+        .discount-details {
+            font-size: 11px;
+            color: #6c757d;
+        }
         .footer {
             margin-top: 30px;
             text-align: center;
@@ -205,14 +241,37 @@
                 <td>{{ $product['name'] }}</td>
                 <td>{{ $product['description'] }}</td>
                 <td>{{ $product['quantity'] }}</td>
-                <td>${{ number_format($product['unit_price'], 2) }}</td>
-                <td>${{ number_format($product['total_price'], 2) }}</td>
+                <td>
+                    @if($product['has_discount'])
+                        <span style="text-decoration: line-through; color: #6c757d;">${{ number_format($product['original_unit_price'], 2) }}</span><br>
+                        <strong style="color: #28a745;">${{ number_format($product['unit_price'], 2) }}</strong>
+                    @else
+                        ${{ number_format($product['unit_price'], 2) }}
+                    @endif
+                </td>
+                <td>
+                    @if($product['has_discount'])
+                        <span style="text-decoration: line-through; color: #6c757d;">${{ number_format($product['original_total_price'], 2) }}</span><br>
+                        <strong style="color: #28a745;">${{ number_format($product['total_price'], 2) }}</strong>
+                    @else
+                        ${{ number_format($product['total_price'], 2) }}
+                    @endif
+                </td>
             </tr>
             @endforeach
             <tr class="total-row">
                 <td colspan="4" style="text-align: right;"><strong>TOTAL:</strong></td>
                 <td><strong>${{ number_format($technicalRecord->total_amount, 2) }}</strong></td>
             </tr>
+            @if(!empty($manualDiscounts))
+            @php
+                $totalSavings = array_sum(array_column($manualDiscounts, 'savings'));
+            @endphp
+            <tr class="discount-row">
+                <td colspan="4" style="text-align: right;"><strong>DESCUENTOS MANUALES:</strong></td>
+                <td><strong>-${{ number_format($totalSavings, 2) }}</strong></td>
+            </tr>
+            @endif
             @if($technicalRecord->final_amount != $technicalRecord->total_amount)
             <tr class="advance-row">
                 <td colspan="4" style="text-align: right;"><strong>AJUSTE CUENTA CORRIENTE:</strong></td>
@@ -225,6 +284,26 @@
             @endif
         </tbody>
     </table>
+
+    @if(!empty($manualDiscounts))
+    <div class="discount-section">
+        <h3>Descuentos Manuales Aplicados</h3>
+        @foreach($manualDiscounts as $discount)
+        <div class="discount-item">
+            <div class="discount-header">
+                {{ $discount['product_name'] }} - Descuento: {{ $discount['discount_value'] }}{{ $discount['discount_type'] }}
+            </div>
+            <div class="discount-details">
+                <strong>Motivo:</strong> {{ $discount['discount_reason'] }}<br>
+                <strong>Precio original:</strong> ${{ number_format($discount['original_price'], 2) }} -- 
+                <strong>Precio con descuento:</strong> ${{ number_format($discount['discounted_price'], 2) }}<br>
+                <strong>Ahorro total:</strong> ${{ number_format($discount['savings'], 2) }} 
+                ({{ number_format(($discount['savings'] / $discount['original_total']) * 100, 1) }}%)
+            </div>
+        </div>
+        @endforeach
+    </div>
+    @endif
 
     @if($technicalRecord->observations)
     <div style="margin-bottom: 20px;">

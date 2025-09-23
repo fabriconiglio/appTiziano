@@ -147,6 +147,13 @@
                                         {{ __('Clientes Distribuidores') }}
                                     </a>
                                 </li>
+                                <!-- Submenú Clientes No Frecuentes Distribuidora -->
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item" href="{{ route('distributor-cliente-no-frecuentes.index') }}">
+                                        <i class="fas fa-user-clock me-2"></i>
+                                        {{ __('Clientes No Frecuentes') }}
+                                    </a>
+                                </li>
                                 <!-- Submenú Proveedores -->
                                 <li class="dropdown-submenu">
                                     <a class="dropdown-item" href="{{ route('suppliers.index') }}">

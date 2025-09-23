@@ -188,6 +188,27 @@
                 </div>
             </a>
         </div>
+
+        <!-- Clientes No Frecuentes -->
+        <div class="col-md-3 mb-3">
+            <a href="{{ route('daily-sales.detail', ['category' => 'cliente_no_frecuente', 'start_date' => $startDate->format('Y-m-d'), 'end_date' => $endDate->format('Y-m-d')]) }}" 
+               class="text-decoration-none">
+                <div class="card bg-secondary text-white" style="cursor: pointer;">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title">Clientes No Frecuentes</h6>
+                                <h3 class="card-text">${{ number_format($periodSales['cliente_no_frecuente'] ?? 0, 2) }}</h3>
+                                <small>{{ $periodSales['count_cliente_no_frecuente'] ?? 0 }} ventas</small>
+                            </div>
+                            <div>
+                                <i class="fas fa-user-clock fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
     </div>
 
     @if($startDate->eq($endDate) && $yesterdaySales)

@@ -170,6 +170,10 @@ Route::get('/api/supplier-inventories/get-product', [App\Http\Controllers\Suppli
     // Clientes No Frecuentes
     Route::resource('cliente-no-frecuentes', \App\Http\Controllers\ClienteNoFrecuenteController::class);
     
+    // Clientes No Frecuentes - Distribuidora
+    Route::resource('distributor-cliente-no-frecuentes', \App\Http\Controllers\DistributorClienteNoFrecuenteController::class);
+    Route::get('distributor-cliente-no-frecuentes/{distributorClienteNoFrecuente}/remito', [\App\Http\Controllers\DistributorClienteNoFrecuenteController::class, 'generateRemito'])->name('distributor-cliente-no-frecuentes.remito');
+    
     // Detalles de ventas diarias de peluquería
     Route::get('hairdressing-daily-sales/detail', [\App\Http\Controllers\HairdressingDailySalesController::class, 'detail'])
         ->name('hairdressing-daily-sales.detail');

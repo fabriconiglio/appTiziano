@@ -6,6 +6,7 @@ use App\Models\DistributorQuotation;
 use App\Models\DistributorTechnicalRecord;
 use App\Models\ClientCurrentAccount;
 use App\Models\DistributorCurrentAccount;
+use App\Models\DistributorClienteNoFrecuente;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -144,7 +145,21 @@ class DailySalesController extends Controller
             $countDistributorAccounts = 0;
         }
 
-        $totalSales = $quotationSales + $technicalRecordSales + $clientAccountSales + $distributorAccountSales;
+        // Ventas de clientes no frecuentes (solo si la tabla existe)
+        $clienteNoFrecuenteSales = 0;
+        $countClienteNoFrecuente = 0;
+        try {
+            if (Schema::hasTable('distributor_cliente_no_frecuentes')) {
+                $clienteNoFrecuenteSales = DistributorClienteNoFrecuente::whereBetween('fecha', [$startOfPeriod, $endOfPeriod])
+                    ->sum('monto');
+                $countClienteNoFrecuente = DistributorClienteNoFrecuente::whereBetween('fecha', [$startOfPeriod, $endOfPeriod])->count();
+            }
+        } catch (\Exception $e) {
+            $clienteNoFrecuenteSales = 0;
+            $countClienteNoFrecuente = 0;
+        }
+
+        $totalSales = $quotationSales + $technicalRecordSales + $clientAccountSales + $distributorAccountSales + $clienteNoFrecuenteSales;
 
         return [
             'total' => $totalSales,
@@ -152,10 +167,12 @@ class DailySalesController extends Controller
             'technical_records' => $technicalRecordSales,
             'client_accounts' => $clientAccountSales,
             'distributor_accounts' => $distributorAccountSales,
+            'cliente_no_frecuente' => $clienteNoFrecuenteSales,
             'count_quotations' => $countQuotations,
             'count_technical_records' => $countTechnicalRecords,
             'count_client_accounts' => $countClientAccounts,
             'count_distributor_accounts' => $countDistributorAccounts,
+            'count_cliente_no_frecuente' => $countClienteNoFrecuente,
         ];
     }
 
@@ -226,7 +243,21 @@ class DailySalesController extends Controller
             $countDistributorAccounts = 0;
         }
 
-        $totalSales = $quotationSales + $technicalRecordSales + $clientAccountSales + $distributorAccountSales;
+        // Ventas de clientes no frecuentes (solo si la tabla existe)
+        $clienteNoFrecuenteSales = 0;
+        $countClienteNoFrecuente = 0;
+        try {
+            if (Schema::hasTable('distributor_cliente_no_frecuentes')) {
+                $clienteNoFrecuenteSales = DistributorClienteNoFrecuente::whereDate('fecha', $date)
+                    ->sum('monto');
+                $countClienteNoFrecuente = DistributorClienteNoFrecuente::whereDate('fecha', $date)->count();
+            }
+        } catch (\Exception $e) {
+            $clienteNoFrecuenteSales = 0;
+            $countClienteNoFrecuente = 0;
+        }
+
+        $totalSales = $quotationSales + $technicalRecordSales + $clientAccountSales + $distributorAccountSales + $clienteNoFrecuenteSales;
 
         return [
             'total' => $totalSales,
@@ -234,10 +265,12 @@ class DailySalesController extends Controller
             'technical_records' => $technicalRecordSales,
             'client_accounts' => $clientAccountSales,
             'distributor_accounts' => $distributorAccountSales,
+            'cliente_no_frecuente' => $clienteNoFrecuenteSales,
             'count_quotations' => $countQuotations,
             'count_technical_records' => $countTechnicalRecords,
             'count_client_accounts' => $countClientAccounts,
             'count_distributor_accounts' => $countDistributorAccounts,
+            'count_cliente_no_frecuente' => $countClienteNoFrecuente,
         ];
     }
 
@@ -400,6 +433,12 @@ class DailySalesController extends Controller
                     'distributor_accounts' => $distributorAccounts
                 ];
                 
+            case 'cliente_no_frecuente':
+                return DistributorClienteNoFrecuente::whereBetween('fecha', [$startOfPeriod, $endOfPeriod])
+                    ->with('user')
+                    ->orderBy('fecha', 'desc')
+                    ->get();
+                
             case 'total':
                 return [
                     'quotations' => DistributorQuotation::where('status', 'active')
@@ -418,6 +457,10 @@ class DailySalesController extends Controller
                     'distributor_accounts' => DistributorCurrentAccount::whereBetween('created_at', [$startOfPeriod, $endOfPeriod])
                         ->with('distributorClient')
                         ->orderBy('created_at', 'desc')
+                        ->get(),
+                    'cliente_no_frecuente' => DistributorClienteNoFrecuente::whereBetween('fecha', [$startOfPeriod, $endOfPeriod])
+                        ->with('user')
+                        ->orderBy('fecha', 'desc')
                         ->get()
                 ];
                 

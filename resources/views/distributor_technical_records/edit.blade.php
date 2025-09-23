@@ -1230,7 +1230,7 @@
             }
             
             // Obtener datos del producto
-            const productName = currentProductRow.find('.product-description-select option:selected').text();
+            const productName = currentProductRow.find('.product-description-select option:selected').text().trim();
             const originalPrice = parseFloat(currentProductRow.find('.original-price-value').val()) || 0;
             const quantity = parseInt(currentProductRow.find('.quantity-input').val()) || 0;
             const originalSubtotal = originalPrice * quantity;

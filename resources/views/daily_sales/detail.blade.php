@@ -23,6 +23,9 @@
                             @case('current_accounts')
                                 Cuentas Corrientes
                                 @break
+                            @case('cliente_no_frecuente')
+                                Clientes No Frecuentes
+                                @break
                         @endswitch
                     </h1>
                     <p class="text-muted">
@@ -266,5 +269,94 @@
         </div>
     @endif
 
+    @if($category === 'cliente_no_frecuente' || $category === 'total')
+        <!-- Clientes No Frecuentes -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-user-clock text-secondary"></i>
+                            Clientes No Frecuentes
+                            @if($category === 'total')
+                                ({{ $details['cliente_no_frecuente']->count() }} ventas)
+                            @else
+                                ({{ $details->count() }} ventas)
+                            @endif
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        @php
+                            $clienteNoFrecuente = $category === 'cliente_no_frecuente' ? $details : $details['cliente_no_frecuente'];
+                        @endphp
+
+                        @if($clienteNoFrecuente->count() > 0)
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Cliente</th>
+                                            <th>Teléfono</th>
+                                            <th>Fecha</th>
+                                            <th>Productos</th>
+                                            <th>Monto</th>
+                                            <th>Registrado por</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($clienteNoFrecuente as $cliente)
+                                        <tr>
+                                            <td>
+                                                @if($cliente->nombre)
+                                                    <strong>{{ $cliente->nombre }}</strong>
+                                                @else
+                                                    <span class="text-muted">Sin nombre</span>
+                                                @endif
+                                            </td>
+                                            <td>
+                                                @if($cliente->telefono)
+                                                    <span class="text-primary">{{ $cliente->telefono }}</span>
+                                                @else
+                                                    <span class="text-muted">-</span>
+                                                @endif
+                                            </td>
+                                            <td>{{ $cliente->fecha->format('d/m/Y') }}</td>
+                                            <td>
+                                                @if($cliente->productos)
+                                                    <span class="text-truncate d-inline-block" style="max-width: 150px;" 
+                                                          title="{{ $cliente->productos }}">
+                                                        {{ Str::limit($cliente->productos, 30) }}
+                                                    </span>
+                                                @else
+                                                    <span class="text-muted">-</span>
+                                                @endif
+                                            </td>
+                                            <td class="text-success fw-bold">
+                                                ${{ number_format($cliente->monto, 2) }}
+                                            </td>
+                                            <td>
+                                                <small class="text-muted">{{ $cliente->user->name }}</small>
+                                            </td>
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @else
+                            <div class="text-center py-4">
+                                <i class="fas fa-user-clock fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">No hay clientes no frecuentes registrados en este período</p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
 </div>
 @endsection
+
+
+
+

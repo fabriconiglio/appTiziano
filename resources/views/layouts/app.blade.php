@@ -121,6 +121,7 @@
                                     </a>
                                 </li>
 
+
                                 <!-- Submenú Ventas por Día -->
                                 <li class="dropdown-submenu">
                                     <a class="dropdown-item" href="{{ route('hairdressing-daily-sales.index') }}">
@@ -211,6 +212,7 @@
                                         <span class="badge bg-danger ms-1" id="alert-count-distribuidora">0</span>
                                     </a>
                                 </li>
+
                                 <!-- Submenú Ventas por Día -->
                                 <li class="dropdown-submenu">
                                     <a class="dropdown-item" href="{{ route('daily-sales.index') }}">

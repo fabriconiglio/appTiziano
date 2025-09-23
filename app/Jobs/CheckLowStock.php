@@ -5,8 +5,6 @@ namespace App\Jobs;
 use App\Models\Product;
 use App\Models\SupplierInventory;
 use App\Models\StockAlert;
-use App\Models\User;
-use App\Notifications\LowStockAlert;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -105,11 +103,8 @@ class CheckLowStock implements ShouldQueue
                 'inventory_type' => $inventoryType
             ]);
 
-            // Enviar notificación por email
-            $users = User::all();
-            foreach ($users as $user) {
-                $user->notify(new LowStockAlert($product, $currentStock, $this->threshold, $inventoryType));
-            }
+            // Las alertas se almacenan en la base de datos para ser mostradas como notificaciones
+            // No se envían emails, solo se crean las alertas para el sistema de notificaciones
         }
     }
 }

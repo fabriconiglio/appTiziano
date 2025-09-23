@@ -191,6 +191,7 @@ Route::get('/api/supplier-inventories/get-product', [App\Http\Controllers\Suppli
     Route::get('stock-alerts/unread-count-peluqueria', [StockAlertController::class, 'getUnreadCountPeluqueria'])->name('stock-alerts.unread-count-peluqueria');
     Route::get('stock-alerts/unread-count-distribuidora', [StockAlertController::class, 'getUnreadCountDistribuidora'])->name('stock-alerts.unread-count-distribuidora');
 
+
     // Módulo de Ventas por Día - Distribuidora
     Route::get('daily-sales', [DailySalesController::class, 'index'])->name('daily-sales.index');
     Route::get('daily-sales/detail/{category}', [DailySalesController::class, 'showDetail'])->name('daily-sales.detail');

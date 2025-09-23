@@ -85,6 +85,12 @@
                                             Clientes Distribuidores
                                         </a>
 
+                                        <a href="{{ route('distributor-cliente-no-frecuentes.index') }}"
+                                           class="btn btn-outline-success">
+                                            <i class="fas fa-user-clock me-2"></i>
+                                            Clientes No Frecuentes
+                                        </a>
+
                                         <a href="{{ route('suppliers.index') }}"
                                            class="btn btn-outline-success">
                                             <i class="fas fa-building me-2"></i>

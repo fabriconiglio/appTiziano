@@ -1,3 +1,4 @@
+
 #!/bin/bash
 
 # Script de gestión para alertas de stock en PRODUCCIÓN

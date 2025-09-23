@@ -106,9 +106,8 @@ class HairdressingDailySalesController extends Controller
             ->join('products', 'stock_movements.product_id', '=', 'products.id')
             ->sum(DB::raw('stock_movements.quantity * COALESCE(products.price, 0)'));
 
-        // Ventas de servicios adicionales (50% del costo total)
-        $additionalServices = TechnicalRecord::whereBetween('service_date', [$startOfPeriod, $endOfPeriod])
-            ->sum('service_cost') * 0.5; // 50% del costo total como servicios adicionales
+        // Servicios adicionales ya están incluidos en service_cost, no duplicar
+        $additionalServices = 0;
 
         // Ventas de clientes no frecuentes
         $clienteNoFrecuenteSales = ClienteNoFrecuente::whereBetween('fecha', [$startOfPeriod, $endOfPeriod])
@@ -155,9 +154,8 @@ class HairdressingDailySalesController extends Controller
             ->join('products', 'stock_movements.product_id', '=', 'products.id')
             ->sum(DB::raw('stock_movements.quantity * COALESCE(products.price, 0)'));
 
-        // Ventas de servicios adicionales (50% del costo total)
-        $additionalServices = TechnicalRecord::whereBetween('service_date', [$startOfDay, $endOfDay])
-            ->sum('service_cost') * 0.5; // 50% del costo total como servicios adicionales
+        // Servicios adicionales ya están incluidos en service_cost, no duplicar
+        $additionalServices = 0;
 
         // Ventas de clientes no frecuentes
         $clienteNoFrecuenteSales = ClienteNoFrecuente::whereDate('fecha', $date)

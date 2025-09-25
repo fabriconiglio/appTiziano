@@ -22,6 +22,7 @@ class DistributorDiscount extends Model
         'valid_until',
         'is_active',
         'applies_to_all_products',
+        'applies_to_all_distributors',
         'description',
         'conditions',
         'gift_products',
@@ -38,6 +39,7 @@ class DistributorDiscount extends Model
         'valid_until' => 'date',
         'is_active' => 'boolean',
         'applies_to_all_products' => 'boolean',
+        'applies_to_all_distributors' => 'boolean',
         'gift_products' => 'array',
         'supplier_inventory_ids' => 'array',
         'distributor_client_ids' => 'array',
@@ -308,11 +310,13 @@ class DistributorDiscount extends Model
 
     /**
      * Scope para descuentos de un distribuidor específico
+     * MOD-029 (master): Agregada lógica para descuentos que aplican a todos los distribuidores
      */
     public function scopeForDistributor($query, $distributorClientId)
     {
         return $query->where(function($q) use ($distributorClientId) {
-            $q->where('distributor_client_id', $distributorClientId)
+            $q->where('applies_to_all_distributors', true)
+              ->orWhere('distributor_client_id', $distributorClientId)
               ->orWhereRaw("JSON_CONTAINS(distributor_client_ids, ?)", [json_encode((string)$distributorClientId)]);
         });
     }

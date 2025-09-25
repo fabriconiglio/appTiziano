@@ -33,17 +33,30 @@
                         <h5 class="mb-3"><i class="fas fa-info-circle"></i> Información Básica</h5>
                         
                         <div class="mb-3">
-                            <label for="distributor_client_ids" class="form-label">Distribuidor <span class="text-danger">*</span></label>
-                            <select name="distributor_client_ids[]" id="distributor_client_ids" class="form-select @error('distributor_client_ids') is-invalid @enderror" multiple required>
-                                @foreach($distributorClients as $client)
-                                    <option value="{{ $client->id }}" {{ collect(old('distributor_client_ids', []))->contains($client->id) ? 'selected' : '' }}>
-                                        {{ $client->full_name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('distributor_client_ids')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" name="applies_to_all_distributors" 
+                                       id="applies_to_all_distributors" value="1" 
+                                       {{ old('applies_to_all_distributors') ? 'checked' : '' }}>
+                                <label class="form-check-label" for="applies_to_all_distributors">
+                                    Aplicar a todos los distribuidores
+                                </label>
+                            </div>
+                        </div>
+
+                        <div id="specific_distributor_group">
+                            <div class="mb-3">
+                                <label for="distributor_client_ids" class="form-label">Distribuidor <span class="text-danger">*</span></label>
+                                <select name="distributor_client_ids[]" id="distributor_client_ids" class="form-select @error('distributor_client_ids') is-invalid @enderror" multiple required>
+                                    @foreach($distributorClients as $client)
+                                        <option value="{{ $client->id }}" {{ collect(old('distributor_client_ids', []))->contains($client->id) ? 'selected' : '' }}>
+                                            {{ $client->full_name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('distributor_client_ids')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
                         </div>
 
                         <div class="mb-3">
@@ -264,6 +277,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const discountValueHelp = document.getElementById('discount_value_help');
     const appliesToAllCheckbox = document.getElementById('applies_to_all_products');
     const specificProductGroup = document.getElementById('specific_product_group');
+    const appliesToAllDistributorsCheckbox = document.getElementById('applies_to_all_distributors');
+    const specificDistributorGroup = document.getElementById('specific_distributor_group');
 
     // Manejar cambio de tipo de descuento
     discountTypeSelect.addEventListener('change', function() {
@@ -306,9 +321,27 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // Manejar checkbox de "aplicar a todos los distribuidores"
+    appliesToAllDistributorsCheckbox.addEventListener('change', function() {
+        if (this.checked) {
+            specificDistributorGroup.style.display = 'none';
+            // Limpiar el select múltiple de distribuidores
+            const distSelect = $('#distributor_client_ids');
+            distSelect.val(null).trigger('change');
+            // Hacer que el campo no sea requerido
+            distSelect.prop('required', false);
+        } else {
+            specificDistributorGroup.style.display = 'block';
+            // Hacer que el campo sea requerido
+            const distSelect = $('#distributor_client_ids');
+            distSelect.prop('required', true);
+        }
+    });
+
     // Ejecutar al cargar la página para mantener estado
     discountTypeSelect.dispatchEvent(new Event('change'));
     appliesToAllCheckbox.dispatchEvent(new Event('change'));
+    appliesToAllDistributorsCheckbox.dispatchEvent(new Event('change'));
 });
 
 </script>

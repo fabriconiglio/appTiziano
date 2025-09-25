@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Supplier;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class SupplierController extends Controller
@@ -201,7 +202,7 @@ class SupplierController extends Controller
         
         // Agregar el ID del proveedor y usuario
         $validated['supplier_id'] = $supplier->id;
-        $validated['user_id'] = auth()->id();
+        $validated['user_id'] = Auth::id();
 
         // Crear la compra en la base de datos
         \App\Models\SupplierPurchase::create($validated);
@@ -293,5 +294,41 @@ class SupplierController extends Controller
         
         return redirect()->route('suppliers.show', $supplier)
             ->with('success', 'Compra eliminada exitosamente.');
+    }
+
+    /**
+     * Obtener información de una boleta por número
+     * MOD-026 (master): Agregada funcionalidad de búsqueda de boletas para proveedores distribuidora
+     */
+    public function getReceiptTotal(Request $request, Supplier $supplier)
+    {
+        $receiptNumber = $request->input('receipt_number');
+        
+        if (!$receiptNumber) {
+            return response()->json(['error' => 'Número de boleta requerido'], 400);
+        }
+
+        // Buscar la boleta más reciente que tenga saldo pendiente
+        $purchase = \App\Models\SupplierPurchase::where('supplier_id', $supplier->id)
+            ->where('receipt_number', $receiptNumber)
+            ->where('balance_amount', '>', 0) // Solo boletas con saldo pendiente
+            ->orderBy('created_at', 'desc') // La más reciente primero
+            ->first();
+
+        if ($purchase) {
+            return response()->json([
+                'success' => true,
+                'total_amount' => $purchase->total_amount,
+                'balance_amount' => $purchase->balance_amount,
+                'payment_amount' => $purchase->payment_amount,
+                'purchase_date' => $purchase->purchase_date->format('d/m/Y'),
+                'message' => 'Boleta encontrada'
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'No se encontró una boleta con ese número para este proveedor'
+        ]);
     }
 }

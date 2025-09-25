@@ -51,9 +51,15 @@ use Illuminate\Support\Facades\Storage;
 
                             <div class="col-md-6 mb-3">
                                 <label for="receipt_number" class="form-label">Número de Boleta *</label>
-                                <input type="text" class="form-control @error('receipt_number') is-invalid @enderror" 
-                                       id="receipt_number" name="receipt_number" 
-                                       value="{{ old('receipt_number', $purchase->receipt_number) }}" required>
+                                <div class="input-group">
+                                    <input type="text" class="form-control @error('receipt_number') is-invalid @enderror" 
+                                           id="receipt_number" name="receipt_number" 
+                                           value="{{ old('receipt_number', $purchase->receipt_number) }}" required>
+                                    <span class="input-group-text" id="receipt-search-spinner" style="display: none;">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                    </span>
+                                </div>
+                                <small class="text-muted" id="receipt-search-message"></small>
                                 @error('receipt_number')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -148,6 +154,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const totalAmount = document.getElementById('total_amount');
     const paymentAmount = document.getElementById('payment_amount');
     const balanceAmount = document.getElementById('balance_amount');
+    const receiptNumber = document.getElementById('receipt_number');
+    const receiptSearchSpinner = document.getElementById('receipt-search-spinner');
+    const receiptSearchMessage = document.getElementById('receipt-search-message');
+    
+    // URL para la búsqueda de boletas
+    const searchUrl = '{{ route("suppliers.get-receipt-total", $supplier) }}';
+    let searchTimeout;
 
     function calculateBalance() {
         const total = parseFloat(totalAmount.value) || 0;
@@ -156,8 +169,66 @@ document.addEventListener('DOMContentLoaded', function() {
         balanceAmount.value = balance.toFixed(2);
     }
 
+    function searchReceiptTotal(receiptNumberValue) {
+        if (!receiptNumberValue || receiptNumberValue.length < 3) {
+            receiptSearchMessage.textContent = '';
+            return;
+        }
+
+        // Mostrar spinner
+        receiptSearchSpinner.style.display = 'block';
+        receiptSearchMessage.textContent = 'Buscando boleta...';
+
+        fetch(`${searchUrl}?receipt_number=${encodeURIComponent(receiptNumberValue)}`)
+            .then(response => response.json())
+            .then(data => {
+                receiptSearchSpinner.style.display = 'none';
+                
+                if (data.success) {
+                    // Si hay saldo pendiente, usar ese valor; si no, usar el total
+                    if (data.balance_amount > 0) {
+                        totalAmount.value = data.balance_amount;
+                        paymentAmount.value = data.payment_amount;
+                        receiptSearchMessage.textContent = `✓ Boleta encontrada - Saldo pendiente: $${data.balance_amount} (${data.purchase_date})`;
+                    } else {
+                        totalAmount.value = data.total_amount;
+                        receiptSearchMessage.textContent = `✓ Boleta encontrada - Total: $${data.total_amount} (${data.purchase_date})`;
+                    }
+                    receiptSearchMessage.className = 'text-success';
+                    
+                    // Recalcular el saldo
+                    calculateBalance();
+                } else {
+                    receiptSearchMessage.textContent = data.message || 'Boleta no encontrada';
+                    receiptSearchMessage.className = 'text-muted';
+                }
+            })
+            .catch(error => {
+                receiptSearchSpinner.style.display = 'none';
+                receiptSearchMessage.textContent = 'Error al buscar la boleta';
+                receiptSearchMessage.className = 'text-danger';
+                console.error('Error:', error);
+            });
+    }
+
+    // Event listeners
     totalAmount.addEventListener('input', calculateBalance);
     paymentAmount.addEventListener('input', calculateBalance);
+    
+    // Búsqueda de boleta con debounce
+    receiptNumber.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        const value = this.value.trim();
+        
+        if (value) {
+            searchTimeout = setTimeout(() => {
+                searchReceiptTotal(value);
+            }, 500); // Esperar 500ms después del último input
+        } else {
+            receiptSearchMessage.textContent = '';
+            receiptSearchMessage.className = 'text-muted';
+        }
+    });
     
     // Calcular balance inicial
     calculateBalance();

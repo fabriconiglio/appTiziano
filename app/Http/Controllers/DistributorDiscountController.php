@@ -94,7 +94,7 @@ class DistributorDiscountController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'distributor_client_ids' => 'required|array|min:1',
+            'distributor_client_ids' => 'required_unless:applies_to_all_distributors,1|array',
             'distributor_client_ids.*' => 'exists:distributor_clients,id',
             'supplier_inventory_ids' => 'nullable|array',
             'supplier_inventory_ids.*' => 'exists:supplier_inventories,id',
@@ -108,6 +108,7 @@ class DistributorDiscountController extends Controller
             'valid_until' => 'nullable|date|after:valid_from',
             'is_active' => 'boolean',
             'applies_to_all_products' => 'boolean',
+            'applies_to_all_distributors' => 'boolean',
             'description' => 'required|string|max:255',
             'conditions' => 'nullable|string',
             // Ignorar productos de regalo a menos que el tipo sea "gift"
@@ -124,6 +125,12 @@ class DistributorDiscountController extends Controller
             'valid_until.after' => 'La fecha de fin debe ser posterior a la fecha de inicio.',
         ]);
 
+        // MOD-027 (master): Agregada lógica para aplicar descuentos a todos los distribuidores
+        // Si aplica a todos los distribuidores, obtener todos los IDs
+        if ($validated['applies_to_all_distributors'] ?? false) {
+            $validated['distributor_client_ids'] = \App\Models\DistributorClient::pluck('id')->toArray();
+        }
+        
         // Compatibilidad: setear distributor_client_id con el primero
         $validated['distributor_client_id'] = $validated['distributor_client_ids'][0] ?? null;
 
@@ -187,7 +194,7 @@ class DistributorDiscountController extends Controller
     public function update(Request $request, DistributorDiscount $distributorDiscount)
     {
         $validated = $request->validate([
-            'distributor_client_ids' => 'required|array|min:1',
+            'distributor_client_ids' => 'required_unless:applies_to_all_distributors,1|array',
             'distributor_client_ids.*' => 'exists:distributor_clients,id',
             'supplier_inventory_ids' => 'nullable|array',
             'supplier_inventory_ids.*' => 'exists:supplier_inventories,id',
@@ -201,6 +208,7 @@ class DistributorDiscountController extends Controller
             'valid_until' => 'nullable|date|after:valid_from',
             'is_active' => 'boolean',
             'applies_to_all_products' => 'boolean',
+            'applies_to_all_distributors' => 'boolean',
             'description' => 'required|string|max:255',
             'conditions' => 'nullable|string',
             // Ignorar productos de regalo a menos que el tipo sea "gift"
@@ -215,6 +223,12 @@ class DistributorDiscountController extends Controller
             'description.required' => 'La descripción es requerida.',
             'valid_until.after' => 'La fecha de fin debe ser posterior a la fecha de inicio.',
         ]);
+
+        // MOD-027 (master): Agregada lógica para aplicar descuentos a todos los distribuidores
+        // Si aplica a todos los distribuidores, obtener todos los IDs
+        if ($validated['applies_to_all_distributors'] ?? false) {
+            $validated['distributor_client_ids'] = \App\Models\DistributorClient::pluck('id')->toArray();
+        }
 
         // Procesar productos de regalo
         if ($validated['discount_type'] === 'gift' && $request->has('gift_products')) {

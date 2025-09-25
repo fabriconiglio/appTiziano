@@ -70,8 +70,15 @@
                         @forelse($discounts as $discount)
                             <tr>
                                 <td>
-                                    <div class="fw-bold">{{ $discount->distributorClient->full_name }}</div>
-                                    <small class="text-muted">{{ $discount->distributorClient->email ?? 'Sin email' }}</small>
+                                    @if($discount->applies_to_all_distributors)
+                                        <div class="fw-bold">
+                                            <span class="badge bg-primary">Todos los distribuidores</span>
+                                        </div>
+                                        <small class="text-muted">Aplicable a todos los distribuidores</small>
+                                    @else
+                                        <div class="fw-bold">{{ $discount->distributorClient->full_name }}</div>
+                                        <small class="text-muted">{{ $discount->distributorClient->email ?? 'Sin email' }}</small>
+                                    @endif
                                 </td>
                                 <td>
                                     <div class="fw-bold">{{ $discount->description }}</div>
@@ -210,7 +217,12 @@
                             <div class="card-body">
                                 <h6 class="card-title">{{ $discount->description }}</h6>
                                 <p class="card-text mb-1">
-                                    <strong>Distribuidor:</strong> {{ $discount->distributorClient->full_name }}
+                                    <strong>Distribuidor:</strong> 
+                                    @if($discount->applies_to_all_distributors)
+                                        <span class="badge bg-primary">Todos los distribuidores</span>
+                                    @else
+                                        {{ $discount->distributorClient->full_name }}
+                                    @endif
                                 </p>
                                 <p class="card-text mb-1">
                                     <strong>Tipo:</strong> {{ $discount->discount_type_text }}

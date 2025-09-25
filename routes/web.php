@@ -145,6 +145,8 @@ Route::get('/api/supplier-inventories/get-product', [App\Http\Controllers\Suppli
         ->name('suppliers.update-purchase');
     Route::delete('suppliers/{supplier}/destroy-purchase/{purchase}', [\App\Http\Controllers\SupplierController::class, 'destroyPurchase'])
         ->name('suppliers.destroy-purchase');
+    Route::get('suppliers/{supplier}/get-receipt-total', [\App\Http\Controllers\SupplierController::class, 'getReceiptTotal'])
+        ->name('suppliers.get-receipt-total');
 
     // CRUD de proveedores de peluquería
     Route::resource('hairdressing-suppliers', \App\Http\Controllers\HairdressingSupplierController::class);

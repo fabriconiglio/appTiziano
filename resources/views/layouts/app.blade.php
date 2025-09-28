@@ -222,6 +222,38 @@
                                 </li>
                             </ul>
                         </li>
+
+                        <!-- Módulo de Facturación AFIP -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="facturacionDropdown" role="button"
+                               data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-file-invoice me-1"></i>
+                                {{ __('Facturación AFIP') }}
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="facturacionDropdown">
+                                <!-- Submenú Facturas -->
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item" href="{{ route('facturacion.index') }}">
+                                        <i class="fas fa-file-invoice me-2"></i>
+                                        {{ __('Facturas') }}
+                                    </a>
+                                </li>
+                                <!-- Submenú Nueva Factura -->
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item" href="{{ route('facturacion.create') }}">
+                                        <i class="fas fa-plus-circle me-2"></i>
+                                        {{ __('Nueva Factura') }}
+                                    </a>
+                                </li>
+                                <!-- Submenú Configuración -->
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item" href="{{ route('facturacion.configuration') }}">
+                                        <i class="fas fa-cog me-2"></i>
+                                        {{ __('Configuración AFIP') }}
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
                     @endauth
                 </ul>
 

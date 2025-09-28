@@ -17,6 +17,8 @@ use App\Http\Controllers\DistributorTechnicalRecordController;
 use App\Http\Controllers\DistributorDiscountController;
 use App\Http\Controllers\StockAlertController;
 use App\Http\Controllers\ClientCurrentAccountController;
+use App\Http\Controllers\AfipInvoiceController;
+use App\Http\Controllers\AfipConfigurationController;
 use App\Models\DistributorTechnicalRecord;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
@@ -204,5 +206,29 @@ Route::get('/api/supplier-inventories/get-product', [App\Http\Controllers\Suppli
     Route::get('hairdressing-daily-sales', [HairdressingDailySalesController::class, 'index'])->name('hairdressing-daily-sales.index');
     
     Route::get('hairdressing-daily-sales/export-pdf', [HairdressingDailySalesController::class, 'exportPdf'])->name('hairdressing-daily-sales.export-pdf');
+
+    // Módulo de Facturación AFIP
+    Route::prefix('facturacion')->name('facturacion.')->group(function () {
+        // Rutas principales de facturas
+        Route::get('/', [AfipInvoiceController::class, 'index'])->name('index');
+        Route::get('/create', [AfipInvoiceController::class, 'create'])->name('create');
+        Route::post('/', [AfipInvoiceController::class, 'store'])->name('store');
+        
+        // Configuración de AFIP (debe ir antes de las rutas con parámetros)
+        Route::get('/configuration', [AfipConfigurationController::class, 'index'])->name('configuration');
+        Route::post('/configuration', [AfipConfigurationController::class, 'update'])->name('configuration.update');
+        Route::post('/configuration/validate', [AfipConfigurationController::class, 'validateConfiguration'])->name('configuration.validate');
+        Route::post('/configuration/taxpayer-info', [AfipConfigurationController::class, 'getTaxpayerInfo'])->name('configuration.taxpayer-info');
+        Route::post('/configuration/last-voucher', [AfipConfigurationController::class, 'getLastVoucher'])->name('configuration.last-voucher');
+        
+        // APIs para obtener información
+        Route::get('/clients/{client}/info', [AfipInvoiceController::class, 'getClientInfo'])->name('clients.info');
+        Route::get('/products/{product}/info', [AfipInvoiceController::class, 'getProductInfo'])->name('products.info');
+        
+        // Rutas con parámetros (deben ir al final)
+        Route::get('/{facturacion}', [AfipInvoiceController::class, 'show'])->name('show');
+        Route::post('/{facturacion}/send', [AfipInvoiceController::class, 'sendToAfip'])->name('send');
+        Route::post('/{facturacion}/cancel', [AfipInvoiceController::class, 'cancel'])->name('cancel');
+    });
 
 });

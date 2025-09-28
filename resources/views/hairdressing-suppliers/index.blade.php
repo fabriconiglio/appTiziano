@@ -59,6 +59,7 @@
                             <th>Proveedor</th>
                             <th>Contacto</th>
                             <th>Información de Contacto</th>
+                            <th>Deuda Actual</th>
                             <th>Estado</th>
                             <th>Acciones</th>
                         </tr>
@@ -91,6 +92,18 @@
                                     @endif
                                     @if($supplier->website)
                                         <div><i class="fas fa-globe text-muted"></i> <a href="{{ $supplier->website }}" target="_blank">{{ $supplier->website }}</a></div>
+                                    @endif
+                                </td>
+                                <td>
+                                    <div class="fw-bold {{ $supplier->total_debt > 0 ? 'text-danger' : ($supplier->total_debt < 0 ? 'text-success' : 'text-dark') }}">
+                                        ${{ number_format(abs($supplier->total_debt), 2, ',', '.') }}
+                                    </div>
+                                    @if($supplier->total_debt > 0)
+                                        <small class="text-danger">Debe</small>
+                                    @elseif($supplier->total_debt < 0)
+                                        <small class="text-success">A favor</small>
+                                    @else
+                                        <small class="text-muted">Al día</small>
                                     @endif
                                 </td>
                                 <td>
@@ -161,7 +174,7 @@
         </div>
         <div class="card-body">
             <div class="row">
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="card bg-primary text-white">
                         <div class="card-body text-center">
                             <h6 class="card-title">Total Proveedores</h6>
@@ -169,7 +182,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="card bg-success text-white">
                         <div class="card-body text-center">
                             <h6 class="card-title">Proveedores Activos</h6>
@@ -177,11 +190,19 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
+                    <div class="card bg-danger text-white">
+                        <div class="card-body text-center">
+                            <h6 class="card-title">Total Deudas</h6>
+                            <h3 class="mb-0">${{ number_format($suppliers->where('total_debt', '>', 0)->sum('total_debt'), 2, ',', '.') }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
                     <div class="card bg-warning text-dark">
                         <div class="card-body text-center">
-                            <h6 class="card-title">Proveedores Inactivos</h6>
-                            <h3 class="mb-0">{{ $suppliers->where('is_active', false)->count() }}</h3>
+                            <h6 class="card-title">Proveedores con Deuda</h6>
+                            <h3 class="mb-0">{{ $suppliers->where('total_debt', '>', 0)->count() }}</h3>
                         </div>
                     </div>
                 </div>

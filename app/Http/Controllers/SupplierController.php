@@ -14,8 +14,8 @@ class SupplierController extends Controller
      */
     public function index(Request $request)
     {
-        // Obtener todos los proveedores
-        $query = Supplier::orderBy('name');
+        // Obtener todos los proveedores con sus compras para calcular deuda
+        $query = Supplier::with('supplierPurchases')->orderBy('name');
 
         // Aplicar filtro de búsqueda si se proporciona
         if ($request->has('search') && !empty($request->get('search'))) {

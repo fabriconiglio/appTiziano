@@ -100,6 +100,20 @@
                             <strong>Aplica a todos los productos del distribuidor</strong>
                         </div>
                     @else
+                        <div class="d-flex flex-column gap-2">
+                            @if($distributorDiscount->applies_to_category && $distributorDiscount->category)
+                                <div class="alert alert-info mb-0">
+                                    <i class="fas fa-tags"></i>
+                                    <strong>Aplica por categoría:</strong> {{ $distributorDiscount->category->name }}
+                                </div>
+                            @endif
+                            @if($distributorDiscount->applies_to_brand && $distributorDiscount->brand)
+                                <div class="alert alert-warning mb-0">
+                                    <i class="fas fa-tag"></i>
+                                    <strong>Aplica por marca:</strong> {{ $distributorDiscount->brand->name }}
+                                </div>
+                            @endif
+                        </div>
                         @if(!empty($distributorDiscount->supplier_inventory_ids))
                             <h6 class="text-muted mb-1">Productos del Inventario</h6>
                             @php
@@ -152,7 +166,7 @@
                             </div>
                             
                             @if(!$distributorDiscount->product_name && !$distributorDiscount->product_sku)
-                                <div class="alert alert-warning">
+                                <div class="alert alert-warning" style="margin-top: 10px;">
                                     <i class="fas fa-exclamation-triangle"></i>
                                     <strong>Producto no especificado</strong>
                                 </div>

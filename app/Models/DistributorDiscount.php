@@ -28,7 +28,11 @@ class DistributorDiscount extends Model
         'gift_products',
         'supplier_inventory_ids',
         'max_uses',
-        'current_uses'
+        'current_uses',
+        'category_id',
+        'brand_id',
+        'applies_to_category',
+        'applies_to_brand'
     ];
 
     protected $casts = [
@@ -44,7 +48,9 @@ class DistributorDiscount extends Model
         'supplier_inventory_ids' => 'array',
         'distributor_client_ids' => 'array',
         'max_uses' => 'integer',
-        'current_uses' => 'integer' 
+        'current_uses' => 'integer',
+        'applies_to_category' => 'boolean',
+        'applies_to_brand' => 'boolean'
     ];
 
     // Tipos de descuento
@@ -66,6 +72,22 @@ class DistributorDiscount extends Model
     public function supplierInventory(): BelongsTo
     {
         return $this->belongsTo(SupplierInventory::class);
+    }
+
+    /**
+     * Relación con la categoría
+     */
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(DistributorCategory::class);
+    }
+
+    /**
+     * Relación con la marca
+     */
+    public function brand(): BelongsTo
+    {
+        return $this->belongsTo(DistributorBrand::class);
     }
 
     /**
@@ -99,12 +121,26 @@ class DistributorDiscount extends Model
     /**
      * Verificar si el descuento aplica a un producto específico
      */
-    public function appliesTo($productSku = null, $productName = null, $productId = null): bool
+    public function appliesTo($productSku = null, $productName = null, $productId = null, $categoryId = null, $brandId = null): bool
     {
 
         // Si aplica a todos los productos del distribuidor
         if ($this->applies_to_all_products) {
             return true;
+        }
+
+        // Verificar si aplica por categoría
+        if ($this->applies_to_category && $this->category_id && $categoryId) {
+            if ($this->category_id == $categoryId) {
+                return true;
+            }
+        }
+
+        // Verificar si aplica por marca
+        if ($this->applies_to_brand && $this->brand_id && $brandId) {
+            if ($this->brand_id == $brandId) {
+                return true;
+            }
         }
 
         // Si hay productos específicos en el inventario (array)

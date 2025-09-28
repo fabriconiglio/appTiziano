@@ -131,7 +131,13 @@ class DistributorTechnicalRecordController extends Controller
                                                             ->forDistributor($distributorClient->getKey())
                                                             ->get()
                                                             ->filter(function ($discount) use ($supplierInventory) {
-                                                                return $discount->appliesTo($supplierInventory->sku, $supplierInventory->product_name, $supplierInventory->id);
+                                                                return $discount->appliesTo(
+                                                                    $supplierInventory->sku, 
+                                                                    $supplierInventory->product_name, 
+                                                                    $supplierInventory->id,
+                                                                    $supplierInventory->distributor_category_id,
+                                                                    $supplierInventory->distributor_brand_id
+                                                                );
                                                             });
                     
                     foreach ($availableDiscounts as $discount) {
@@ -476,7 +482,13 @@ class DistributorTechnicalRecordController extends Controller
                                                             ->forDistributor($distributorClient->getKey())
                                                             ->get()
                                                             ->filter(function ($discount) use ($supplierInventory) {
-                                                                return $discount->appliesTo($supplierInventory->sku, $supplierInventory->product_name, $supplierInventory->id);
+                                                                return $discount->appliesTo(
+                                                                    $supplierInventory->sku, 
+                                                                    $supplierInventory->product_name, 
+                                                                    $supplierInventory->id,
+                                                                    $supplierInventory->distributor_category_id,
+                                                                    $supplierInventory->distributor_brand_id
+                                                                );
                                                             });
                     
                     foreach ($availableDiscounts as $discount) {

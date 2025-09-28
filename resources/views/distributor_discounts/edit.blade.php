@@ -181,6 +181,64 @@
                         </div>
 
                         <div id="specific_product_group">
+                            <!-- Opciones de categoría y marca -->
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="applies_to_category" 
+                                               id="applies_to_category" value="1" 
+                                               {{ (old('applies_to_category') ?? $distributorDiscount->applies_to_category) ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="applies_to_category">
+                                            Aplicar por categoría
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="applies_to_brand" 
+                                               id="applies_to_brand" value="1" 
+                                               {{ (old('applies_to_brand') ?? $distributorDiscount->applies_to_brand) ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="applies_to_brand">
+                                            Aplicar por marca
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="category_selection" style="display: none;">
+                                <div class="mb-3">
+                                    <label for="category_id" class="form-label">Categoría</label>
+                                    <select name="category_id" id="category_id" class="form-select @error('category_id') is-invalid @enderror">
+                                        <option value="">Seleccionar categoría...</option>
+                                        @foreach($categories as $category)
+                                            <option value="{{ $category->id }}" {{ (old('category_id') ?? $distributorDiscount->category_id) == $category->id ? 'selected' : '' }}>
+                                                {{ $category->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('category_id')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            <div id="brand_selection" style="display: none;">
+                                <div class="mb-3">
+                                    <label for="brand_id" class="form-label">Marca</label>
+                                    <select name="brand_id" id="brand_id" class="form-select @error('brand_id') is-invalid @enderror">
+                                        <option value="">Seleccionar marca...</option>
+                                        @foreach($brands as $brand)
+                                            <option value="{{ $brand->id }}" {{ (old('brand_id') ?? $distributorDiscount->brand_id) == $brand->id ? 'selected' : '' }}>
+                                                {{ $brand->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('brand_id')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+
                             <div class="mb-3">
                                 <label for="supplier_inventory_ids" class="form-label">Producto del Inventario</label>
                                 <select name="supplier_inventory_ids[]" id="supplier_inventory_ids" class="form-select @error('supplier_inventory_ids') is-invalid @enderror" multiple>
@@ -194,8 +252,6 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-
-
                         </div>
                     </div>
 
@@ -330,6 +386,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const specificProductGroup = document.getElementById('specific_product_group');
     const appliesToAllDistributorsCheckbox = document.getElementById('applies_to_all_distributors');
     const specificDistributorGroup = document.getElementById('specific_distributor_group');
+    const appliesToCategoryCheckbox = document.getElementById('applies_to_category');
+    const appliesToBrandCheckbox = document.getElementById('applies_to_brand');
+    const categorySelection = document.getElementById('category_selection');
+    const brandSelection = document.getElementById('brand_selection');
 
     // Manejar cambio de tipo de descuento
     discountTypeSelect.addEventListener('change', function() {

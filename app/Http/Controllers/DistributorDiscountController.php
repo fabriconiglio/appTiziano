@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\DistributorDiscount;
 use App\Models\DistributorClient;
 use App\Models\SupplierInventory;
+use App\Models\DistributorCategory;
+use App\Models\DistributorBrand;
 use Illuminate\Http\Request;
 
 class DistributorDiscountController extends Controller
@@ -14,7 +16,7 @@ class DistributorDiscountController extends Controller
      */
     public function index(Request $request)
     {
-        $query = DistributorDiscount::with(['distributorClient', 'supplierInventory']);
+        $query = DistributorDiscount::with(['distributorClient', 'supplierInventory', 'category', 'brand']);
 
         // Filtro por distribuidor
         if ($request->has('distributor_client_id') && $request->distributor_client_id) {
@@ -81,10 +83,14 @@ class DistributorDiscountController extends Controller
         $supplierInventories = SupplierInventory::where('status', 'available')
                                                ->orderBy('product_name')
                                                ->get();
+        $categories = DistributorCategory::orderBy('name')->get();
+        $brands = DistributorBrand::orderBy('name')->get();
         
         return view('distributor_discounts.create', compact(
             'distributorClients', 
-            'supplierInventories'
+            'supplierInventories',
+            'categories',
+            'brands'
         ));
     }
 
@@ -115,6 +121,10 @@ class DistributorDiscountController extends Controller
             'gift_products' => 'nullable|array|exclude_unless:discount_type,gift',
             'gift_products.*' => 'string|max:255|exclude_unless:discount_type,gift',
             'max_uses' => 'nullable|integer|min:1',
+            'category_id' => 'nullable|exists:distributor_categories,id|required_if:applies_to_category,1',
+            'brand_id' => 'nullable|exists:distributor_brands,id|required_if:applies_to_brand,1',
+            'applies_to_category' => 'boolean',
+            'applies_to_brand' => 'boolean',
         ], [
             'distributor_client_id.required' => 'El distribuidor es requerido.',
             'discount_type.required' => 'El tipo de descuento es requerido.',
@@ -123,6 +133,8 @@ class DistributorDiscountController extends Controller
             'description.required' => 'La descripción es requerida.',
             'valid_from.after_or_equal' => 'La fecha de inicio debe ser hoy o posterior.',
             'valid_until.after' => 'La fecha de fin debe ser posterior a la fecha de inicio.',
+            'category_id.required_if' => 'Debe seleccionar una categoría cuando se aplica por categoría.',
+            'brand_id.required_if' => 'Debe seleccionar una marca cuando se aplica por marca.',
         ]);
 
         // MOD-027 (master): Agregada lógica para aplicar descuentos a todos los distribuidores
@@ -142,13 +154,15 @@ class DistributorDiscountController extends Controller
             $validated['gift_products'] = array_values($giftProducts);
         }
 
-        // Si no se especifica un producto específico (lista o manual) y tampoco aplica a todos
+        // Si no se especifica un producto específico (lista o manual) y tampoco aplica a todos, categoría o marca
         if (!($validated['applies_to_all_products'] ?? false) && 
+            !($validated['applies_to_category'] ?? false) && 
+            !($validated['applies_to_brand'] ?? false) &&
             empty($validated['supplier_inventory_ids']) && 
             empty($validated['product_name']) && 
             empty($validated['product_sku'])) {
             return back()->withErrors([
-                'product_selection' => 'Debe especificar un producto específico o indicar que aplica a todos los productos.'
+                'product_selection' => 'Debe especificar un producto específico, categoría, marca o indicar que aplica a todos los productos.'
             ])->withInput();
         }
 
@@ -166,7 +180,7 @@ class DistributorDiscountController extends Controller
      */
     public function show(DistributorDiscount $distributorDiscount)
     {
-        $distributorDiscount->load(['distributorClient', 'supplierInventory']);
+        $distributorDiscount->load(['distributorClient', 'supplierInventory', 'category', 'brand']);
         
         return view('distributor_discounts.show', compact('distributorDiscount'));
     }
@@ -180,11 +194,15 @@ class DistributorDiscountController extends Controller
         $supplierInventories = SupplierInventory::where('status', 'available')
                                                ->orderBy('product_name')
                                                ->get();
+        $categories = DistributorCategory::orderBy('name')->get();
+        $brands = DistributorBrand::orderBy('name')->get();
         
         return view('distributor_discounts.edit', compact(
             'distributorDiscount',
             'distributorClients', 
-            'supplierInventories'
+            'supplierInventories',
+            'categories',
+            'brands'
         ));
     }
 

@@ -92,16 +92,31 @@
                                 <td>
                                     @if($discount->applies_to_all_products)
                                         <span class="badge bg-success">Todos los productos</span>
-                                    @elseif($discount->supplierInventory)
-                                        <div class="fw-bold">{{ $discount->supplierInventory->product_name }}</div>
-                                        <small class="text-muted">SKU: {{ $discount->supplierInventory->sku }}</small>
-                                    @elseif($discount->product_name || $discount->product_sku)
-                                        <div class="fw-bold">{{ $discount->product_name ?? 'Sin nombre' }}</div>
-                                        @if($discount->product_sku)
-                                            <small class="text-muted">SKU: {{ $discount->product_sku }}</small>
-                                        @endif
                                     @else
-                                        <span class="text-muted">No especificado</span>
+                                        <div class="d-flex flex-wrap gap-1">
+                                            @if($discount->applies_to_category && $discount->category)
+                                                <span class="badge bg-info">Categoría: {{ $discount->category->name }}</span>
+                                            @endif
+                                            @if($discount->applies_to_brand && $discount->brand)
+                                                <span class="badge bg-warning">Marca: {{ $discount->brand->name }}</span>
+                                            @endif
+                                            @if($discount->supplierInventory)
+                                                <div class="w-100 mt-1">
+                                                    <div class="fw-bold">{{ $discount->supplierInventory->product_name }}</div>
+                                                    <small class="text-muted">SKU: {{ $discount->supplierInventory->sku }}</small>
+                                                </div>
+                                            @elseif($discount->product_name || $discount->product_sku)
+                                                <div class="w-100 mt-1">
+                                                    <div class="fw-bold">{{ $discount->product_name ?? 'Sin nombre' }}</div>
+                                                    @if($discount->product_sku)
+                                                        <small class="text-muted">SKU: {{ $discount->product_sku }}</small>
+                                                    @endif
+                                                </div>
+                                            @endif
+                                            @if(!$discount->applies_to_category && !$discount->applies_to_brand && !$discount->supplierInventory && !$discount->product_name && !$discount->product_sku)
+                                                <span class="text-muted">No especificado</span>
+                                            @endif
+                                        </div>
                                     @endif
                                 </td>
                                 <td>

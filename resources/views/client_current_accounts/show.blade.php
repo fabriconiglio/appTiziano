@@ -111,6 +111,7 @@
                                 <th>Descripción</th>
                                 <th>Monto</th>
                                 <th>Referencia</th>
+                                <th>Ficha Técnica</th>
                                 <th>Creado por</th>
                                 <th>Acciones</th>
                             </tr>
@@ -133,6 +134,16 @@
                                         </span>
                                     </td>
                                     <td>{{ $movement->reference ?? '-' }}</td>
+                                    <td>
+                                        @if($movement->technicalRecord)
+                                            <a href="{{ route('clients.technical-records.show', [$client, $movement->technicalRecord]) }}" 
+                                               class="btn btn-sm btn-outline-info" title="Ver ficha técnica">
+                                                <i class="fas fa-file-medical"></i> FT-{{ $movement->technicalRecord->id }}
+                                            </a>
+                                        @else
+                                            <span class="text-muted">-</span>
+                                        @endif
+                                    </td>
                                     <td>{{ $movement->user->name }}</td>
                                     <td>
                                         <div class="btn-group" role="group">
@@ -156,7 +167,7 @@
                                 </tr>
                                 @if($movement->observations)
                                     <tr>
-                                        <td colspan="7">
+                                        <td colspan="8">
                                             <div class="alert alert-info mb-0">
                                                 <strong>Observaciones:</strong> {{ $movement->observations }}
                                             </div>

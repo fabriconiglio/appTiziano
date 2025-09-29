@@ -46,7 +46,7 @@ class ClientCurrentAccountController extends Controller
     public function show(Client $client)
     {
         $currentAccounts = $client->currentAccounts()
-            ->with('user')
+            ->with(['user', 'technicalRecord'])
             ->orderBy('date', 'desc')
             ->orderBy('created_at', 'desc')
             ->get();

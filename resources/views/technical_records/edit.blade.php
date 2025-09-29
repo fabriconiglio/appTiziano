@@ -61,59 +61,6 @@
                                 </div>
                             </div>
 
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <label for="hair_type" class="form-label">Tipo de Cabello</label>
-                                    <select class="form-select @error('hair_type') is-invalid @enderror"
-                                            id="hair_type" name="hair_type">
-                                        <option value="">Seleccionar tipo</option>
-                                        <option value="liso" {{ old('hair_type', $technicalRecord->hair_type) == 'liso' ? 'selected' : '' }}>Liso</option>
-                                        <option value="ondulado" {{ old('hair_type', $technicalRecord->hair_type) == 'ondulado' ? 'selected' : '' }}>Ondulado</option>
-                                        <option value="rizado" {{ old('hair_type', $technicalRecord->hair_type) == 'rizado' ? 'selected' : '' }}>Rizado</option>
-                                        <option value="crespo" {{ old('hair_type', $technicalRecord->hair_type) == 'crespo' ? 'selected' : '' }}>Crespo</option>
-                                    </select>
-                                    @error('hair_type')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <label for="scalp_condition" class="form-label">Condición del Cuero Cabelludo</label>
-                                    <select class="form-select @error('scalp_condition') is-invalid @enderror"
-                                            id="scalp_condition" name="scalp_condition">
-                                        <option value="">Seleccionar condición</option>
-                                        <option value="normal" {{ old('scalp_condition', $technicalRecord->scalp_condition) == 'normal' ? 'selected' : '' }}>Normal</option>
-                                        <option value="seco" {{ old('scalp_condition', $technicalRecord->scalp_condition) == 'seco' ? 'selected' : '' }}>Seco</option>
-                                        <option value="graso" {{ old('scalp_condition', $technicalRecord->scalp_condition) == 'graso' ? 'selected' : '' }}>Graso</option>
-                                        <option value="sensible" {{ old('scalp_condition', $technicalRecord->scalp_condition) == 'sensible' ? 'selected' : '' }}>Sensible</option>
-                                    </select>
-                                    @error('scalp_condition')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-
-                                <div class="col-md-6">
-                                    <label for="current_hair_color" class="form-label">Color Actual</label>
-                                    <input type="text" class="form-control @error('current_hair_color') is-invalid @enderror"
-                                           id="current_hair_color" name="current_hair_color"
-                                           value="{{ old('current_hair_color', $technicalRecord->current_hair_color) }}">
-                                    @error('current_hair_color')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="desired_hair_color" class="form-label">Color Deseado</label>
-                                <input type="text" class="form-control @error('desired_hair_color') is-invalid @enderror"
-                                       id="desired_hair_color" name="desired_hair_color"
-                                       value="{{ old('desired_hair_color', $technicalRecord->desired_hair_color) }}">
-                                @error('desired_hair_color')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
 
                             <div class="mb-3">
                                 <label for="hair_treatments" class="form-label">Tratamientos Realizados</label>
@@ -137,6 +84,121 @@
                                         </option>
                                     @endforeach
                                 </select>
+                            </div>
+
+                            <!-- MOD-030 (main): Sección de Información de Cuenta Corriente -->
+                            <div class="card mb-3 border-info">
+                                <div class="card-header bg-info">
+                                    <h6 class="mb-0 text-dark">
+                                        <i class="fas fa-calculator me-2"></i>
+                                        Información de Cuenta Corriente
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <label class="form-label">Saldo Actual</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">$</span>
+                                                <input type="text" class="form-control" id="current_balance" 
+                                                       value="{{ number_format($currentBalanceWithoutThisRecord, 2, ',', '.') }}" 
+                                                       readonly style="background-color: #e9ecef;">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Estado</label>
+                                            <div class="mt-2">
+                                                @if($currentBalanceWithoutThisRecord > 0)
+                                                    <span class="badge bg-danger fs-6">Con Deuda</span>
+                                                @elseif($currentBalanceWithoutThisRecord < 0)
+                                                    <span class="badge bg-success fs-6">A Favor</span>
+                                                @else
+                                                    <span class="badge bg-secondary fs-6">Al Día</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Ajuste Automático</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">$</span>
+                                                <input type="text" class="form-control" id="balance_adjustment" 
+                                                       value="0,00" readonly style="background-color: #e9ecef;">
+                                            </div>
+                                            <small class="form-text text-muted">
+                                                @if($currentBalanceWithoutThisRecord > 0)
+                                                    El servicio se sumará a la deuda existente
+                                                @elseif($currentBalanceWithoutThisRecord < 0)
+                                                    El crédito se aplicará a este servicio
+                                                @else
+                                                    Sin ajuste necesario
+                                                @endif
+                                            </small>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Opción para decidir si registrar en cuenta corriente -->
+                                    <div class="row mt-3">
+                                        <div class="col-12">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="use_current_account" name="use_current_account" value="1" checked>
+                                                <label class="form-check-label" for="use_current_account">
+                                                    <strong>Registrar en cuenta corriente</strong>
+                                                </label>
+                                                <small class="form-text text-muted d-block">
+                                                    Marca esta opción si quieres que este servicio se registre en la cuenta corriente del cliente. 
+                                                    Si la desmarcas, el servicio se registrará como pagado completamente sin afectar la cuenta corriente.
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Explicación del cálculo -->
+                                    <div class="row mt-3">
+                                        <div class="col-12">
+                                            <div class="alert alert-info">
+                                                <h6 class="alert-heading">
+                                                    <i class="fas fa-info-circle me-2"></i>
+                                                    Cálculo del Monto Final (Editando Ficha Técnica)
+                                                </h6>
+                                                @if($currentBalanceWithoutThisRecord > 0)
+                                                    <p class="mb-1">
+                                                        <strong>Deuda actual (sin esta ficha):</strong> ${{ number_format($currentBalanceWithoutThisRecord, 2, ',', '.') }}<br>
+                                                        <strong>+ Servicio actual:</strong> $<span id="service_amount_display">0,00</span><br>
+                                                        <strong>= Total a pagar:</strong> $<span id="total_debt_display">0,00</span>
+                                                    </p>
+                                                @elseif($currentBalanceWithoutThisRecord < 0)
+                                                    <p class="mb-1">
+                                                        <strong>Crédito disponible (sin esta ficha):</strong> ${{ number_format(abs($currentBalanceWithoutThisRecord), 2, ',', '.') }}<br>
+                                                        <strong>- Servicio actual:</strong> $<span id="service_amount_display">0,00</span><br>
+                                                        <strong>= Total a pagar:</strong> $<span id="total_debt_display">0,00</span>
+                                                    </p>
+                                                @else
+                                                    <p class="mb-1">
+                                                        <strong>Servicio actual:</strong> $<span id="service_amount_display">0,00</span><br>
+                                                        <strong>= Se registrará como deuda:</strong> $<span id="total_debt_display">0,00</span>
+                                                    </p>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="payment_method" class="form-label">Método de Pago</label>
+                                    <select class="form-select @error('payment_method') is-invalid @enderror"
+                                            id="payment_method" name="payment_method">
+                                        <option value="">Seleccionar método</option>
+                                        <option value="efectivo" {{ old('payment_method', $technicalRecord->payment_method) == 'efectivo' ? 'selected' : '' }}>Efectivo</option>
+                                        <option value="tarjeta" {{ old('payment_method', $technicalRecord->payment_method) == 'tarjeta' ? 'selected' : '' }}>Tarjeta</option>
+                                        <option value="transferencia" {{ old('payment_method', $technicalRecord->payment_method) == 'transferencia' ? 'selected' : '' }}>Transferencia</option>
+                                        <option value="cheque" {{ old('payment_method', $technicalRecord->payment_method) == 'cheque' ? 'selected' : '' }}>Cheque</option>
+                                    </select>
+                                    @error('payment_method')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
                             </div>
 
                         @if($technicalRecord->photos)
@@ -237,6 +299,31 @@
                     ['view', ['fullscreen', 'codeview', 'help']]
                 ]
             });
+
+            // MOD-030 (main): Lógica para cálculo automático de cuenta corriente (edición)
+            const currentBalance = {{ $currentBalanceWithoutThisRecord }};
+            
+            function updateBalanceCalculation() {
+                const serviceCost = parseFloat($('#service_cost').val()) || 0;
+                let balanceAdjustment = 0;
+                let finalAmount = serviceCost;
+                
+                if (currentBalance !== 0) {
+                    balanceAdjustment = currentBalance;
+                    finalAmount = Math.max(0, serviceCost + balanceAdjustment);
+                }
+                
+                // Actualizar displays
+                $('#balance_adjustment').val(balanceAdjustment.toLocaleString('es-AR', {minimumFractionDigits: 2}));
+                $('#service_amount_display').text(serviceCost.toLocaleString('es-AR', {minimumFractionDigits: 2}));
+                $('#total_debt_display').text(finalAmount.toLocaleString('es-AR', {minimumFractionDigits: 2}));
+            }
+            
+            // Actualizar cálculo cuando cambie el costo del servicio
+            $('#service_cost').on('input change', updateBalanceCalculation);
+            
+            // Inicializar cálculo
+            updateBalanceCalculation();
         });
     </script>
 @endpush

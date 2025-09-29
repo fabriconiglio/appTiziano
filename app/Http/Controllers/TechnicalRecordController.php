@@ -5,8 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\Client;
 use App\Models\Product;
 use App\Models\TechnicalRecord;
+use App\Models\ClientCurrentAccount;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class TechnicalRecordController extends Controller
 {
@@ -43,26 +47,97 @@ class TechnicalRecordController extends Controller
             'products_used' => 'nullable|array',
             'observations' => 'nullable|string',
             'photos.*' => 'nullable|image|max:2048',
-            'next_appointment_notes' => 'nullable|string'
+            'next_appointment_notes' => 'nullable|string',
+            'payment_method' => 'nullable|string',
+            'use_current_account' => 'nullable|boolean'
         ]);
 
-        // Procesar las fotos
-        if ($request->hasFile('photos')) {
-            $photos = [];
-            foreach ($request->file('photos') as $photo) {
-                $path = $photo->store('client-photos', 'public');
-                $photos[] = $path;
+        // MOD-030 (main): Calcular saldo y crear movimientos en cuenta corriente
+        $currentBalance = $client->getCurrentBalance();
+        $serviceCost = floatval($validated['service_cost']);
+        $balanceAdjustment = $currentBalance;
+        $finalAmount = max(0, $serviceCost + $balanceAdjustment);
+
+        // Iniciar transacción
+        DB::beginTransaction();
+        
+        try {
+            // Procesar las fotos
+            if ($request->hasFile('photos')) {
+                $photos = [];
+                foreach ($request->file('photos') as $photo) {
+                    $path = $photo->store('client-photos', 'public');
+                    $photos[] = $path;
+                }
+                $validated['photos'] = $photos;
             }
-            $validated['photos'] = $photos;
+
+            $validated['client_id'] = $client->getKey();
+            $validated['stylist_id'] = Auth::id();
+            $technicalRecord = TechnicalRecord::create($validated);
+
+            // MOD-030 (main): Crear movimientos en cuenta corriente solo si está marcado el checkbox
+            if ($validated['use_current_account']) {
+                if ($balanceAdjustment != 0) {
+                    if ($balanceAdjustment < 0) {
+                        // Si el cliente tiene crédito, usar el crédito y crear deuda solo por la diferencia
+                        $creditUsed = abs($balanceAdjustment);
+                        $remainingDebt = max(0, $serviceCost - $creditUsed);
+                        
+                        if ($remainingDebt > 0) {
+                            ClientCurrentAccount::create([
+                                'client_id' => $client->getKey(),
+                                'user_id' => Auth::id(),
+                                'technical_record_id' => $technicalRecord->id,
+                                'type' => 'debt',
+                                'amount' => $remainingDebt,
+                                'description' => 'Deuda por servicio de peluquería',
+                                'date' => now(),
+                                'reference' => 'FT-' . $technicalRecord->id,
+                                'observations' => "Ficha técnica #{$technicalRecord->id} - Servicio de peluquería - Crédito usado: $" . number_format($creditUsed, 2) . " - Deuda restante: $" . number_format($remainingDebt, 2)
+                            ]);
+                        }
+                    } else {
+                        // CORREGIDO: Si el cliente tiene deuda, crear deuda solo por el servicio actual (NO sumar la deuda anterior)
+                        ClientCurrentAccount::create([
+                            'client_id' => $client->getKey(),
+                            'user_id' => Auth::id(),
+                            'technical_record_id' => $technicalRecord->id,
+                            'type' => 'debt',
+                            'amount' => $serviceCost, // CORREGIDO: Solo el costo del servicio, no $finalAmount
+                            'description' => 'Deuda por servicio de peluquería',
+                            'date' => now(),
+                            'reference' => 'FT-' . $technicalRecord->id,
+                            'observations' => "Ficha técnica #{$technicalRecord->id} - Servicio de peluquería - Deuda existente: $" . number_format($balanceAdjustment, 2) . " - Nuevo servicio: $" . number_format($serviceCost, 2)
+                        ]);
+                    }
+                } else {
+                    // No hay ajuste de cuenta corriente, crear deuda normal
+                    if ($serviceCost > 0) {
+                        ClientCurrentAccount::create([
+                            'client_id' => $client->getKey(),
+                            'user_id' => Auth::id(),
+                            'technical_record_id' => $technicalRecord->id,
+                            'type' => 'debt',
+                            'amount' => $serviceCost,
+                            'description' => 'Deuda por servicio de peluquería',
+                            'date' => now(),
+                            'reference' => 'FT-' . $technicalRecord->id,
+                            'observations' => "Ficha técnica #{$technicalRecord->id} - Servicio de peluquería"
+                        ]);
+                    }
+                }
+            }
+            
+            DB::commit();
+            return redirect()->route('clients.show', $client)
+                ->with('success', 'Ficha técnica creada exitosamente.' . 
+                    ($validated['use_current_account'] ? ' Se registró en la cuenta corriente.' : ' No se registró en la cuenta corriente.'));
+        } catch (\Exception $e) {
+            DB::rollback();
+            Log::error('Error al crear ficha técnica: ' . $e->getMessage());
+            return back()->withErrors(['error' => $e->getMessage()])->withInput();
         }
-
-        $validated['client_id'] = $client->id;
-        $validated['stylist_id'] = auth()->id();
-
-        TechnicalRecord::create($validated);
-
-        return redirect()->route('clients.show', $client)
-            ->with('success', 'Ficha técnica creada exitosamente.');
     }
 
     /**
@@ -87,7 +162,19 @@ class TechnicalRecordController extends Controller
     public function edit(Client $client, TechnicalRecord $technicalRecord)
     {
         $products = Product::all();
-        return view('technical_records.edit', compact('client', 'technicalRecord', 'products'));
+        
+        // MOD-030 (main): Calcular el saldo actual sin incluir esta ficha técnica para evitar duplicación
+        $currentBalance = $client->getCurrentBalance();
+        // Buscar si esta ficha técnica ya tiene movimientos en cuenta corriente
+        $existingMovements = ClientCurrentAccount::where('technical_record_id', $technicalRecord->id)->get();
+        $existingDebt = $existingMovements->where('type', 'debt')->sum('amount');
+        $existingPayments = $existingMovements->where('type', 'payment')->sum('amount');
+        $existingNetAmount = $existingDebt - $existingPayments;
+        
+        // Calcular saldo sin esta ficha técnica
+        $currentBalanceWithoutThisRecord = $currentBalance - $existingNetAmount;
+        
+        return view('technical_records.edit', compact('client', 'technicalRecord', 'products', 'currentBalanceWithoutThisRecord'));
     }
 
 
@@ -107,23 +194,107 @@ class TechnicalRecordController extends Controller
             'products_used' => 'nullable|array',
             'observations' => 'nullable|string',
             'photos.*' => 'nullable|image|max:2048',
-            'next_appointment_notes' => 'nullable|string'
+            'next_appointment_notes' => 'nullable|string',
+            'payment_method' => 'nullable|string',
+            'use_current_account' => 'nullable|boolean'
         ]);
 
-        // Procesar nuevas fotos
-        if ($request->hasFile('photos')) {
-            $photos = $technicalRecord->photos ?? [];
-            foreach ($request->file('photos') as $photo) {
-                $path = $photo->store('client-photos', 'public');
-                $photos[] = $path;
+        // MOD-030 (main): Calcular saldo sin esta ficha técnica y nuevo monto
+        $currentBalance = $client->getCurrentBalance();
+        $existingMovements = ClientCurrentAccount::where('technical_record_id', $technicalRecord->id)->get();
+        $existingDebt = $existingMovements->where('type', 'debt')->sum('amount');
+        $existingPayments = $existingMovements->where('type', 'payment')->sum('amount');
+        $existingNetAmount = $existingDebt - $existingPayments;
+        $currentBalanceWithoutThisRecord = $currentBalance - $existingNetAmount;
+        
+        $serviceCost = floatval($validated['service_cost']);
+        $balanceAdjustment = $currentBalanceWithoutThisRecord;
+        $finalAmount = max(0, $serviceCost + $balanceAdjustment);
+
+        // Iniciar transacción
+        DB::beginTransaction();
+        
+        try {
+            // Procesar nuevas fotos
+            if ($request->hasFile('photos')) {
+                $photos = $technicalRecord->photos ?? [];
+                foreach ($request->file('photos') as $photo) {
+                    $path = $photo->store('client-photos', 'public');
+                    $photos[] = $path;
+                }
+                $validated['photos'] = $photos;
             }
-            $validated['photos'] = $photos;
+
+            $technicalRecord->update($validated);
+
+            // MOD-030 (main): Actualizar movimientos en cuenta corriente
+            // Eliminar movimientos existentes para recrearlos
+            foreach ($existingMovements as $movement) {
+                $movement->delete();
+            }
+
+            // Crear movimientos en cuenta corriente solo si está marcado el checkbox
+            if ($validated['use_current_account']) {
+                if ($balanceAdjustment != 0) {
+                    if ($balanceAdjustment < 0) {
+                        // Si el cliente tiene crédito, usar el crédito y crear deuda solo por la diferencia
+                        $creditUsed = abs($balanceAdjustment);
+                        $remainingDebt = max(0, $serviceCost - $creditUsed);
+                        
+                        if ($remainingDebt > 0) {
+                            ClientCurrentAccount::create([
+                                'client_id' => $client->getKey(),
+                                'user_id' => Auth::id(),
+                                'technical_record_id' => $technicalRecord->id,
+                                'type' => 'debt',
+                                'amount' => $remainingDebt,
+                                'description' => 'Deuda por servicio de peluquería',
+                                'date' => now(),
+                                'reference' => 'FT-' . $technicalRecord->id,
+                                'observations' => "Ficha técnica #{$technicalRecord->id} - Servicio de peluquería - Crédito usado: $" . number_format($creditUsed, 2) . " - Deuda restante: $" . number_format($remainingDebt, 2)
+                            ]);
+                        }
+                    } else {
+                        // CORREGIDO: Si el cliente tiene deuda, crear deuda solo por el servicio actual (NO sumar la deuda anterior)
+                        ClientCurrentAccount::create([
+                            'client_id' => $client->getKey(),
+                            'user_id' => Auth::id(),
+                            'technical_record_id' => $technicalRecord->id,
+                            'type' => 'debt',
+                            'amount' => $serviceCost, // CORREGIDO: Solo el costo del servicio, no $finalAmount
+                            'description' => 'Deuda por servicio de peluquería',
+                            'date' => now(),
+                            'reference' => 'FT-' . $technicalRecord->id,
+                            'observations' => "Ficha técnica #{$technicalRecord->id} - Servicio de peluquería - Deuda existente: $" . number_format($balanceAdjustment, 2) . " - Nuevo servicio: $" . number_format($serviceCost, 2)
+                        ]);
+                    }
+                } else {
+                    // No hay ajuste de cuenta corriente, crear deuda normal
+                    if ($serviceCost > 0) {
+                        ClientCurrentAccount::create([
+                            'client_id' => $client->getKey(),
+                            'user_id' => Auth::id(),
+                            'technical_record_id' => $technicalRecord->id,
+                            'type' => 'debt',
+                            'amount' => $serviceCost,
+                            'description' => 'Deuda por servicio de peluquería',
+                            'date' => now(),
+                            'reference' => 'FT-' . $technicalRecord->id,
+                            'observations' => "Ficha técnica #{$technicalRecord->id} - Servicio de peluquería"
+                        ]);
+                    }
+                }
+            }
+            
+            DB::commit();
+            return redirect()->route('clients.show', $client)
+                ->with('success', 'Ficha técnica actualizada exitosamente.' . 
+                    ($validated['use_current_account'] ? ' Se registró en la cuenta corriente.' : ' No se registró en la cuenta corriente.'));
+        } catch (\Exception $e) {
+            DB::rollback();
+            Log::error('Error al actualizar ficha técnica: ' . $e->getMessage());
+            return back()->withErrors(['error' => $e->getMessage()])->withInput();
         }
-
-        $technicalRecord->update($validated);
-
-        return redirect()->route('clients.show', $client)
-            ->with('success', 'Ficha técnica actualizada exitosamente.');
     }
 
     /**
@@ -162,7 +333,7 @@ class TechnicalRecordController extends Controller
             return response()->json(['success' => true]);
 
         } catch (\Exception $e) {
-            \Log::error('Error al eliminar foto: ' . $e->getMessage());
+            Log::error('Error al eliminar foto: ' . $e->getMessage());
             return response()->json(['message' => 'Error al eliminar la foto'], 500);
         }
     }

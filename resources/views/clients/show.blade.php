@@ -12,6 +12,9 @@
                     <a href="{{ route('clients.technical-records.create', $client) }}" class="btn btn-success btn-sm me-2">
                         <i class="fas fa-file-medical"></i> Nueva Ficha Técnica
                     </a>
+                    <a href="{{ route('clients.current-accounts.show', $client) }}" class="btn btn-info btn-sm me-2">
+                        <i class="fas fa-calculator"></i> Cuenta Corriente
+                    </a>
                     <a href="{{ route('clients.edit', $client) }}" class="btn btn-primary btn-sm me-2">
                         <i class="fas fa-edit"></i> Editar
                     </a>
@@ -64,6 +67,19 @@
 
                             <dt class="col-sm-4">Observaciones:</dt>
                             <dd class="col-sm-8">{!! $client->observations ?? 'Sin observaciones' !!}</dd>
+
+                            <!-- MOD-030 (main): Información de cuenta corriente -->
+                            <dt class="col-sm-4">Cuenta Corriente:</dt>
+                            <dd class="col-sm-8">
+                                @php $balance = $client->getCurrentBalance(); @endphp
+                                @if($balance > 0)
+                                    <span class="badge bg-danger">Debe: ${{ number_format($balance, 2) }}</span>
+                                @elseif($balance < 0)
+                                    <span class="badge bg-success">A favor: ${{ number_format(abs($balance), 2) }}</span>
+                                @else
+                                    <span class="badge bg-secondary">Al día</span>
+                                @endif
+                            </dd>
                         </dl>
                     </div>
                 </div>

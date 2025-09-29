@@ -41,7 +41,7 @@ class Client extends Model
     }
 
     /**
-     * Obtener el saldo actual de la cuenta corriente
+     * Obtener el saldo actual de la cuenta corriente (como atributo)
      */
     public function getCurrentBalanceAttribute()
     {
@@ -49,7 +49,7 @@ class Client extends Model
     }
 
     /**
-     * Obtener el saldo formateado de la cuenta corriente
+     * Obtener el saldo formateado de la cuenta corriente (como atributo)
      */
     public function getFormattedBalanceAttribute()
     {
@@ -57,9 +57,33 @@ class Client extends Model
     }
 
     /**
-     * Verificar si tiene deuda
+     * Verificar si tiene deuda (como atributo)
      */
     public function getHasDebtAttribute()
+    {
+        return ClientCurrentAccount::hasDebt($this->id);
+    }
+
+    /**
+     * MOD-030 (main): Obtener el saldo actual de la cuenta corriente (como método)
+     */
+    public function getCurrentBalance()
+    {
+        return ClientCurrentAccount::getCurrentBalance($this->id);
+    }
+
+    /**
+     * MOD-030 (main): Obtener el saldo formateado de la cuenta corriente (como método)
+     */
+    public function getFormattedBalance()
+    {
+        return ClientCurrentAccount::getFormattedBalance($this->id);
+    }
+
+    /**
+     * MOD-030 (main): Verificar si tiene deuda (como método)
+     */
+    public function hasDebt()
     {
         return ClientCurrentAccount::hasDebt($this->id);
     }

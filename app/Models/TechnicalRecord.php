@@ -10,6 +10,7 @@ class TechnicalRecord extends Model
         'client_id',
         'service_date',
         'service_cost',
+        'payment_method',
         'service_type',
         'service_description',
         'hair_type',

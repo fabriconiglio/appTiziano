@@ -29,9 +29,8 @@
                             </div>
                         @endif
 
-                        <div class="row">
-                            <!-- Información básica -->
-                            <div class="col-md-6">
+                        <!-- Información básica -->
+                        <div class="col-md-12">
                                 <div class="card mb-3">
                                     <div class="card-header">
                                         <h6 class="mb-0">Información del Servicio</h6>
@@ -44,33 +43,9 @@
                                             <dt class="col-sm-4">Estilista:</dt>
                                             <dd class="col-sm-8">{{ $technicalRecord->stylist->name }}</dd>
 
-                                            <dt class="col-sm-4">Tipo de Cabello:</dt>
-                                            <dd class="col-sm-8">{{ $technicalRecord->hair_type ?? 'No especificado' }}</dd>
-
-                                            <dt class="col-sm-4">Cuero Cabelludo:</dt>
-                                            <dd class="col-sm-8">{{ $technicalRecord->scalp_condition ?? 'No especificado' }}</dd>
                                         </dl>
                                     </div>
                                 </div>
-                            </div>
-
-                            <!-- Información del color -->
-                            <div class="col-md-6">
-                                <div class="card mb-3">
-                                    <div class="card-header">
-                                        <h6 class="mb-0">Información del Color</h6>
-                                    </div>
-                                    <div class="card-body">
-                                        <dl class="row mb-0">
-                                            <dt class="col-sm-4">Color Actual:</dt>
-                                            <dd class="col-sm-8">{{ $technicalRecord->current_hair_color ?? 'No especificado' }}</dd>
-
-                                            <dt class="col-sm-4">Color Deseado:</dt>
-                                            <dd class="col-sm-8">{{ $technicalRecord->desired_hair_color ?? 'No especificado' }}</dd>
-                                        </dl>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
 
                         <!-- Tratamientos y Productos -->

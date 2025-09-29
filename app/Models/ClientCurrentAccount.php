@@ -12,6 +12,7 @@ class ClientCurrentAccount extends Model
     protected $fillable = [
         'client_id',
         'user_id',
+        'technical_record_id',
         'type',
         'amount',
         'description',
@@ -39,6 +40,14 @@ class ClientCurrentAccount extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Relación con la ficha técnica
+     */
+    public function technicalRecord()
+    {
+        return $this->belongsTo(TechnicalRecord::class);
     }
 
     /**

@@ -77,7 +77,7 @@ class TechnicalRecordController extends Controller
             $technicalRecord = TechnicalRecord::create($validated);
 
             // MOD-030 (main): Crear movimientos en cuenta corriente solo si está marcado el checkbox
-            if ($validated['use_current_account']) {
+            if ($validated['use_current_account'] ?? false) {
                 if ($balanceAdjustment != 0) {
                     if ($balanceAdjustment < 0) {
                         // Si el cliente tiene crédito, usar el crédito y crear deuda solo por la diferencia
@@ -132,7 +132,7 @@ class TechnicalRecordController extends Controller
             DB::commit();
             return redirect()->route('clients.show', $client)
                 ->with('success', 'Ficha técnica creada exitosamente.' . 
-                    ($validated['use_current_account'] ? ' Se registró en la cuenta corriente.' : ' No se registró en la cuenta corriente.'));
+                    (($validated['use_current_account'] ?? false) ? ' Se registró en la cuenta corriente.' : ' No se registró en la cuenta corriente.'));
         } catch (\Exception $e) {
             DB::rollback();
             Log::error('Error al crear ficha técnica: ' . $e->getMessage());
@@ -234,7 +234,7 @@ class TechnicalRecordController extends Controller
             }
 
             // Crear movimientos en cuenta corriente solo si está marcado el checkbox
-            if ($validated['use_current_account']) {
+            if ($validated['use_current_account'] ?? false) {
                 if ($balanceAdjustment != 0) {
                     if ($balanceAdjustment < 0) {
                         // Si el cliente tiene crédito, usar el crédito y crear deuda solo por la diferencia
@@ -289,7 +289,7 @@ class TechnicalRecordController extends Controller
             DB::commit();
             return redirect()->route('clients.show', $client)
                 ->with('success', 'Ficha técnica actualizada exitosamente.' . 
-                    ($validated['use_current_account'] ? ' Se registró en la cuenta corriente.' : ' No se registró en la cuenta corriente.'));
+                    (($validated['use_current_account'] ?? false) ? ' Se registró en la cuenta corriente.' : ' No se registró en la cuenta corriente.'));
         } catch (\Exception $e) {
             DB::rollback();
             Log::error('Error al actualizar ficha técnica: ' . $e->getMessage());

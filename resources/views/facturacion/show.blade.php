@@ -147,7 +147,7 @@
                                         <tr>
                                             <td>
                                                 <strong>{{ $item->description }}</strong><br>
-                                                <small class="text-muted">{{ $item->product->name }}</small>
+                                                <small class="text-muted">SKU: {{ $item->product->sku ?? 'N/A' }}</small>
                                             </td>
                                             <td class="text-center">{{ $item->quantity }}</td>
                                             <td class="text-right">${{ number_format($item->unit_price, 2, ',', '.') }}</td>

@@ -163,13 +163,15 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="deleteModalLabel{{ $record->id }}">
-                            <i class="fas fa-exclamation-triangle text-warning"></i>
+                            <i class="fas fa-exclamation-triangle text-danger me-2"></i>
                             Confirmar Eliminación
                         </h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <p>¿Estás seguro de que quieres eliminar esta ficha técnica?</p>
+                        <p class="mb-3">
+                            ¿Estás seguro de que quieres <strong>eliminar permanentemente</strong> esta ficha técnica?
+                        </p>
                         <div class="alert alert-warning">
                             <strong>Fecha:</strong> {{ $record->purchase_date->format('d/m/Y H:i') }}<br>
                             <strong>Tipo:</strong> 
@@ -189,11 +191,14 @@
                             <strong>Monto:</strong> ${{ number_format($record->final_amount, 2) }}<br>
                             <strong>Productos:</strong> {{ count($record->products_purchased ?? []) }} producto(s)
                         </div>
-                        <p class="text-danger"><strong>Esta acción no se puede deshacer.</strong></p>
+                        <p class="text-danger mb-0">
+                            <i class="fas fa-info-circle me-1"></i>
+                            <strong>Esta acción no se puede deshacer.</strong>
+                        </p>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                            <i class="fas fa-times"></i> Cancelar
+                            <i class="fas fa-times me-1"></i> Cancelar
                         </button>
                         <form action="{{ route('distributor-clients.technical-records.destroy', [$distributorClient, $record]) }}" 
                               method="POST" 
@@ -201,7 +206,7 @@
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="btn btn-danger">
-                                <i class="fas fa-trash"></i> Eliminar
+                                <i class="fas fa-trash me-1"></i> Sí, Eliminar
                             </button>
                         </form>
                     </div>

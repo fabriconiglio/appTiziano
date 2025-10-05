@@ -23,11 +23,36 @@ class AfipService
     private function initializeAfip()
     {
         try {
+            $cert = $this->config['certificate_path'];
+            $key  = $this->config['private_key_path'];
+
+            // Validar que los archivos existan y sean legibles
+            if (!is_readable($cert)) {
+                throw new Exception("Certificado no accesible en: {$cert}");
+            }
+            if (!is_readable($key)) {
+                throw new Exception("Clave privada no accesible en: {$key}");
+            }
+
+            // Validar que el certificado sea PEM válido
+            $certContent = file_get_contents($cert);
+            $first = trim(explode("\n", $certContent)[0] ?? '');
+            if ($first !== '-----BEGIN CERTIFICATE-----') {
+                throw new Exception("El certificado no es PEM válido (cabecera faltante).");
+            }
+
+            // Asegurar que existe el directorio para tokens de autorización
+            $taFolder = storage_path('app/afip/ta');
+            if (!is_dir($taFolder)) {
+                mkdir($taFolder, 0755, true);
+            }
+
             $this->afip = new Afip([
                 'CUIT' => $this->config['cuit'],
                 'production' => $this->config['production'],
-                'cert' => $this->config['certificate_path'],
-                'key' => $this->config['private_key_path']
+                'cert' => $cert,
+                'key' => $key,
+                'ta_folder' => $taFolder
             ]);
         } catch (Exception $e) {
             Log::error('Error inicializando AFIP: ' . $e->getMessage());
@@ -95,8 +120,8 @@ class AfipService
             'PtoVta' => $invoice->point_of_sale,
             'CbteTipo' => $voucherType,
             'Concepto' => 1, // Productos
-            'DocTipo' => $this->getDocumentType($client->document_type),
-            'DocNro' => $client->document_number,
+            'DocTipo' => $this->getDocumentType('DNI'),
+            'DocNro' => $client->dni ?? '00000000',
             'CbteDesde' => $invoice->invoice_number,
             'CbteHasta' => $invoice->invoice_number,
             'CbteFch' => $invoice->invoice_date->format('Ymd'),
@@ -169,10 +194,7 @@ class AfipService
     public function getLastAuthorizedVoucher(int $pointOfSale, int $voucherType): int
     {
         try {
-            $response = $this->afip->ElectronicBilling->GetLastAuthorizedVoucher([
-                'PtoVta' => $pointOfSale,
-                'CbteTipo' => $voucherType
-            ]);
+            $response = $this->afip->ElectronicBilling->GetLastVoucher($pointOfSale, $voucherType);
             
             return $response['CbteNro'] ?? 0;
         } catch (Exception $e) {

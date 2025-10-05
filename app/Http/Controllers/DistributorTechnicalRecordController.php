@@ -98,15 +98,19 @@ class DistributorTechnicalRecordController extends Controller
         $giftProducts = [];
         $discountDetails = [];
         
+        // MOD: Guardar descuentos por producto para actualizar precios
         if (!empty($validated['products_purchased'])) {
-            foreach ($validated['products_purchased'] as $productData) {
+            foreach ($validated['products_purchased'] as $index => $productData) {
                 $supplierInventory = SupplierInventory::find($productData['product_id']);
                 if ($supplierInventory) {
                     // Usar precio con descuento si está disponible, sino calcular según tipo de compra
                     $price = 0;
+                    $originalPrice = 0;
+                    
                     if (!empty($productData['price']) && $productData['price'] > 0) {
                         // Usar precio con descuento aplicado
                         $price = $productData['price'];
+                        $originalPrice = $productData['original_price'] ?? $price;
                     } else {
                         // Determinar el precio según el tipo de compra
                         switch ($validated['purchase_type']) {
@@ -121,10 +125,15 @@ class DistributorTechnicalRecordController extends Controller
                                 $price = $supplierInventory->precio_menor ?: $supplierInventory->precio_mayor ?: 0;
                                 break;
                         }
+                        $originalPrice = $price;
                     }
                     
                     $subtotalProduct = $price * $productData['quantity'];
                     $calculatedTotal += $subtotalProduct;
+                    
+                    // MOD: Inicializar precio final del producto
+                    $finalPricePerUnit = $price;
+                    $productDiscountAmount = 0;
                     
                     // Buscar descuentos aplicables para este producto
                     $availableDiscounts = DistributorDiscount::valid()
@@ -146,6 +155,8 @@ class DistributorTechnicalRecordController extends Controller
                         // Aplicar descuento si hay monto de descuento o si es un regalo (final_price = 0)
                         if ($calculation['discount_amount'] > 0 || $calculation['final_price'] == 0) {
                             $totalDiscountAmount += $calculation['discount_amount'];
+                            $productDiscountAmount += $calculation['discount_amount'];
+                            
                             $discountDetails[] = [
                                 'discount_id' => $discount->id,
                                 'product_name' => $supplierInventory->product_name,
@@ -173,6 +184,15 @@ class DistributorTechnicalRecordController extends Controller
                             $discount->incrementUsage();
                         }
                     }
+                    
+                    // MOD: Calcular precio final por unidad con descuento aplicado
+                    if ($productDiscountAmount > 0 && $productData['quantity'] > 0) {
+                        $finalPricePerUnit = ($subtotalProduct - $productDiscountAmount) / $productData['quantity'];
+                    }
+                    
+                    // MOD: Guardar el precio final con descuento en el array de productos
+                    $validated['products_purchased'][$index]['price'] = $finalPricePerUnit;
+                    $validated['products_purchased'][$index]['original_price'] = $originalPrice;
                 }
             }
         }
@@ -449,15 +469,19 @@ class DistributorTechnicalRecordController extends Controller
         $giftProducts = [];
         $discountDetails = [];
         
+        // MOD: Guardar descuentos por producto para actualizar precios
         if (!empty($validated['products_purchased'])) {
-            foreach ($validated['products_purchased'] as $productData) {
+            foreach ($validated['products_purchased'] as $index => $productData) {
                 $supplierInventory = SupplierInventory::find($productData['product_id']);
                 if ($supplierInventory) {
                     // Usar precio con descuento si está disponible, sino calcular según tipo de compra
                     $price = 0;
+                    $originalPrice = 0;
+                    
                     if (!empty($productData['price']) && $productData['price'] > 0) {
                         // Usar precio con descuento aplicado
                         $price = $productData['price'];
+                        $originalPrice = $productData['original_price'] ?? $price;
                     } else {
                         // Determinar el precio según el tipo de compra
                         switch ($validated['purchase_type']) {
@@ -472,10 +496,15 @@ class DistributorTechnicalRecordController extends Controller
                                 $price = $supplierInventory->precio_menor ?: $supplierInventory->precio_mayor ?: 0;
                                 break;
                         }
+                        $originalPrice = $price;
                     }
                     
                     $subtotalProduct = $price * $productData['quantity'];
                     $calculatedTotal += $subtotalProduct;
+                    
+                    // MOD: Inicializar precio final del producto
+                    $finalPricePerUnit = $price;
+                    $productDiscountAmount = 0;
                     
                     // Buscar descuentos aplicables para este producto
                     $availableDiscounts = DistributorDiscount::valid()
@@ -497,6 +526,8 @@ class DistributorTechnicalRecordController extends Controller
                         // Aplicar descuento si hay monto de descuento o si es un regalo (final_price = 0)
                         if ($calculation['discount_amount'] > 0 || $calculation['final_price'] == 0) {
                             $totalDiscountAmount += $calculation['discount_amount'];
+                            $productDiscountAmount += $calculation['discount_amount'];
+                            
                             $discountDetails[] = [
                                 'discount_id' => $discount->id,
                                 'product_name' => $supplierInventory->product_name,
@@ -524,6 +555,15 @@ class DistributorTechnicalRecordController extends Controller
                             $discount->incrementUsage();
                         }
                     }
+                    
+                    // MOD: Calcular precio final por unidad con descuento aplicado
+                    if ($productDiscountAmount > 0 && $productData['quantity'] > 0) {
+                        $finalPricePerUnit = ($subtotalProduct - $productDiscountAmount) / $productData['quantity'];
+                    }
+                    
+                    // MOD: Guardar el precio final con descuento en el array de productos
+                    $validated['products_purchased'][$index]['price'] = $finalPricePerUnit;
+                    $validated['products_purchased'][$index]['original_price'] = $originalPrice;
                 }
             }
         }

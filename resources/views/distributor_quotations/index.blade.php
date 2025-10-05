@@ -29,27 +29,11 @@
     @endif
 
     <!-- Buscador -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <form action="{{ route('distributor-quotations.index') }}" method="GET" class="row g-3">
-                <div class="col-md-4">
-                    <input type="text" name="search" class="form-control"
-                           placeholder="Buscar por número de presupuesto, cliente o descripción"
-                           value="{{ request('search') }}">
-                </div>
-                <div class="col-auto">
-                    <button type="submit" class="btn btn-secondary">
-                        <i class="fas fa-search"></i> Buscar
-                    </button>
-                    @if(request('search'))
-                        <a href="{{ route('distributor-quotations.index') }}" class="btn btn-light">
-                            <i class="fas fa-times"></i> Limpiar
-                        </a>
-                    @endif
-                </div>
-            </form>
-        </div>
-    </div>
+    <x-filters 
+        :route="route('distributor-quotations.index')" 
+        :filters="[]" 
+        :showSearch="true"
+        searchPlaceholder="Buscar por número de presupuesto, cliente o descripción" />
 
     <!-- Tabla de presupuestos -->
     <div class="card">

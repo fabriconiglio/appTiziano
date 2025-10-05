@@ -117,9 +117,59 @@
                                                    class="btn btn-warning btn-sm" title="Editar">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
+                                                <button type="button" 
+                                                        class="btn btn-danger btn-sm" 
+                                                        title="Eliminar"
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#deleteModal{{ $record->id }}">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>
+                                    
+                                    <!-- Modal de Confirmación de Eliminación -->
+                                    <div class="modal fade" id="deleteModal{{ $record->id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ $record->id }}" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="deleteModalLabel{{ $record->id }}">
+                                                        <i class="fas fa-exclamation-triangle text-danger me-2"></i>
+                                                        Confirmar Eliminación
+                                                    </h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p class="mb-3">
+                                                        ¿Estás seguro de que quieres <strong>eliminar permanentemente</strong> esta ficha técnica?
+                                                    </p>
+                                                    <div class="alert alert-warning">
+                                                        <strong>Fecha:</strong> {{ $record->service_date->format('d/m/Y H:i') }}<br>
+                                                        <strong>Estilista:</strong> {{ $record->stylist->name }}<br>
+                                                        <strong>Tratamientos:</strong> {{ Str::limit($record->hair_treatments, 80) }}
+                                                    </div>
+                                                    <p class="text-danger mb-0">
+                                                        <i class="fas fa-info-circle me-1"></i>
+                                                        <strong>Esta acción no se puede deshacer.</strong>
+                                                    </p>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                        <i class="fas fa-times me-1"></i> Cancelar
+                                                    </button>
+                                                    <form action="{{ route('clients.technical-records.destroy', [$client, $record]) }}" 
+                                                          method="POST" 
+                                                          style="display: inline;">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="btn btn-danger">
+                                                            <i class="fas fa-trash me-1"></i> Sí, Eliminar
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 @endforeach
                                 </tbody>
                             </table>

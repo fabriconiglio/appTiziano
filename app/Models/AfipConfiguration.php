@@ -54,7 +54,7 @@ class AfipConfiguration extends Model
     {
         return [
             'cuit' => static::get('afip_cuit'),
-            'production' => static::get('afip_production', false),
+            'production' => static::get('afip_production', 'false') === 'true',
             'certificate_path' => static::get('afip_certificate_path'),
             'private_key_path' => static::get('afip_private_key_path'),
             'point_of_sale' => static::get('afip_point_of_sale', '1'),

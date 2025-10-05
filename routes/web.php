@@ -224,6 +224,8 @@ Route::get('/api/supplier-inventories/get-product', [App\Http\Controllers\Suppli
         // APIs para obtener información
         Route::get('/clients/{client}/info', [AfipInvoiceController::class, 'getClientInfo'])->name('clients.info');
         Route::get('/products/{product}/info', [AfipInvoiceController::class, 'getProductInfo'])->name('products.info');
+        Route::get('/clients/{clientId}/purchases', [AfipInvoiceController::class, 'getClientPurchases'])->name('clients.purchases');
+        Route::get('/technical-records/{technicalRecordId}/products', [AfipInvoiceController::class, 'getTechnicalRecordProducts'])->name('technical-records.products');
         
         // Rutas con parámetros (deben ir al final)
         Route::get('/{facturacion}', [AfipInvoiceController::class, 'show'])->name('show');

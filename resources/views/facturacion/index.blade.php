@@ -4,63 +4,30 @@
 
 @section('content')
 <div class="container-fluid">
+    <!-- Cabecera -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-file-invoice"></i> Facturación AFIP</h1>
+        <div class="d-flex gap-2">
+            <a href="{{ route('facturacion.create') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nueva Factura
+            </a>
+            <a href="{{ route('facturacion.configuration') }}" class="btn btn-secondary">
+                <i class="fas fa-cog"></i> Configuración
+            </a>
+        </div>
+    </div>
+
     <div class="row">
         <div class="col-12">
             <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">
-                        <i class="fas fa-file-invoice"></i> Facturación AFIP
-                    </h3>
-                    <div class="card-tools">
-                        <a href="{{ route('facturacion.create') }}" class="btn btn-primary btn-sm">
-                            <i class="fas fa-plus"></i> Nueva Factura
-                        </a>
-                        <a href="{{ route('facturacion.configuration') }}" class="btn btn-secondary btn-sm">
-                            <i class="fas fa-cog"></i> Configuración
-                        </a>
-                    </div>
-                </div>
 
                 <div class="card-body">
-                    <!-- Filtros -->
-                    <form method="GET" class="mb-4">
-                        <div class="row">
-                            <div class="col-md-2">
-                                <select name="status" class="form-control form-control-sm">
-                                    <option value="">Todos los estados</option>
-                                    <option value="draft" {{ request('status') == 'draft' ? 'selected' : '' }}>Borrador</option>
-                                    <option value="sent" {{ request('status') == 'sent' ? 'selected' : '' }}>Enviada</option>
-                                    <option value="authorized" {{ request('status') == 'authorized' ? 'selected' : '' }}>Autorizada</option>
-                                    <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>Rechazada</option>
-                                    <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelada</option>
-                                </select>
-                            </div>
-                            <div class="col-md-2">
-                                <select name="invoice_type" class="form-control form-control-sm">
-                                    <option value="">Todos los tipos</option>
-                                    <option value="A" {{ request('invoice_type') == 'A' ? 'selected' : '' }}>Factura A</option>
-                                    <option value="B" {{ request('invoice_type') == 'B' ? 'selected' : '' }}>Factura B</option>
-                                    <option value="C" {{ request('invoice_type') == 'C' ? 'selected' : '' }}>Factura C</option>
-                                </select>
-                            </div>
-                            <div class="col-md-2">
-                                <input type="date" name="date_from" class="form-control form-control-sm" 
-                                       value="{{ request('date_from') }}" placeholder="Desde">
-                            </div>
-                            <div class="col-md-2">
-                                <input type="date" name="date_to" class="form-control form-control-sm" 
-                                       value="{{ request('date_to') }}" placeholder="Hasta">
-                            </div>
-                            <div class="col-md-2">
-                                <button type="submit" class="btn btn-primary btn-sm">
-                                    <i class="fas fa-search"></i> Filtrar
-                                </button>
-                                <a href="{{ route('facturacion.index') }}" class="btn btn-secondary btn-sm">
-                                    <i class="fas fa-times"></i> Limpiar
-                                </a>
-                            </div>
-                        </div>
-                    </form>
+                    <!-- Buscador -->
+                    <x-filters 
+                        :route="route('facturacion.index')" 
+                        :filters="[]" 
+                        :showSearch="true"
+                        searchPlaceholder="Buscar por número de factura, cliente, CUIT..." />
 
                     <!-- Tabla de facturas -->
                     <div class="table-responsive">
@@ -171,13 +138,3 @@
 </div>
 @endsection
 
-@push('scripts')
-<script>
-    // Auto-submit del formulario de filtros
-    document.querySelectorAll('select[name="status"], select[name="invoice_type"]').forEach(select => {
-        select.addEventListener('change', function() {
-            this.form.submit();
-        });
-    });
-</script>
-@endpush

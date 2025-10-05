@@ -10,6 +10,7 @@ class AfipInvoice extends Model
 {
     protected $fillable = [
         'distributor_client_id',
+        'technical_record_id',
         'invoice_type',
         'point_of_sale',
         'invoice_number',
@@ -37,6 +38,11 @@ class AfipInvoice extends Model
     public function distributorClient(): BelongsTo
     {
         return $this->belongsTo(DistributorClient::class);
+    }
+
+    public function technicalRecord(): BelongsTo
+    {
+        return $this->belongsTo(DistributorTechnicalRecord::class);
     }
 
     public function items(): HasMany

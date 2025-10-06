@@ -117,19 +117,9 @@ class DailySalesController extends Controller
             $countTechnicalRecords = 0;
         }
 
-        // Ventas de cuentas corrientes de clientes (solo si la tabla existe)
+        // Ventas de cuentas corrientes de clientes - NO incluir en distribuidora
         $clientAccountSales = 0;
         $countClientAccounts = 0;
-        try {
-            if (Schema::hasTable('client_current_accounts')) {
-                $clientAccountSales = ClientCurrentAccount::whereBetween('created_at', [$startOfPeriod, $endOfPeriod])
-                    ->sum('amount');
-                $countClientAccounts = ClientCurrentAccount::whereBetween('created_at', [$startOfPeriod, $endOfPeriod])->count();
-            }
-        } catch (\Exception $e) {
-            $clientAccountSales = 0;
-            $countClientAccounts = 0;
-        }
 
         // Ventas de cuentas corrientes de distribuidores (solo si la tabla existe)
         $distributorAccountSales = 0;
@@ -215,19 +205,9 @@ class DailySalesController extends Controller
             $countTechnicalRecords = 0;
         }
 
-        // Ventas de cuentas corrientes de clientes (solo si la tabla existe)
+        // Ventas de cuentas corrientes de clientes - NO incluir en distribuidora
         $clientAccountSales = 0;
         $countClientAccounts = 0;
-        try {
-            if (Schema::hasTable('client_current_accounts')) {
-                $clientAccountSales = ClientCurrentAccount::whereBetween('created_at', [$startOfDay, $endOfDay])
-                    ->sum('amount');
-                $countClientAccounts = ClientCurrentAccount::whereBetween('created_at', [$startOfDay, $endOfDay])->count();
-            }
-        } catch (\Exception $e) {
-            $clientAccountSales = 0;
-            $countClientAccounts = 0;
-        }
 
         // Ventas de cuentas corrientes de distribuidores (solo si la tabla existe)
         $distributorAccountSales = 0;
@@ -418,18 +398,14 @@ class DailySalesController extends Controller
                     ->get();
                     
             case 'current_accounts':
-                $clientAccounts = ClientCurrentAccount::whereBetween('created_at', [$startOfPeriod, $endOfPeriod])
-                    ->with('client')
-                    ->orderBy('created_at', 'desc')
-                    ->get();
-                    
+                // Solo mostrar cuentas corrientes de distribuidores en ventas diarias de distribuidora
                 $distributorAccounts = DistributorCurrentAccount::whereBetween('created_at', [$startOfPeriod, $endOfPeriod])
                     ->with('distributorClient')
                     ->orderBy('created_at', 'desc')
                     ->get();
                     
                 return [
-                    'client_accounts' => $clientAccounts,
+                    'client_accounts' => collect(), // Vacío para distribuidora
                     'distributor_accounts' => $distributorAccounts
                 ];
                 
@@ -450,10 +426,7 @@ class DailySalesController extends Controller
                         ->with('distributorClient')
                         ->orderBy('created_at', 'desc')
                         ->get(),
-                    'client_accounts' => ClientCurrentAccount::whereBetween('created_at', [$startOfPeriod, $endOfPeriod])
-                        ->with('client')
-                        ->orderBy('created_at', 'desc')
-                        ->get(),
+                    'client_accounts' => collect(), // Vacío para distribuidora
                     'distributor_accounts' => DistributorCurrentAccount::whereBetween('created_at', [$startOfPeriod, $endOfPeriod])
                         ->with('distributorClient')
                         ->orderBy('created_at', 'desc')

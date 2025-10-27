@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Log;
 
 class AfipService
 {
-    private $afip;
+    public $afip;
     private $config;
 
     public function __construct()
@@ -27,8 +27,14 @@ class AfipService
             $key  = $this->config['private_key_path'];
 
             // Validar que los archivos existan y sean legibles
+            if (!file_exists($cert)) {
+                throw new Exception("Certificado no encontrado en: {$cert}");
+            }
             if (!is_readable($cert)) {
                 throw new Exception("Certificado no accesible en: {$cert}");
+            }
+            if (!file_exists($key)) {
+                throw new Exception("Clave privada no encontrada en: {$key}");
             }
             if (!is_readable($key)) {
                 throw new Exception("Clave privada no accesible en: {$key}");
@@ -36,10 +42,52 @@ class AfipService
 
             // Validar que el certificado sea PEM válido
             $certContent = file_get_contents($cert);
-            $first = trim(explode("\n", $certContent)[0] ?? '');
-            if ($first !== '-----BEGIN CERTIFICATE-----') {
+            $certContent = trim($certContent);
+            
+            // Validar cabecera y pie del certificado
+            if (!str_starts_with($certContent, '-----BEGIN CERTIFICATE-----')) {
                 throw new Exception("El certificado no es PEM válido (cabecera faltante).");
             }
+            if (!str_ends_with($certContent, '-----END CERTIFICATE-----')) {
+                throw new Exception("El certificado no es PEM válido (pie faltante).");
+            }
+
+            // Validar que el certificado sea parseable
+            $certResource = openssl_x509_read($certContent);
+            if ($certResource === false) {
+                throw new Exception("El certificado no es válido (error al parsear).");
+            }
+
+            // Obtener información del certificado
+            $certInfo = openssl_x509_parse($certResource);
+            if ($certInfo === false) {
+                throw new Exception("No se pudo obtener información del certificado.");
+            }
+
+            // Validar que el certificado no esté vencido
+            $validTo = $certInfo['validTo_time_t'];
+            if ($validTo < time()) {
+                throw new Exception("El certificado está vencido (expiró el " . date('Y-m-d', $validTo) . ").");
+            }
+
+            // Validar que el certificado corresponda al ambiente correcto
+            $issuer = $certInfo['issuer']['CN'] ?? '';
+            $isProduction = $this->config['production'];
+            
+            if ($isProduction && str_contains($issuer, 'Test')) {
+                throw new Exception("El certificado es de TESTING pero la configuración está en PRODUCCIÓN.");
+            }
+            if (!$isProduction && !str_contains($issuer, 'Test')) {
+                Log::warning("El certificado parece ser de PRODUCCIÓN pero la configuración está en TESTING.");
+            }
+
+            // Log de información del certificado
+            Log::info('Certificado AFIP validado correctamente', [
+                'issuer' => $issuer,
+                'subject' => $certInfo['subject']['CN'] ?? 'N/A',
+                'valid_until' => date('Y-m-d', $validTo),
+                'environment' => $isProduction ? 'PRODUCCIÓN' : 'TESTING'
+            ]);
 
             // Asegurar que existe el directorio para tokens de autorización
             $taFolder = storage_path('app/afip/ta');
@@ -47,15 +95,24 @@ class AfipService
                 mkdir($taFolder, 0755, true);
             }
 
+            // Leer el contenido de los certificados
+            $certContent = file_get_contents($cert);
+            $keyContent = file_get_contents($key);
+            
             $this->afip = new Afip([
                 'CUIT' => $this->config['cuit'],
                 'production' => $this->config['production'],
-                'cert' => $cert,
-                'key' => $key,
+                'cert' => $certContent,  // Pasar contenido en lugar de ruta
+                'key' => $keyContent,    // Pasar contenido en lugar de ruta
                 'ta_folder' => $taFolder
             ]);
         } catch (Exception $e) {
-            Log::error('Error inicializando AFIP: ' . $e->getMessage());
+            Log::error('Error inicializando AFIP: ' . $e->getMessage(), [
+                'certificate_path' => $cert ?? 'N/A',
+                'private_key_path' => $key ?? 'N/A',
+                'cuit' => $this->config['cuit'] ?? 'N/A',
+                'production' => $this->config['production'] ?? 'N/A'
+            ]);
             throw new Exception('Error de configuración AFIP: ' . $e->getMessage());
         }
     }
@@ -84,7 +141,7 @@ class AfipService
                 'success' => true,
                 'cae' => $response['CAE'],
                 'expiration' => $response['CAEFchVto'],
-                'invoice_number' => $response['voucher_number']
+                'invoice_number' => $response['voucher_number'] ?? $invoice->invoice_number
             ];
 
         } catch (Exception $e) {
@@ -115,22 +172,40 @@ class AfipService
         // Preparar items
         $items = $this->prepareInvoiceItems($invoice->items);
         
-        return [
+        // Determinar tipo y número de documento
+        $docTipo = 99; // Consumidor Final por defecto
+        $docNro = 0;
+        $condicionIva = 5; // Consumidor Final por defecto
+        
+        if (!empty($client->dni)) {
+            // Si tiene DNI, usar tipo DNI (96) con el número
+            $docTipo = $this->getDocumentType('DNI');
+            $docNro = intval($client->dni);
+            // Si tiene DNI, asumimos Responsable Inscripto (1)
+            $condicionIva = 1;
+        }
+        
+        // Para facturas tipo C, el IVA debe ser 0 y no se envía el objeto Iva
+        $impIVA = ($invoice->invoice_type === 'C') ? 0 : $invoice->tax_amount;
+        $impNeto = ($invoice->invoice_type === 'C') ? $invoice->total : $invoice->subtotal;
+        $ivaArray = ($invoice->invoice_type === 'C') ? null : $items['iva'];
+        
+        $data = [
             'CantReg' => 1,
             'PtoVta' => $invoice->point_of_sale,
             'CbteTipo' => $voucherType,
             'Concepto' => 1, // Productos
-            'DocTipo' => $this->getDocumentType('DNI'),
-            'DocNro' => $client->dni ?? '00000000',
+            'DocTipo' => $docTipo,
+            'DocNro' => $docNro,
             'CbteDesde' => $invoice->invoice_number,
             'CbteHasta' => $invoice->invoice_number,
             'CbteFch' => $invoice->invoice_date->format('Ymd'),
             'ImpTotal' => $invoice->total,
             'ImpTotConc' => 0,
-            'ImpNeto' => $invoice->subtotal,
+            'ImpNeto' => $impNeto,
             'ImpOpEx' => 0,
             'ImpTrib' => 0,
-            'ImpIVA' => $invoice->tax_amount,
+            'ImpIVA' => $impIVA,
             'FchServDesde' => null,
             'FchServHasta' => null,
             'FchVtoPago' => null,
@@ -138,9 +213,20 @@ class AfipService
             'MonCotiz' => 1,
             'CbtesAsoc' => null,
             'Tributos' => null,
-            'Iva' => $items['iva'],
-            'Opcionales' => null
+            'Iva' => $ivaArray,
+            'Opcionales' => null,
+            'CondicionIVAReceptorId' => $condicionIva // Condición Frente al IVA del receptor
         ];
+        
+        // Log para debug
+        Log::info('Datos enviados a AFIP', [
+            'docTipo' => $docTipo,
+            'docNro' => $docNro,
+            'condicionIva' => $condicionIva,
+            'opcionales' => $data['Opcionales']
+        ]);
+        
+        return $data;
     }
 
     /**

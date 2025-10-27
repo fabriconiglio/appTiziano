@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AfipConfiguration;
 use App\Models\AfipInvoice;
 use App\Models\AfipInvoiceItem;
 use App\Models\DistributorClient;
@@ -9,9 +10,11 @@ use App\Models\DistributorTechnicalRecord;
 use App\Models\Product;
 use App\Models\SupplierInventory;
 use App\Services\AfipService;
+use Barryvdh\DomPDF\Facade\Pdf as PDF;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use SimpleSoftwareIO\QrCode\Generator;
 
 class AfipInvoiceController extends Controller
 {
@@ -228,11 +231,22 @@ class AfipInvoiceController extends Controller
      */
     public function sendToAfip(AfipInvoice $facturacion)
     {
-        if ($facturacion->status !== 'draft') {
-            return back()->with('error', 'Solo se pueden enviar facturas en estado borrador');
+        // Permitir reenvío de facturas rechazadas
+        if (!in_array($facturacion->status, ['draft', 'rejected'])) {
+            return back()->with('error', 'Solo se pueden enviar facturas en estado borrador o rechazadas');
         }
 
         try {
+            // Si la factura está rechazada, resetear el estado antes de reenviar
+            if ($facturacion->status === 'rejected') {
+                $facturacion->update([
+                    'status' => 'draft',
+                    'cae' => null,
+                    'cae_expiration' => null,
+                    'afip_response' => null
+                ]);
+            }
+
             $result = $this->afipService->createInvoice($facturacion);
 
             if ($result['success']) {
@@ -261,6 +275,102 @@ class AfipInvoiceController extends Controller
         $facturacion->update(['status' => 'cancelled']);
 
         return back()->with('success', 'Factura cancelada exitosamente');
+    }
+
+    /**
+     * Descargar PDF de la factura con formato oficial AFIP
+     */
+    public function downloadPdf(AfipInvoice $facturacion)
+    {
+        if ($facturacion->status !== 'authorized') {
+            return back()->with('error', 'Solo se pueden descargar facturas autorizadas');
+        }
+
+        try {
+            // Cargar relaciones necesarias
+            $facturacion->load(['distributorClient', 'items.product']);
+            
+            // Obtener configuración AFIP
+            $config = AfipConfiguration::getAfipConfig();
+            
+            // Generar código de barras del CAE
+            $barcodeData = $this->generateBarcodeData($facturacion, $config);
+            
+            // Generar QR code para verificación AFIP
+            try {
+                $qrCode = $this->generateQrCode($facturacion, $config);
+            } catch (\Exception $e) {
+                Log::warning('Error generando QR code, usando código de barras numérico: ' . $e->getMessage());
+                $qrCode = null; // Fallback a código de barras numérico
+            }
+            
+            // Generar PDF
+            $pdf = PDF::loadView('facturacion.pdf', [
+                'invoice' => $facturacion,
+                'config' => $config,
+                'barcodeData' => $barcodeData,
+                'qrCode' => $qrCode,
+                'generatedAt' => now()->format('d/m/Y H:i')
+            ]);
+            
+            // Configurar opciones del PDF
+            $pdf->setPaper('a4', 'portrait');
+            
+            return $pdf->download('Factura-' . $facturacion->formatted_number . '.pdf');
+            
+        } catch (\Exception $e) {
+            Log::error('Error generando PDF de factura: ' . $e->getMessage());
+            return back()->with('error', 'Error al generar el PDF: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Generar QR code para verificación AFIP
+     */
+    private function generateQrCode(AfipInvoice $invoice, array $config): string
+    {
+        // URL de verificación AFIP con los datos del comprobante
+        $verificationUrl = "https://www.afip.gob.ar/fe/qr/?p=" . urlencode(json_encode([
+            'ver' => 1,
+            'fecha' => $invoice->invoice_date->format('Y-m-d'),
+            'cuit' => $config['cuit'],
+            'ptoVta' => $invoice->point_of_sale,
+            'tipoCmp' => $this->getVoucherType($invoice->invoice_type),
+            'nroCmp' => $invoice->invoice_number,
+            'importe' => $invoice->total,
+            'moneda' => 'PES',
+            'ctz' => 1,
+            'tipoDocRec' => $invoice->distributorClient->dni ? 96 : 99,
+            'nroDocRec' => $invoice->distributorClient->dni ?? 0,
+            'tipoCodAut' => 'E',
+            'codAut' => $invoice->cae
+        ]));
+        
+        // Generar QR code como data URI (base64)
+        $qrGenerator = new Generator();
+        return 'data:image/png;base64,' . base64_encode(
+            $qrGenerator->format('png')
+                ->size(150)
+                ->margin(1)
+                ->generate($verificationUrl)
+        );
+    }
+
+    /**
+     * Generar datos del código de barras del CAE según especificaciones AFIP
+     */
+    private function generateBarcodeData(AfipInvoice $invoice, array $config): string
+    {
+        // Formato del código de barras según AFIP:
+        // CUIT (11) + Tipo Comprobante (3) + Punto Venta (5) + CAE (14) + Vencimiento CAE (8)
+        
+        $cuit = str_pad($config['cuit'], 11, '0', STR_PAD_LEFT);
+        $voucherType = str_pad($this->getVoucherType($invoice->invoice_type), 3, '0', STR_PAD_LEFT);
+        $pointOfSale = str_pad($invoice->point_of_sale, 5, '0', STR_PAD_LEFT);
+        $cae = str_pad($invoice->cae, 14, '0', STR_PAD_LEFT);
+        $caeExpiration = $invoice->cae_expiration->format('Ymd');
+        
+        return $cuit . $voucherType . $pointOfSale . $cae . $caeExpiration;
     }
 
     /**

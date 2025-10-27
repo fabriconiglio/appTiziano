@@ -16,13 +16,21 @@
                             <i class="fas fa-arrow-left"></i> Volver
                         </a>
                         
-                        @if($facturacion->status === 'draft')
+                        @if($facturacion->status === 'authorized')
+                            <a href="{{ route('facturacion.download-pdf', $facturacion->id) }}" 
+                               class="btn btn-primary btn-sm" target="_blank">
+                                <i class="fas fa-file-pdf"></i> Descargar PDF
+                            </a>
+                        @endif
+                        
+                        @if(in_array($facturacion->status, ['draft', 'rejected']))
                             <form action="{{ route('facturacion.send', $facturacion->id) }}" 
                                   method="POST" class="d-inline">
                                 @csrf
                                 <button type="submit" class="btn btn-success btn-sm" 
-                                        onclick="return confirm('¿Enviar factura a AFIP?')">
-                                    <i class="fas fa-paper-plane"></i> Enviar a AFIP
+                                        onclick="return confirm('{{ $facturacion->status === 'rejected' ? '¿Reenviar factura rechazada a AFIP?' : '¿Enviar factura a AFIP?' }}')">
+                                    <i class="fas fa-paper-plane"></i> 
+                                    {{ $facturacion->status === 'rejected' ? 'Re-enviar a AFIP' : 'Enviar a AFIP' }}
                                 </button>
                             </form>
                         @endif
@@ -197,8 +205,27 @@
                     <div class="row mt-4">
                         <div class="col-12">
                             <h5><i class="fas fa-server"></i> Respuesta de AFIP</h5>
-                            <div class="card">
+                            <div class="card {{ $facturacion->status === 'rejected' ? 'border-danger' : '' }}">
+                                <div class="card-header {{ $facturacion->status === 'rejected' ? 'bg-danger text-white' : 'bg-success text-white' }}">
+                                    <strong>
+                                        @if($facturacion->status === 'rejected')
+                                            <i class="fas fa-exclamation-triangle"></i> Error al procesar la factura
+                                        @else
+                                            <i class="fas fa-check-circle"></i> Factura procesada correctamente
+                                        @endif
+                                    </strong>
+                                </div>
                                 <div class="card-body">
+                                    @if($facturacion->status === 'rejected')
+                                        <div class="alert alert-danger">
+                                            <strong>Error:</strong> 
+                                            @if(isset($facturacion->afip_response['error']))
+                                                {{ $facturacion->afip_response['error'] }}
+                                            @else
+                                                La factura fue rechazada por AFIP
+                                            @endif
+                                        </div>
+                                    @endif
                                     <pre class="mb-0"><code>{{ json_encode($facturacion->afip_response, JSON_PRETTY_PRINT) }}</code></pre>
                                 </div>
                             </div>

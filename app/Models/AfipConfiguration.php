@@ -54,6 +54,10 @@ class AfipConfiguration extends Model
     {
         return [
             'cuit' => static::get('afip_cuit'),
+            'razon_social' => static::get('afip_razon_social', 'TIZIANO'),
+            'domicilio_comercial' => static::get('afip_domicilio_comercial', ''),
+            'inicio_actividades' => static::get('afip_inicio_actividades', ''),
+            'condicion_iva' => static::get('afip_condicion_iva', 'Responsable Inscripto'),
             'production' => static::get('afip_production', 'false') === 'true',
             'certificate_path' => static::get('afip_certificate_path'),
             'private_key_path' => static::get('afip_private_key_path'),

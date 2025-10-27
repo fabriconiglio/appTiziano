@@ -231,6 +231,7 @@ Route::get('/api/supplier-inventories/get-product', [App\Http\Controllers\Suppli
         Route::get('/{facturacion}', [AfipInvoiceController::class, 'show'])->name('show');
         Route::post('/{facturacion}/send', [AfipInvoiceController::class, 'sendToAfip'])->name('send');
         Route::post('/{facturacion}/cancel', [AfipInvoiceController::class, 'cancel'])->name('cancel');
+        Route::get('/{facturacion}/download-pdf', [AfipInvoiceController::class, 'downloadPdf'])->name('download-pdf');
     });
 
 });

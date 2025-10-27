@@ -88,8 +88,8 @@
                                                 @case('transferencia')
                                                     Transferencia
                                                     @break
-                                                @case('cheque')
-                                                    Cheque
+                                                @case('deuda')
+                                                    Deuda/Deudor
                                                     @break
                                                 @default
                                                     No especificado

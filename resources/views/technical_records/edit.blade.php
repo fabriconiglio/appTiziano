@@ -193,7 +193,7 @@
                                         <option value="efectivo" {{ old('payment_method', $technicalRecord->payment_method) == 'efectivo' ? 'selected' : '' }}>Efectivo</option>
                                         <option value="tarjeta" {{ old('payment_method', $technicalRecord->payment_method) == 'tarjeta' ? 'selected' : '' }}>Tarjeta</option>
                                         <option value="transferencia" {{ old('payment_method', $technicalRecord->payment_method) == 'transferencia' ? 'selected' : '' }}>Transferencia</option>
-                                        <option value="cheque" {{ old('payment_method', $technicalRecord->payment_method) == 'cheque' ? 'selected' : '' }}>Cheque</option>
+                                        <option value="deuda" {{ old('payment_method', $technicalRecord->payment_method) == 'deuda' ? 'selected' : '' }}>Deuda/Deudor</option>
                                     </select>
                                     @error('payment_method')
                                     <div class="invalid-feedback">{{ $message }}</div>

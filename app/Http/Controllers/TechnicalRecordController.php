@@ -48,7 +48,7 @@ class TechnicalRecordController extends Controller
             'observations' => 'nullable|string',
             'photos.*' => 'nullable|image|max:2048',
             'next_appointment_notes' => 'nullable|string',
-            'payment_method' => 'nullable|string',
+            'payment_method' => 'nullable|string|in:efectivo,tarjeta,transferencia,deuda',
             'use_current_account' => 'nullable|boolean'
         ]);
 
@@ -195,7 +195,7 @@ class TechnicalRecordController extends Controller
             'observations' => 'nullable|string',
             'photos.*' => 'nullable|image|max:2048',
             'next_appointment_notes' => 'nullable|string',
-            'payment_method' => 'nullable|string',
+            'payment_method' => 'nullable|string|in:efectivo,tarjeta,transferencia,deuda',
             'use_current_account' => 'nullable|boolean'
         ]);
 

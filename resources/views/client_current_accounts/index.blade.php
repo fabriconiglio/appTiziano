@@ -26,7 +26,7 @@
         </div>
     @endif
 
-    <!-- Buscador -->
+    <!-- Buscador y Filtros -->
     <div class="card mb-4">
         <div class="card-body">
             <form action="{{ route('client-current-accounts.index') }}" method="GET" class="row g-3">
@@ -35,11 +35,25 @@
                            placeholder="Buscar por nombre, DNI, email o teléfono"
                            value="{{ request('search') }}">
                 </div>
+                <div class="col-md-3">
+                    <select name="debt_status" class="form-select">
+                        <option value="">Todos los estados</option>
+                        <option value="with_debt" {{ request('debt_status') == 'with_debt' ? 'selected' : '' }}>
+                            Con Deuda
+                        </option>
+                        <option value="up_to_date" {{ request('debt_status') == 'up_to_date' ? 'selected' : '' }}>
+                            Al Día
+                        </option>
+                        <option value="in_favor" {{ request('debt_status') == 'in_favor' ? 'selected' : '' }}>
+                            A Favor
+                        </option>
+                    </select>
+                </div>
                 <div class="col-auto">
                     <button type="submit" class="btn btn-secondary">
                         <i class="fas fa-search"></i>
                     </button>
-                    @if(request('search'))
+                    @if(request('search') || request('debt_status'))
                         <a href="{{ route('client-current-accounts.index') }}" class="btn btn-light">
                             <i class="fas fa-times"></i>
                         </a>
@@ -48,6 +62,41 @@
             </form>
         </div>
     </div>
+
+    <!-- Indicadores de filtros activos -->
+    @if(request('search') || request('debt_status'))
+        <div class="alert alert-info mb-4">
+            <h6 class="alert-heading">
+                <i class="fas fa-filter me-2"></i>
+                Filtros aplicados:
+            </h6>
+            <div class="d-flex flex-wrap gap-2">
+                @if(request('search'))
+                    <span class="badge bg-primary">
+                        <i class="fas fa-search me-1"></i>
+                        Búsqueda: "{{ request('search') }}"
+                    </span>
+                @endif
+                @if(request('debt_status'))
+                    <span class="badge bg-secondary">
+                        <i class="fas fa-chart-line me-1"></i>
+                        Estado: 
+                        @switch(request('debt_status'))
+                            @case('with_debt')
+                                Con Deuda
+                                @break
+                            @case('up_to_date')
+                                Al Día
+                                @break
+                            @case('in_favor')
+                                A Favor
+                                @break
+                        @endswitch
+                    </span>
+                @endif
+            </div>
+        </div>
+    @endif
 
     <!-- Tabla de clientes -->
     <div class="card">

@@ -29,13 +29,50 @@ class ClientCurrentAccountController extends Controller
             });
         }
 
-        $clients = $query->paginate(15);
+        // Obtener todos los clientes para calcular saldos y aplicar filtro
+        $allClients = $query->get();
 
-        // Calcular saldos
-        foreach ($clients as $client) {
+        // Calcular saldos para todos los clientes
+        foreach ($allClients as $client) {
             $client->current_balance = ClientCurrentAccount::getCurrentBalance($client->id);
             $client->formatted_balance = ClientCurrentAccount::getFormattedBalance($client->id);
         }
+
+        // Aplicar filtro por estado de deuda
+        if ($request->filled('debt_status')) {
+            $debtStatus = $request->debt_status;
+            $allClients = $allClients->filter(function($client) use ($debtStatus) {
+                switch ($debtStatus) {
+                    case 'with_debt':
+                        return $client->current_balance > 0;
+                    case 'up_to_date':
+                        return $client->current_balance == 0;
+                    case 'in_favor':
+                        return $client->current_balance < 0;
+                    default:
+                        return true;
+                }
+            });
+        }
+
+        // Convertir a paginación manual
+        $perPage = 15;
+        $currentPage = $request->get('page', 1);
+        $offset = ($currentPage - 1) * $perPage;
+        
+        $clients = new \Illuminate\Pagination\LengthAwarePaginator(
+            $allClients->slice($offset, $perPage)->values(),
+            $allClients->count(),
+            $perPage,
+            $currentPage,
+            [
+                'path' => $request->url(),
+                'pageName' => 'page',
+            ]
+        );
+
+        // Agregar parámetros de consulta a la paginación
+        $clients->appends($request->query());
 
         return view('client_current_accounts.index', compact('clients'));
     }

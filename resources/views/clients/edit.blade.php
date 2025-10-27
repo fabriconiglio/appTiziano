@@ -106,6 +106,14 @@
                             </div>
 
                             <div class="mb-3">
+                                <label for="barrio" class="form-label">Barrio</label>
+                                <input type="text" class="form-control @error('barrio') is-invalid @enderror" id="barrio" name="barrio" value="{{ old('barrio', $client->barrio) }}">
+                                @error('barrio')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="mb-3">
                                 <label for="observations" class="form-label">Observaciones</label>
                                 <textarea class="form-control @error('observations') is-invalid @enderror"
                                           id="observations" name="observations" rows="3">{{ old('observations', $client->observations) }}</textarea>

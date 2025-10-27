@@ -17,6 +17,7 @@ class Client extends Model
         'phone',
         'birth_date',
         'domicilio',
+        'barrio',
         'observations',
     ];
 

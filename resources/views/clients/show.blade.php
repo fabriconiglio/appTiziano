@@ -65,6 +65,9 @@
                             <dt class="col-sm-4">Domicilio:</dt>
                             <dd class="col-sm-8">{{ $client->domicilio ?? 'No registrado' }}</dd>
 
+                            <dt class="col-sm-4">Barrio:</dt>
+                            <dd class="col-sm-8">{{ $client->barrio ?? 'No registrado' }}</dd>
+
                             <dt class="col-sm-4">Observaciones:</dt>
                             <dd class="col-sm-8">{!! $client->observations ?? 'Sin observaciones' !!}</dd>
 

@@ -918,13 +918,15 @@
                                 
                                 const priceDisplay = price > 0 ? '$' + parseFloat(price).toFixed(2) : 'N/A';
                                 
-                                $(this).closest('.product-row').find('.price-display').val(priceDisplay);
-                                $(this).closest('.product-row').find('.price-value').val(price);
+                                const productRow = $(this).closest('.product-row');
+                                productRow.find('.price-display').val(priceDisplay);
+                                productRow.find('.price-value').val(price);
+                                productRow.find('.original-price-value').val(price);
                                 
                                 // Calcular subtotal si hay cantidad
-                                const quantity = parseInt($(this).closest('.product-row').find('.quantity-input').val()) || 0;
+                                const quantity = parseInt(productRow.find('.quantity-input').val()) || 0;
                                 if (quantity > 0) {
-                                    calculateSubtotal($(this).closest('.product-row'));
+                                    calculateSubtotal(productRow);
                                 }
                             }.bind(this),
                             error: function() {
@@ -1094,6 +1096,7 @@
                                 
                                 productRow.find('.price-display').val(priceDisplay);
                                 productRow.find('.price-value').val(price);
+                                productRow.find('.original-price-value').val(price);
                                 
                                 // Recalcular subtotal
                                 calculateSubtotal(productRow);

@@ -572,13 +572,15 @@
                                 
                                 const priceDisplay = price > 0 ? '$' + parseFloat(price).toFixed(2) : 'N/A';
                                 
-                                $(this).closest('.product-row').find('.price-display').val(priceDisplay);
-                                $(this).closest('.product-row').find('.price-value').val(price);
+                                const productRow = $(this).closest('.product-row');
+                                productRow.find('.price-display').val(priceDisplay);
+                                productRow.find('.price-value').val(price);
+                                productRow.find('.original-price-value').val(price);
                                 
                                 // Calcular subtotal si hay cantidad
-                                const quantity = parseInt($(this).closest('.product-row').find('.quantity-input').val()) || 0;
+                                const quantity = parseInt(productRow.find('.quantity-input').val()) || 0;
                                 if (quantity > 0) {
-                                    calculateSubtotal($(this).closest('.product-row'));
+                                    calculateSubtotal(productRow);
                                 }
                             }.bind(this),
                             error: function() {
@@ -697,6 +699,7 @@
                                 
                                 productRow.find('.price-display').val(priceDisplay);
                                 productRow.find('.price-value').val(price);
+                                productRow.find('.original-price-value').val(price);
                                 
                                 // Recalcular subtotal
                                 calculateSubtotal(productRow);
@@ -831,7 +834,7 @@
                 
                 // Obtener datos del producto
                 const productName = currentProductRow.find('.product-description-select option:selected').text();
-                const originalPrice = parseFloat(currentProductRow.find('.price-value').val()) || 0;
+                const originalPrice = parseFloat(currentProductRow.find('.original-price-value').val()) || parseFloat(currentProductRow.find('.price-value').val()) || 0;
                 const quantity = parseInt(currentProductRow.find('.quantity-input').val()) || 0;
                 const originalSubtotal = originalPrice * quantity;
                 
@@ -915,8 +918,8 @@
                 currentProductRow.find('.discount-value').val(discountValue);
                 currentProductRow.find('.discount-reason').val(discountReason);
                 
-                // Calcular nuevo precio unitario
-                const originalPrice = parseFloat(currentProductRow.find('.price-value').val()) || 0;
+                // Calcular nuevo precio unitario usando el precio original real
+                const originalPrice = parseFloat(currentProductRow.find('.original-price-value').val()) || parseFloat(currentProductRow.find('.price-value').val()) || 0;
                 const quantity = parseInt(currentProductRow.find('.quantity-input').val()) || 0;
                 const originalSubtotal = originalPrice * quantity;
                 
@@ -931,8 +934,10 @@
                 // Actualizar precio unitario (dividir por cantidad)
                 const newUnitPrice = quantity > 0 ? newSubtotal / quantity : 0;
                 
-                // Actualizar campos
-                currentProductRow.find('.original-price-value').val(originalPrice);
+                // Actualizar campos (guardar el precio original si no estaba guardado)
+                if (!currentProductRow.find('.original-price-value').val()) {
+                    currentProductRow.find('.original-price-value').val(originalPrice);
+                }
                 currentProductRow.find('.price-value').val(newUnitPrice);
                 currentProductRow.find('.price-display').val('$' + newUnitPrice.toFixed(2));
                 

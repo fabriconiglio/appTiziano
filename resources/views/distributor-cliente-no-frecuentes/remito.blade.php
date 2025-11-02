@@ -138,7 +138,7 @@
         <h3>Información de la Venta</h3>
         <div class="purchase-details">
             <div>
-                <strong>Valor Total:</strong> ${{ number_format($cliente->monto, 2) }}
+                <strong>Valor Total:</strong> ${{ number_format($cliente->calculated_monto, 2) }}
             </div>
             <div>
                 <strong>Registrado por:</strong> {{ $cliente->user->name }}<br>
@@ -193,7 +193,7 @@
 
         <div class="total-section">
             <div class="total-row final">
-                <span><strong>TOTAL: ${{ number_format($cliente->monto, 2) }}</strong></span>
+                <span><strong>TOTAL: ${{ number_format($cliente->calculated_monto, 2) }}</strong></span>
             </div>
         </div>
     @else

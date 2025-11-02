@@ -85,7 +85,7 @@
                                     @endif
                                 </td>
                                 <td>
-                                    <span class="fw-bold text-success">${{ number_format($cliente->monto, 2) }}</span>
+                                    <span class="fw-bold text-success">${{ number_format($cliente->calculated_monto, 2) }}</span>
                                 </td>
                                 <td>
                                     <small class="text-muted">{{ $cliente->user->name }}</small>
@@ -172,7 +172,7 @@
                                     <strong>Distribuidor:</strong> {{ $cliente->distribuidor }}
                                 </p>
                                 <p class="card-text">
-                                    <strong>Monto:</strong> ${{ number_format($cliente->monto, 2) }}
+                                    <strong>Monto:</strong> ${{ number_format($cliente->calculated_monto, 2) }}
                                 </p>
                             </div>
                         </div>

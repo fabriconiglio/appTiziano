@@ -72,7 +72,7 @@
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold text-muted">Valor de la Venta</label>
                             <div class="form-control-plaintext">
-                                <span class="fw-bold text-success fs-4">${{ number_format($distributorClienteNoFrecuente->monto, 2) }}</span>
+                                <span class="fw-bold text-success fs-4">${{ number_format($distributorClienteNoFrecuente->calculated_monto, 2) }}</span>
                             </div>
                         </div>
 
@@ -273,7 +273,7 @@
                                 <strong>Distribuidor:</strong> {{ $distributorClienteNoFrecuente->distribuidor }}
                             </p>
                             <p class="card-text">
-                                <strong>Monto:</strong> ${{ number_format($distributorClienteNoFrecuente->monto, 2) }}
+                                <strong>Monto:</strong> ${{ number_format($distributorClienteNoFrecuente->calculated_monto, 2) }}
                             </p>
                         </div>
                     </div>

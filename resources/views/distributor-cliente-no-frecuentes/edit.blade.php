@@ -827,7 +827,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function updateSubtotal(productRow) {
         const quantity = parseFloat(productRow.find('.quantity-input').val()) || 0;
-        const price = parseFloat(productRow.find('.price-value').val()) || 0;
+        // Usar el precio con descuento si existe, sino el precio original
+        let price = parseFloat(productRow.find('.price-value').val()) || 0;
+        // Si no hay precio en price-value, usar el original-price-value
+        if (price === 0) {
+            price = parseFloat(productRow.find('.original-price-value').val()) || 0;
+        }
         const subtotal = quantity * price;
         
         productRow.find('.subtotal-display').val('$' + subtotal.toFixed(2));
@@ -836,9 +841,10 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateTotal() {
         let total = 0;
         $('.product-row').each(function() {
-            const quantity = parseFloat($(this).find('.quantity-input').val()) || 0;
-            const price = parseFloat($(this).find('.price-value').val()) || 0;
-            total += quantity * price;
+            const subtotalText = $(this).find('.subtotal-display').val();
+            // Remover todos los caracteres no numéricos excepto el punto decimal
+            const subtotal = parseFloat(subtotalText.replace(/[^0-9.]/g, '')) || 0;
+            total += subtotal;
         });
         
         $('#monto').val(total.toFixed(2));

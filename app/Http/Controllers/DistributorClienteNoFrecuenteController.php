@@ -74,6 +74,20 @@ class DistributorClienteNoFrecuenteController extends Controller
 
         $validated['user_id'] = Auth::id();
 
+        // Recalcular el monto desde los productos para asegurar que sea correcto
+        if (!empty($validated['products_purchased'])) {
+            $calculatedTotal = 0;
+            foreach ($validated['products_purchased'] as $productData) {
+                $quantity = isset($productData['quantity']) ? (float) $productData['quantity'] : 0;
+                $price = isset($productData['price']) ? (float) $productData['price'] : 0;
+                $calculatedTotal += $quantity * $price;
+            }
+            // Solo actualizar el monto si el cálculo es mayor a 0
+            if ($calculatedTotal > 0) {
+                $validated['monto'] = round($calculatedTotal, 2);
+            }
+        }
+
         // Iniciar transacción para manejar stock
         DB::beginTransaction();
         
@@ -154,6 +168,20 @@ class DistributorClienteNoFrecuenteController extends Controller
             'monto.required' => 'El valor de la venta es requerido',
             'monto.min' => 'El valor de la venta debe ser mayor a 0',
         ]);
+
+        // Recalcular el monto desde los productos para asegurar que sea correcto
+        if (!empty($validated['products_purchased'])) {
+            $calculatedTotal = 0;
+            foreach ($validated['products_purchased'] as $productData) {
+                $quantity = isset($productData['quantity']) ? (float) $productData['quantity'] : 0;
+                $price = isset($productData['price']) ? (float) $productData['price'] : 0;
+                $calculatedTotal += $quantity * $price;
+            }
+            // Solo actualizar el monto si el cálculo es mayor a 0
+            if ($calculatedTotal > 0) {
+                $validated['monto'] = round($calculatedTotal, 2);
+            }
+        }
 
         // Iniciar transacción para manejar stock
         DB::beginTransaction();

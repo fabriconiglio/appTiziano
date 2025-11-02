@@ -454,14 +454,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     productRow.data('precio-mayor', product.precio_mayor || 0);
                     productRow.data('precio-menor', product.precio_menor || 0);
-                    productRow.data('stock', product.stock || 0);
+                    const stockValue = product.stock_quantity !== undefined ? product.stock_quantity : (product.stock !== undefined ? product.stock : 0);
+                    productRow.data('stock', stockValue);
                     
                     // Configurar Select2 con el producto seleccionado
                     const select = productRow.find('.product-description-select');
                     select.empty().append(new Option(`${product.product_name} - ${product.description || ''} - ${product.brand || 'Sin marca'}`, product.id, true, true));
                     
                     // Actualizar campos
-                    productRow.find('.stock-display').val(product.stock || 0);
+                    productRow.find('.stock-display').val(stockValue);
                     updateProductPrice(productRow);
                     updateSubtotal(productRow);
                 } else {
@@ -597,7 +598,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                 price: item.precio_mayor || item.precio_menor || 0,
                                 precio_mayor: item.precio_mayor || 0,
                                 precio_menor: item.precio_menor || 0,
-                                stock: item.stock || 0
+                                stock: item.stock_quantity || 0,
+                                stock_quantity: item.stock_quantity || 0
                             };
                         })
                     };
@@ -614,14 +616,15 @@ document.addEventListener('DOMContentLoaded', function() {
             // Guardar datos del producto
             productRow.data('precio-mayor', data.precio_mayor || 0);
             productRow.data('precio-menor', data.precio_menor || 0);
-            productRow.data('stock', data.stock_quantity || 0);
+            const stockValue = data.stock_quantity !== undefined ? data.stock_quantity : (data.stock !== undefined ? data.stock : 0);
+            productRow.data('stock', stockValue);
             
             // Actualizar campos
-            productRow.find('.stock-display').val(data.stock_quantity || 0);
+            productRow.find('.stock-display').val(stockValue);
             
             // Validar stock después de seleccionar producto
             const quantity = parseInt(productRow.find('.quantity-input').val()) || 0;
-            const stock = parseInt(data.stock_quantity) || 0;
+            const stock = parseInt(stockValue) || 0;
             
             if (quantity > stock) {
                 productRow.find('.quantity-input').addClass('is-invalid');

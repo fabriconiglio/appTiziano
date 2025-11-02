@@ -389,7 +389,8 @@ $(document).ready(function() {
                                         text: displayText,
                                         precio_mayor: item.precio_mayor || 0,
                                         precio_menor: item.precio_menor || 0,
-                                        stock: item.stock_quantity
+                                        stock: item.stock_quantity || 0,
+                                        stock_quantity: item.stock_quantity || 0
                                     };
                                     console.log('Mapped result:', result); // Debug
                                     return result;
@@ -412,9 +413,8 @@ $(document).ready(function() {
             productRow.data('precio-menor', data.precio_menor || 0);
             
             // Llenar los campos con la información del producto
-            if (data.stock !== undefined) {
-                productRow.find('.stock-display').val(data.stock);
-            }
+            const stockValue = data.stock_quantity !== undefined ? data.stock_quantity : (data.stock !== undefined ? data.stock : 0);
+            productRow.find('.stock-display').val(stockValue);
             
             // Establecer cantidad por defecto
             productRow.find('.quantity-input').val(1);
@@ -607,16 +607,15 @@ $(document).ready(function() {
         productRow.data('precio-menor', data.precio_menor || 0);
         
         // Llenar los campos con la información del producto
-        if (data.stock_quantity !== undefined) {
-            productRow.find('.stock-display').val(data.stock_quantity);
-        }
+        const stockValue = data.stock_quantity !== undefined ? data.stock_quantity : (data.stock !== undefined ? data.stock : 0);
+        productRow.find('.stock-display').val(stockValue);
         
         // Establecer cantidad por defecto
         productRow.find('.quantity-input').val(1);
         
         // Validar stock después de seleccionar producto
         const quantity = parseInt(productRow.find('.quantity-input').val()) || 0;
-        const stock = parseInt(data.stock_quantity) || 0;
+        const stock = parseInt(data.stock_quantity !== undefined ? data.stock_quantity : (data.stock !== undefined ? data.stock : 0)) || 0;
         
         if (quantity > stock) {
             productRow.find('.quantity-input').addClass('is-invalid');

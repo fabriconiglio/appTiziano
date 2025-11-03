@@ -70,6 +70,14 @@ class HairdressingSupplier extends Model
     }
 
     /**
+     * Relación con la cuenta corriente del proveedor de peluquería
+     */
+    public function currentAccounts()
+    {
+        return $this->hasMany(HairdressingSupplierCurrentAccount::class);
+    }
+
+    /**
      * Obtener el total de deuda con el proveedor
      */
     public function getTotalDebtAttribute()
@@ -83,5 +91,69 @@ class HairdressingSupplier extends Model
     public function getTotalPaidAttribute()
     {
         return $this->hairdressingSupplierPurchases()->sum('payment_amount');
+    }
+
+    /**
+     * Obtener el saldo actual de la cuenta corriente (como atributo)
+     */
+    public function getCurrentBalanceAttribute()
+    {
+        return HairdressingSupplierCurrentAccount::getCurrentBalance($this->id);
+    }
+
+    /**
+     * Obtener el saldo formateado de la cuenta corriente (como atributo)
+     */
+    public function getFormattedBalanceAttribute()
+    {
+        return HairdressingSupplierCurrentAccount::getFormattedBalance($this->id);
+    }
+
+    /**
+     * Verificar si tiene crédito (como atributo)
+     */
+    public function getHasCreditAttribute()
+    {
+        return HairdressingSupplierCurrentAccount::hasCredit($this->id);
+    }
+
+    /**
+     * Obtener el crédito disponible (como atributo)
+     */
+    public function getAvailableCreditAttribute()
+    {
+        return HairdressingSupplierCurrentAccount::getAvailableCredit($this->id);
+    }
+
+    /**
+     * Obtener el saldo actual de la cuenta corriente (como método)
+     */
+    public function getCurrentBalance()
+    {
+        return HairdressingSupplierCurrentAccount::getCurrentBalance($this->id);
+    }
+
+    /**
+     * Obtener el saldo formateado de la cuenta corriente (como método)
+     */
+    public function getFormattedBalance()
+    {
+        return HairdressingSupplierCurrentAccount::getFormattedBalance($this->id);
+    }
+
+    /**
+     * Verificar si tiene crédito (como método)
+     */
+    public function hasCredit()
+    {
+        return HairdressingSupplierCurrentAccount::hasCredit($this->id);
+    }
+
+    /**
+     * Obtener el crédito disponible (como método)
+     */
+    public function getAvailableCredit()
+    {
+        return HairdressingSupplierCurrentAccount::getAvailableCredit($this->id);
     }
 }

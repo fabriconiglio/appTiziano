@@ -149,6 +149,10 @@ Route::get('/api/supplier-inventories/get-product', [App\Http\Controllers\Suppli
         ->name('suppliers.destroy-purchase');
     Route::get('suppliers/{supplier}/get-receipt-total', [\App\Http\Controllers\SupplierController::class, 'getReceiptTotal'])
         ->name('suppliers.get-receipt-total');
+    
+    // Cuentas corrientes de proveedores distribuidora
+    Route::get('suppliers/{supplier}/current-account', [\App\Http\Controllers\SupplierController::class, 'showCurrentAccount'])
+        ->name('suppliers.current-account.show');
 
     // CRUD de proveedores de peluquería
     Route::resource('hairdressing-suppliers', \App\Http\Controllers\HairdressingSupplierController::class);
@@ -170,6 +174,10 @@ Route::get('/api/supplier-inventories/get-product', [App\Http\Controllers\Suppli
         ->name('hairdressing-suppliers.destroy-purchase');
     Route::get('hairdressing-suppliers/{hairdressingSupplier}/get-receipt-total', [\App\Http\Controllers\HairdressingSupplierController::class, 'getReceiptTotal'])
         ->name('hairdressing-suppliers.get-receipt-total');
+    
+    // Cuentas corrientes de proveedores peluquería
+    Route::get('hairdressing-suppliers/{hairdressingSupplier}/current-account', [\App\Http\Controllers\HairdressingSupplierController::class, 'showCurrentAccount'])
+        ->name('hairdressing-suppliers.current-account.show');
     
     // Clientes No Frecuentes
     Route::resource('cliente-no-frecuentes', \App\Http\Controllers\ClienteNoFrecuenteController::class);

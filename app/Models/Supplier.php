@@ -117,6 +117,14 @@ class Supplier extends Model
     }
 
     /**
+     * Relación con la cuenta corriente del proveedor
+     */
+    public function currentAccounts()
+    {
+        return $this->hasMany(SupplierCurrentAccount::class);
+    }
+
+    /**
      * Obtener el total de deuda con el proveedor
      */
     public function getTotalDebtAttribute()
@@ -130,5 +138,69 @@ class Supplier extends Model
     public function getTotalPaidAttribute()
     {
         return $this->supplierPurchases()->sum('payment_amount');
+    }
+
+    /**
+     * Obtener el saldo actual de la cuenta corriente (como atributo)
+     */
+    public function getCurrentBalanceAttribute()
+    {
+        return SupplierCurrentAccount::getCurrentBalance($this->id);
+    }
+
+    /**
+     * Obtener el saldo formateado de la cuenta corriente (como atributo)
+     */
+    public function getFormattedBalanceAttribute()
+    {
+        return SupplierCurrentAccount::getFormattedBalance($this->id);
+    }
+
+    /**
+     * Verificar si tiene crédito (como atributo)
+     */
+    public function getHasCreditAttribute()
+    {
+        return SupplierCurrentAccount::hasCredit($this->id);
+    }
+
+    /**
+     * Obtener el crédito disponible (como atributo)
+     */
+    public function getAvailableCreditAttribute()
+    {
+        return SupplierCurrentAccount::getAvailableCredit($this->id);
+    }
+
+    /**
+     * Obtener el saldo actual de la cuenta corriente (como método)
+     */
+    public function getCurrentBalance()
+    {
+        return SupplierCurrentAccount::getCurrentBalance($this->id);
+    }
+
+    /**
+     * Obtener el saldo formateado de la cuenta corriente (como método)
+     */
+    public function getFormattedBalance()
+    {
+        return SupplierCurrentAccount::getFormattedBalance($this->id);
+    }
+
+    /**
+     * Verificar si tiene crédito (como método)
+     */
+    public function hasCredit()
+    {
+        return SupplierCurrentAccount::hasCredit($this->id);
+    }
+
+    /**
+     * Obtener el crédito disponible (como método)
+     */
+    public function getAvailableCredit()
+    {
+        return SupplierCurrentAccount::getAvailableCredit($this->id);
     }
 } 

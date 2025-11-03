@@ -43,10 +43,10 @@ class SupplierPurchase extends Model
     }
 
     /**
-     * Obtener el saldo pendiente calculado
+     * Relación con la cuenta corriente del proveedor
      */
-    public function getCalculatedBalanceAttribute(): float
+    public function currentAccounts()
     {
-        return $this->total_amount - $this->payment_amount;
+        return $this->hasMany(SupplierCurrentAccount::class);
     }
 }

@@ -56,4 +56,35 @@ class DistributorClienteNoFrecuente extends Model
     {
         return $query->whereBetween('fecha', [$fechaInicio, $fechaFin]);
     }
+
+    /**
+     * Calcular el monto total desde los productos comprados
+     * 
+     * @return float
+     */
+    public function calculateTotalFromProducts(): float
+    {
+        if (empty($this->products_purchased) || !is_array($this->products_purchased)) {
+            return (float) $this->monto; // Si no hay productos, usar el monto guardado
+        }
+
+        $total = 0;
+        foreach ($this->products_purchased as $product) {
+            $quantity = isset($product['quantity']) ? (float) $product['quantity'] : 0;
+            $price = isset($product['price']) ? (float) $product['price'] : 0;
+            $total += $quantity * $price;
+        }
+
+        return round($total, 2);
+    }
+
+    /**
+     * Obtener el monto calculado (preferir el calculado desde productos)
+     * 
+     * @return float
+     */
+    public function getCalculatedMontoAttribute(): float
+    {
+        return $this->calculateTotalFromProducts();
+    }
 }

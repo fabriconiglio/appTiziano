@@ -17,6 +17,18 @@
                 </div>
 
                 <div class="card-body">
+                    <!-- Información de Crédito Disponible -->
+                    @if($hairdressingSupplier->available_credit > 0)
+                        <div class="alert alert-info mb-4">
+                            <h6 class="alert-heading">
+                                <i class="fas fa-info-circle"></i> Crédito Disponible
+                            </h6>
+                            <p class="mb-2">Tienes un saldo a favor con este proveedor de:</p>
+                            <h4 class="text-success mb-2">${{ number_format($hairdressingSupplier->available_credit, 2) }}</h4>
+                            <p class="mb-0">Este crédito se aplicará automáticamente a la nueva compra. Puedes desactivar esta opción marcando la casilla correspondiente.</p>
+                        </div>
+                    @endif
+
                     <form action="{{ route('hairdressing-suppliers.store-purchase', $hairdressingSupplier) }}" method="POST" enctype="multipart/form-data">
                         @csrf
 
@@ -86,6 +98,21 @@
                                 @enderror
                             </div>
 
+                            @if($hairdressingSupplier->available_credit > 0)
+                                <div class="col-12 mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="use_available_credit" 
+                                               name="use_available_credit" value="1" checked>
+                                        <label class="form-check-label" for="use_available_credit">
+                                            <strong>Usar crédito disponible</strong> (${{ number_format($hairdressingSupplier->available_credit, 2) }})
+                                        </label>
+                                        <div class="form-text">
+                                            Si está marcado, el crédito disponible se aplicará automáticamente a esta compra.
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+
                             <div class="col-md-6 mb-3">
                                 <label for="balance_amount" class="form-label">Saldo Pendiente</label>
                                 <div class="input-group">
@@ -142,6 +169,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const receiptNumber = document.getElementById('receipt_number');
     const receiptSearchSpinner = document.getElementById('receipt-search-spinner');
     const receiptSearchMessage = document.getElementById('receipt-search-message');
+    const useCreditCheckbox = document.getElementById('use_available_credit');
     
     // URL para buscar el total de la boleta
     const searchUrl = '{{ route("hairdressing-suppliers.get-receipt-total", $hairdressingSupplier) }}';
@@ -149,10 +177,26 @@ document.addEventListener('DOMContentLoaded', function() {
     // Timeout para evitar muchas consultas
     let searchTimeout;
 
+    // Crédito disponible del proveedor
+    const availableCredit = {{ $hairdressingSupplier->available_credit ?? 0 }};
+
     function calculateBalance() {
         const total = parseFloat(totalAmount.value) || 0;
         const payment = parseFloat(paymentAmount.value) || 0;
-        const balance = total - payment;
+        const useCredit = useCreditCheckbox ? useCreditCheckbox.checked : false;
+        
+        let balance = total - payment;
+        
+        // Si el checkbox de crédito está marcado y hay crédito disponible, restarlo del balance
+        if (useCredit && availableCredit > 0) {
+            // Aplicar crédito disponible al balance pendiente
+            balance = balance - availableCredit;
+            // Asegurar que el balance no sea menor que 0
+            if (balance < 0) {
+                balance = 0;
+            }
+        }
+        
         balanceAmount.value = balance.toFixed(2);
     }
 
@@ -202,6 +246,10 @@ document.addEventListener('DOMContentLoaded', function() {
     totalAmount.addEventListener('input', calculateBalance);
     paymentAmount.addEventListener('input', calculateBalance);
     
+    if (useCreditCheckbox) {
+        useCreditCheckbox.addEventListener('change', calculateBalance);
+    }
+    
     // Búsqueda de boleta con debounce
     receiptNumber.addEventListener('input', function() {
         clearTimeout(searchTimeout);
@@ -216,6 +264,9 @@ document.addEventListener('DOMContentLoaded', function() {
             receiptSearchMessage.className = 'text-muted';
         }
     });
+    
+    // Calcular balance inicial
+    calculateBalance();
 });
 </script>
 @endsection 

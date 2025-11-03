@@ -43,6 +43,14 @@ class HairdressingSupplierPurchase extends Model
     }
 
     /**
+     * Relación con la cuenta corriente del proveedor de peluquería
+     */
+    public function currentAccounts()
+    {
+        return $this->hasMany(HairdressingSupplierCurrentAccount::class);
+    }
+
+    /**
      * Obtener el saldo pendiente calculado
      */
     public function getCalculatedBalanceAttribute(): float

@@ -267,6 +267,49 @@ use Illuminate\Support\Facades\Storage;
 
         <!-- Sidebar con Estadísticas -->
         <div class="col-md-4">
+            <!-- Estado de Cuenta Corriente -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">
+                        <i class="fas fa-chart-line"></i> Estado de Cuenta Corriente
+                    </h6>
+                    <a href="{{ route('hairdressing-suppliers.current-account.show', $hairdressingSupplier) }}" class="btn btn-info btn-sm">
+                        <i class="fas fa-eye"></i> Ver Historial
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <h4 class="{{ $hairdressingSupplier->current_balance > 0 ? 'text-danger' : ($hairdressingSupplier->current_balance < 0 ? 'text-success' : 'text-dark') }}">
+                            {{ $hairdressingSupplier->formatted_balance }}
+                        </h4>
+                        @if($hairdressingSupplier->current_balance > 0)
+                            <p class="text-muted small">El proveedor tiene deuda pendiente</p>
+                        @elseif($hairdressingSupplier->current_balance < 0)
+                            <p class="text-muted small">Tienes saldo a favor con este proveedor</p>
+                        @else
+                            <p class="text-muted small">Cuenta al día</p>
+                        @endif
+                    </div>
+                    
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <div class="text-center">
+                                <small class="text-muted">Crédito disponible</small>
+                                <div class="fw-bold {{ $hairdressingSupplier->available_credit > 0 ? 'text-success' : 'text-muted' }}">
+                                    ${{ number_format($hairdressingSupplier->available_credit, 2) }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center">
+                                <small class="text-muted">Total compras</small>
+                                <div class="fw-bold">{{ $hairdressingSupplier->hairdressingSupplierPurchases->count() }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Estadísticas -->
             <div class="card mb-4">
                 <div class="card-header">

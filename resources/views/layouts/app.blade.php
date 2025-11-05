@@ -190,6 +190,13 @@
                                         {{ __('Descuentos y Regalos') }}
                                     </a>
                                 </li>
+                                <!-- Submenú Aumento de Precios -->
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item" href="{{ route('price-increases.index') }}">
+                                        <i class="fas fa-arrow-up text-success me-2"></i>
+                                        {{ __('Aumento de Precios') }}
+                                    </a>
+                                </li>
                                 <!-- Submenú Categorías Distribuidora -->
                                 <li class="dropdown-submenu">
                                     <a class="dropdown-item" href="{{ route('distributor_categories.index') }}">

@@ -89,10 +89,10 @@
                         <!-- Vista especial para el total -->
                         <div class="row">
                             <div class="col-md-6 mb-4">
-                                <h6 class="text-primary mb-3">
-                                    <i class="fas fa-calculator me-2"></i>Cuentas Corrientes ({{ $data['client_accounts']->count() }})
+                                <h6 class="mb-3" style="color: #6f42c1;">
+                                    <i class="fas fa-money-bill-wave me-2"></i>CC Pagas ({{ $data['client_accounts_payments']->count() ?? 0 }})
                                 </h6>
-                                @if($data['client_accounts']->count() > 0)
+                                @if(($data['client_accounts_payments']->count() ?? 0) > 0)
                                     <div class="table-responsive">
                                         <table class="table table-sm">
                                             <thead>
@@ -103,7 +103,7 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                @foreach($data['client_accounts']->take(5) as $item)
+                                                @foreach($data['client_accounts_payments']->take(5) as $item)
                                                     <tr>
                                                         <td>{{ $item->client->name ?? 'Sin cliente' }}</td>
                                                         <td>{{ $item->created_at->format('d/m/Y') }}</td>
@@ -113,11 +113,11 @@
                                             </tbody>
                                         </table>
                                     </div>
-                                    @if($data['client_accounts']->count() > 5)
-                                        <small class="text-muted">Y {{ $data['client_accounts']->count() - 5 }} más...</small>
+                                    @if($data['client_accounts_payments']->count() > 5)
+                                        <small class="text-muted">Y {{ $data['client_accounts_payments']->count() - 5 }} más...</small>
                                     @endif
                                 @else
-                                    <p class="text-muted">No hay cuentas corrientes</p>
+                                    <p class="text-muted">No hay pagos de cuentas corrientes</p>
                                 @endif
                             </div>
 

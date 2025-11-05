@@ -118,7 +118,9 @@ class HairdressingDailySalesController extends Controller
         $clienteNoFrecuenteSales = ClienteNoFrecuente::whereBetween('fecha', [$startOfPeriod, $endOfPeriod])
             ->sum('monto');
 
-        $totalSales = $clientAccountSales + $clientAccountPayments + $technicalRecordSales + $productSales + $additionalServices + $clienteNoFrecuenteSales;
+        // Total solo incluye: CC Pagas + Servicios + Productos + Clientes No Frecuentes
+        // NO incluye las deudas de CC (clientAccountSales) porque ese dinero aún no se recibió
+        $totalSales = $clientAccountPayments + $technicalRecordSales + $productSales + $additionalServices + $clienteNoFrecuenteSales;
 
         return [
             'total' => $totalSales,
@@ -174,7 +176,9 @@ class HairdressingDailySalesController extends Controller
         $clienteNoFrecuenteSales = ClienteNoFrecuente::whereDate('fecha', $date)
             ->sum('monto');
 
-        $totalSales = $clientAccountSales + $clientAccountPayments + $technicalRecordSales + $productSales + $additionalServices + $clienteNoFrecuenteSales;
+        // Total solo incluye: CC Pagas + Servicios + Productos + Clientes No Frecuentes
+        // NO incluye las deudas de CC (clientAccountSales) porque ese dinero aún no se recibió
+        $totalSales = $clientAccountPayments + $technicalRecordSales + $productSales + $additionalServices + $clienteNoFrecuenteSales;
 
         return [
             'total' => $totalSales,
@@ -226,8 +230,10 @@ class HairdressingDailySalesController extends Controller
         $monthlyAdditionalServices = TechnicalRecord::whereBetween('service_date', [$startOfMonth, $endOfMonth])
             ->sum('service_cost') * 0.5; // 50% del costo total como servicios adicionales
 
+        // Total mensual solo incluye: CC Pagas + Servicios + Productos
+        // NO incluye las deudas de CC (monthlyClientAccounts) porque ese dinero aún no se recibió
         return [
-            'total' => $monthlyClientAccounts + $monthlyClientAccountPayments + $monthlyTechnicalRecords + $monthlyProductSales + $monthlyAdditionalServices,
+            'total' => $monthlyClientAccountPayments + $monthlyTechnicalRecords + $monthlyProductSales + $monthlyAdditionalServices,
             'client_accounts' => $monthlyClientAccounts,
             'client_accounts_payments' => $monthlyClientAccountPayments,
             'technical_records' => $monthlyTechnicalRecords,

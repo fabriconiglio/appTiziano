@@ -82,35 +82,38 @@
     </div>
 
     <!-- Tarjetas de resumen del día -->
+    <!-- Total destacado -->
     <div class="row mb-4">
-        <!-- Total del día -->
-        <div class="col-md-4 mb-3">
+        <div class="col-12 mb-3">
             <a href="{{ route('hairdressing-daily-sales.detail', ['category' => 'total', 'start_date' => $startDate->format('Y-m-d'), 'end_date' => $endDate->format('Y-m-d')]) }}" 
                class="text-decoration-none">
                 <div class="card bg-primary text-white" style="cursor: pointer;">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <h6 class="card-title">
+                                <h5 class="card-title mb-2">
                                     @if($startDate->ne($endDate))
                                         Total del Período
                                     @else
                                         Total del Día
                                     @endif
-                                </h6>
-                                <h3 class="card-text">${{ number_format($todaySales['total'] ?? 0, 2) }}</h3>
+                                </h5>
+                                <h2 class="card-text mb-0">${{ number_format($todaySales['total'] ?? 0, 2) }}</h2>
                             </div>
                             <div>
-                                <i class="fas fa-cut fa-2x"></i>
+                                <i class="fas fa-cut fa-3x"></i>
                             </div>
                         </div>
                     </div>
                 </div>
             </a>
         </div>
+    </div>
 
+    <!-- Primera fila: Cuentas Corrientes -->
+    <div class="row mb-4">
         <!-- Cuentas corrientes -->
-        <div class="col-md-4 mb-3">
+        <div class="col-md-6 mb-3">
             <a href="{{ route('hairdressing-daily-sales.detail', ['category' => 'client_accounts', 'start_date' => $startDate->format('Y-m-d'), 'end_date' => $endDate->format('Y-m-d')]) }}" 
                class="text-decoration-none">
                 <div class="card bg-success text-white" style="cursor: pointer;">
@@ -130,6 +133,30 @@
             </a>
         </div>
 
+        <!-- CC Pagas -->
+        <div class="col-md-6 mb-3">
+            <a href="{{ route('hairdressing-daily-sales.detail', ['category' => 'client_accounts_payments', 'start_date' => $startDate->format('Y-m-d'), 'end_date' => $endDate->format('Y-m-d')]) }}" 
+               class="text-decoration-none">
+                <div class="card" style="background-color: #6f42c1; color: white; cursor: pointer;">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title">CC Pagas</h6>
+                                <h3 class="card-text">${{ number_format($todaySales['client_accounts_payments'] ?? 0, 2) }}</h3>
+                                <small>{{ $todaySales['count_client_accounts_payments'] ?? 0 }} pagos</small>
+                            </div>
+                            <div>
+                                <i class="fas fa-money-bill-wave fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Segunda fila: Servicios, Productos y Clientes No Frecuentes -->
+    <div class="row mb-4">
         <!-- Servicios -->
         <div class="col-md-4 mb-3">
             <a href="{{ route('hairdressing-daily-sales.detail', ['category' => 'technical_records', 'start_date' => $startDate->format('Y-m-d'), 'end_date' => $endDate->format('Y-m-d')]) }}" 
@@ -150,12 +177,9 @@
                 </div>
             </a>
         </div>
-    </div>
 
-    <!-- Segunda fila de tarjetas -->
-    <div class="row mb-4">
         <!-- Productos -->
-        <div class="col-md-6 mb-3">
+        <div class="col-md-4 mb-3">
             <a href="{{ route('hairdressing-daily-sales.detail', ['category' => 'product_sales', 'start_date' => $startDate->format('Y-m-d'), 'end_date' => $endDate->format('Y-m-d')]) }}" 
                class="text-decoration-none">
                 <div class="card bg-warning text-white" style="cursor: pointer;">
@@ -176,7 +200,7 @@
         </div>
 
         <!-- Clientes No Frecuentes -->
-        <div class="col-md-6 mb-3">
+        <div class="col-md-4 mb-3">
             <a href="{{ route('hairdressing-daily-sales.detail', ['category' => 'cliente_no_frecuente', 'start_date' => $startDate->format('Y-m-d'), 'end_date' => $endDate->format('Y-m-d')]) }}" 
                class="text-decoration-none">
                 <div class="card bg-secondary text-white" style="cursor: pointer;">

@@ -96,6 +96,11 @@ class HairdressingDailySalesController extends Controller
             ->whereBetween('created_at', [$startOfPeriod, $endOfPeriod])
             ->sum('amount');
 
+        // Pagos recibidos de cuentas corrientes (CC pagas)
+        $clientAccountPayments = ClientCurrentAccount::where('type', 'payment')
+            ->whereBetween('created_at', [$startOfPeriod, $endOfPeriod])
+            ->sum('amount');
+
         // Ventas de fichas técnicas (costo real del servicio)
         $technicalRecordSales = TechnicalRecord::whereBetween('service_date', [$startOfPeriod, $endOfPeriod])
             ->sum('service_cost');
@@ -113,16 +118,19 @@ class HairdressingDailySalesController extends Controller
         $clienteNoFrecuenteSales = ClienteNoFrecuente::whereBetween('fecha', [$startOfPeriod, $endOfPeriod])
             ->sum('monto');
 
-        $totalSales = $clientAccountSales + $technicalRecordSales + $productSales + $additionalServices + $clienteNoFrecuenteSales;
+        $totalSales = $clientAccountSales + $clientAccountPayments + $technicalRecordSales + $productSales + $additionalServices + $clienteNoFrecuenteSales;
 
         return [
             'total' => $totalSales,
             'client_accounts' => $clientAccountSales,
+            'client_accounts_payments' => $clientAccountPayments,
             'technical_records' => $technicalRecordSales,
             'product_sales' => $productSales,
             'additional_services' => $additionalServices,
             'cliente_no_frecuente_sales' => $clienteNoFrecuenteSales,
             'count_client_accounts' => ClientCurrentAccount::where('type', 'debt')
+                ->whereBetween('created_at', [$startOfPeriod, $endOfPeriod])->count(),
+            'count_client_accounts_payments' => ClientCurrentAccount::where('type', 'payment')
                 ->whereBetween('created_at', [$startOfPeriod, $endOfPeriod])->count(),
             'count_technical_records' => TechnicalRecord::whereBetween('service_date', [$startOfPeriod, $endOfPeriod])->count(),
             'count_product_sales' => StockMovement::where('type', 'salida')
@@ -144,6 +152,11 @@ class HairdressingDailySalesController extends Controller
             ->whereBetween('created_at', [$startOfDay, $endOfDay])
             ->sum('amount');
 
+        // Pagos recibidos de cuentas corrientes (CC pagas)
+        $clientAccountPayments = ClientCurrentAccount::where('type', 'payment')
+            ->whereBetween('created_at', [$startOfDay, $endOfDay])
+            ->sum('amount');
+
         // Ventas de fichas técnicas (costo real del servicio)
         $technicalRecordSales = TechnicalRecord::whereBetween('service_date', [$startOfDay, $endOfDay])
             ->sum('service_cost');
@@ -161,16 +174,19 @@ class HairdressingDailySalesController extends Controller
         $clienteNoFrecuenteSales = ClienteNoFrecuente::whereDate('fecha', $date)
             ->sum('monto');
 
-        $totalSales = $clientAccountSales + $technicalRecordSales + $productSales + $additionalServices + $clienteNoFrecuenteSales;
+        $totalSales = $clientAccountSales + $clientAccountPayments + $technicalRecordSales + $productSales + $additionalServices + $clienteNoFrecuenteSales;
 
         return [
             'total' => $totalSales,
             'client_accounts' => $clientAccountSales,
+            'client_accounts_payments' => $clientAccountPayments,
             'technical_records' => $technicalRecordSales,
             'product_sales' => $productSales,
             'additional_services' => $additionalServices,
             'cliente_no_frecuente_sales' => $clienteNoFrecuenteSales,
             'count_client_accounts' => ClientCurrentAccount::where('type', 'debt')
+                ->whereBetween('created_at', [$startOfDay, $endOfDay])->count(),
+            'count_client_accounts_payments' => ClientCurrentAccount::where('type', 'payment')
                 ->whereBetween('created_at', [$startOfDay, $endOfDay])->count(),
             'count_technical_records' => TechnicalRecord::whereBetween('service_date', [$startOfDay, $endOfDay])->count(),
             'count_product_sales' => StockMovement::where('type', 'salida')
@@ -195,6 +211,10 @@ class HairdressingDailySalesController extends Controller
             ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
             ->sum('amount');
 
+        $monthlyClientAccountPayments = ClientCurrentAccount::where('type', 'payment')
+            ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
+            ->sum('amount');
+
         $monthlyTechnicalRecords = TechnicalRecord::whereBetween('service_date', [$startOfMonth, $endOfMonth])
             ->sum('service_cost');
 
@@ -207,8 +227,9 @@ class HairdressingDailySalesController extends Controller
             ->sum('service_cost') * 0.5; // 50% del costo total como servicios adicionales
 
         return [
-            'total' => $monthlyClientAccounts + $monthlyTechnicalRecords + $monthlyProductSales + $monthlyAdditionalServices,
+            'total' => $monthlyClientAccounts + $monthlyClientAccountPayments + $monthlyTechnicalRecords + $monthlyProductSales + $monthlyAdditionalServices,
             'client_accounts' => $monthlyClientAccounts,
+            'client_accounts_payments' => $monthlyClientAccountPayments,
             'technical_records' => $monthlyTechnicalRecords,
             'product_sales' => $monthlyProductSales,
             'additional_services' => $monthlyAdditionalServices,
@@ -277,7 +298,7 @@ class HairdressingDailySalesController extends Controller
         $request->validate([
             'start_date' => 'nullable|date|before_or_equal:today',
             'end_date' => 'nullable|date|before_or_equal:today|after_or_equal:start_date',
-            'category' => 'required|string|in:total,client_accounts,technical_records,product_sales,cliente_no_frecuente'
+            'category' => 'required|string|in:total,client_accounts,client_accounts_payments,technical_records,product_sales,cliente_no_frecuente'
         ], [
             'start_date.before_or_equal' => 'La fecha de inicio no puede ser futura',
             'end_date.before_or_equal' => 'La fecha de fin no puede ser futura',
@@ -325,6 +346,11 @@ class HairdressingDailySalesController extends Controller
                         ->with('client')
                         ->orderBy('created_at', 'desc')
                         ->get(),
+                    'client_accounts_payments' => ClientCurrentAccount::where('type', 'payment')
+                        ->whereBetween('created_at', [$startOfPeriod, $endOfPeriod])
+                        ->with('client')
+                        ->orderBy('created_at', 'desc')
+                        ->get(),
                     'technical_records' => TechnicalRecord::whereBetween('service_date', [$startOfPeriod, $endOfPeriod])
                         ->with('client')
                         ->orderBy('service_date', 'desc')
@@ -343,6 +369,13 @@ class HairdressingDailySalesController extends Controller
                     
             case 'client_accounts':
                 return ClientCurrentAccount::where('type', 'debt')
+                    ->whereBetween('created_at', [$startOfPeriod, $endOfPeriod])
+                    ->with('client')
+                    ->orderBy('created_at', 'desc')
+                    ->get();
+                    
+            case 'client_accounts_payments':
+                return ClientCurrentAccount::where('type', 'payment')
                     ->whereBetween('created_at', [$startOfPeriod, $endOfPeriod])
                     ->with('client')
                     ->orderBy('created_at', 'desc')

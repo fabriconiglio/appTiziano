@@ -16,7 +16,28 @@
                 @endif
             </h1>
             <p class="text-muted">
-                Detalle de {{ ucfirst(str_replace('_', ' ', $category)) }}
+                @switch($category)
+                    @case('total')
+                        Detalle de Total
+                        @break
+                    @case('client_accounts')
+                        Detalle de Cuentas Corrientes
+                        @break
+                    @case('client_accounts_payments')
+                        Detalle de CC Pagas
+                        @break
+                    @case('technical_records')
+                        Detalle de Servicios
+                        @break
+                    @case('product_sales')
+                        Detalle de Ventas de Productos
+                        @break
+                    @case('cliente_no_frecuente')
+                        Detalle de Clientes No Frecuentes
+                        @break
+                    @default
+                        Detalle de {{ ucfirst(str_replace('_', ' ', $category)) }}
+                @endswitch
                 @if($startDate->ne($endDate))
                     del período {{ $startDate->format('d/m/Y') }} al {{ $endDate->format('d/m/Y') }}
                 @else
@@ -45,6 +66,9 @@
                         @switch($category)
                             @case('client_accounts')
                                 <i class="fas fa-calculator me-2"></i>Cuentas Corrientes
+                                @break
+                            @case('client_accounts_payments')
+                                <i class="fas fa-money-bill-wave me-2"></i>CC Pagas
                                 @break
                             @case('technical_records')
                                 <i class="fas fa-scissors me-2"></i>Servicios
@@ -208,6 +232,12 @@
                                                 <th>Monto</th>
                                                 <th>Descripción</th>
                                                 @break
+                                            @case('client_accounts_payments')
+                                                <th>Cliente</th>
+                                                <th>Fecha</th>
+                                                <th>Monto</th>
+                                                <th>Descripción</th>
+                                                @break
                                             @case('technical_records')
                                                 <th>Cliente</th>
                                                 <th>Fecha Servicio</th>
@@ -243,6 +273,17 @@
                                                     <td>{{ $item->created_at->format('d/m/Y H:i') }}</td>
                                                     <td>
                                                         <span class="fw-bold text-success">${{ number_format($item->amount, 2) }}</span>
+                                                    </td>
+                                                    <td>{{ $item->description ?? 'Sin descripción' }}</td>
+                                                    @break
+                                                @case('client_accounts_payments')
+                                                    <td>
+                                                        <div class="fw-bold">{{ $item->client->name ?? 'Sin cliente' }}</div>
+                                                        <small class="text-muted">{{ $item->client->email ?? '' }}</small>
+                                                    </td>
+                                                    <td>{{ $item->created_at->format('d/m/Y H:i') }}</td>
+                                                    <td>
+                                                        <span class="fw-bold" style="color: #6f42c1;">${{ number_format($item->amount, 2) }}</span>
                                                     </td>
                                                     <td>{{ $item->description ?? 'Sin descripción' }}</td>
                                                     @break
@@ -321,7 +362,7 @@
     </div>
 
     <!-- Resumen -->
-    @if($category === 'total' ? ($data['client_accounts']->count() > 0 || $data['technical_records']->count() > 0 || $data['product_sales']->count() > 0 || $data['cliente_no_frecuente']->count() > 0) : $data->count() > 0)
+    @if($category === 'total' ? ($data['client_accounts']->count() > 0 || ($data['client_accounts_payments']->count() ?? 0) > 0 || $data['technical_records']->count() > 0 || $data['product_sales']->count() > 0 || $data['cliente_no_frecuente']->count() > 0) : $data->count() > 0)
     <div class="row mt-4">
         <div class="col-12">
             <div class="card">
@@ -336,7 +377,7 @@
                             <div class="text-center">
                                 <h4 class="text-primary">
                                     @if($category === 'total')
-                                        {{ $data['client_accounts']->count() + $data['technical_records']->count() + $data['product_sales']->count() + $data['cliente_no_frecuente']->count() }}
+                                        {{ $data['client_accounts']->count() + ($data['client_accounts_payments']->count() ?? 0) + $data['technical_records']->count() + $data['product_sales']->count() + $data['cliente_no_frecuente']->count() }}
                                     @else
                                         {{ $data->count() }}
                                     @endif
@@ -351,6 +392,7 @@
                                     @if($category === 'total')
                                         ${{ number_format(
                                             $data['client_accounts']->sum('amount') + 
+                                            ($data['client_accounts_payments']->sum('amount') ?? 0) +
                                             $data['technical_records']->sum('service_cost') + 
                                             $data['cliente_no_frecuente']->sum('monto'), 2
                                         ) }}
@@ -358,6 +400,7 @@
                                         ${{ number_format($data->sum(function($item) use ($category) {
                                             switch($category) {
                                                 case 'client_accounts': return $item->amount;
+                                                case 'client_accounts_payments': return $item->amount;
                                                 case 'technical_records': return $item->service_cost;
                                                 case 'cliente_no_frecuente': return $item->monto;
                                                 default: return 0;
@@ -375,9 +418,11 @@
                                     @if($category === 'total')
                                         @php
                                             $totalAmount = $data['client_accounts']->sum('amount') + 
+                                                         ($data['client_accounts_payments']->sum('amount') ?? 0) +
                                                          $data['technical_records']->sum('service_cost') + 
                                                          $data['cliente_no_frecuente']->sum('monto');
                                             $totalCount = $data['client_accounts']->count() + 
+                                                         ($data['client_accounts_payments']->count() ?? 0) +
                                                          $data['technical_records']->count() + 
                                                          $data['cliente_no_frecuente']->count();
                                             $average = $totalCount > 0 ? $totalAmount / $totalCount : 0;
@@ -387,6 +432,7 @@
                                         ${{ number_format($data->avg(function($item) use ($category) {
                                             switch($category) {
                                                 case 'client_accounts': return $item->amount;
+                                                case 'client_accounts_payments': return $item->amount;
                                                 case 'technical_records': return $item->service_cost;
                                                 case 'cliente_no_frecuente': return $item->monto;
                                                 default: return 0;

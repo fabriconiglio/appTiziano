@@ -193,25 +193,31 @@
     <div class="summary-cards">
         <div class="card primary">
             <h3>Total del Día</h3>
-            <div class="amount">${{ number_format($todaySales['total'], 2) }}</div>
+            <div class="amount">${{ number_format($todaySales['total'] ?? 0, 2) }}</div>
         </div>
         
         <div class="card success">
             <h3>Cuentas Corrientes</h3>
-            <div class="amount">${{ number_format($todaySales['client_accounts'], 2) }}</div>
-            <div class="count">{{ $todaySales['count_client_accounts'] }} ventas</div>
+            <div class="amount">${{ number_format($todaySales['client_accounts'] ?? 0, 2) }}</div>
+            <div class="count">{{ $todaySales['count_client_accounts'] ?? 0 }} ventas</div>
+        </div>
+        
+        <div class="card" style="background-color: #6f42c1; color: white;">
+            <h3>CC Pagas</h3>
+            <div class="amount">${{ number_format($todaySales['client_accounts_payments'] ?? 0, 2) }}</div>
+            <div class="count">{{ $todaySales['count_client_accounts_payments'] ?? 0 }} pagos</div>
         </div>
         
         <div class="card info">
             <h3>Servicios</h3>
-            <div class="amount">${{ number_format($todaySales['technical_records'], 2) }}</div>
-            <div class="count">{{ $todaySales['count_technical_records'] }} servicios</div>
+            <div class="amount">${{ number_format($todaySales['technical_records'] ?? 0, 2) }}</div>
+            <div class="count">{{ $todaySales['count_technical_records'] ?? 0 }} servicios</div>
         </div>
         
         <div class="card warning">
             <h3>Productos</h3>
-            <div class="amount">${{ number_format($todaySales['product_sales'], 2) }}</div>
-            <div class="count">{{ $todaySales['count_product_sales'] }} ventas</div>
+            <div class="amount">${{ number_format($todaySales['product_sales'] ?? 0, 2) }}</div>
+            <div class="count">{{ $todaySales['count_product_sales'] ?? 0 }} ventas</div>
         </div>
     </div>
 

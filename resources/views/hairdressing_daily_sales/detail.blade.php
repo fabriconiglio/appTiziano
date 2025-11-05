@@ -362,7 +362,7 @@
     </div>
 
     <!-- Resumen -->
-    @if($category === 'total' ? ($data['client_accounts']->count() > 0 || ($data['client_accounts_payments']->count() ?? 0) > 0 || $data['technical_records']->count() > 0 || $data['product_sales']->count() > 0 || $data['cliente_no_frecuente']->count() > 0) : $data->count() > 0)
+    @if($category === 'total' ? (($data['client_accounts_payments']->count() ?? 0) > 0 || $data['technical_records']->count() > 0 || $data['product_sales']->count() > 0 || $data['cliente_no_frecuente']->count() > 0) : $data->count() > 0)
     <div class="row mt-4">
         <div class="col-12">
             <div class="card">
@@ -377,7 +377,7 @@
                             <div class="text-center">
                                 <h4 class="text-primary">
                                     @if($category === 'total')
-                                        {{ $data['client_accounts']->count() + ($data['client_accounts_payments']->count() ?? 0) + $data['technical_records']->count() + $data['product_sales']->count() + $data['cliente_no_frecuente']->count() }}
+                                        {{ ($data['client_accounts_payments']->count() ?? 0) + $data['technical_records']->count() + $data['product_sales']->count() + $data['cliente_no_frecuente']->count() }}
                                     @else
                                         {{ $data->count() }}
                                     @endif
@@ -391,9 +391,11 @@
                                 <h4 class="text-success">
                                     @if($category === 'total')
                                         ${{ number_format(
-                                            $data['client_accounts']->sum('amount') + 
                                             ($data['client_accounts_payments']->sum('amount') ?? 0) +
                                             $data['technical_records']->sum('service_cost') + 
+                                            $data['product_sales']->sum(function($item) {
+                                                return ($item->quantity ?? 0) * ($item->price ?? 0);
+                                            }) +
                                             $data['cliente_no_frecuente']->sum('monto'), 2
                                         ) }}
                                     @else
@@ -417,13 +419,15 @@
                                 <h4 class="text-info">
                                     @if($category === 'total')
                                         @php
-                                            $totalAmount = $data['client_accounts']->sum('amount') + 
-                                                         ($data['client_accounts_payments']->sum('amount') ?? 0) +
+                                            $totalAmount = ($data['client_accounts_payments']->sum('amount') ?? 0) +
                                                          $data['technical_records']->sum('service_cost') + 
+                                                         $data['product_sales']->sum(function($item) {
+                                                             return ($item->quantity ?? 0) * ($item->price ?? 0);
+                                                         }) +
                                                          $data['cliente_no_frecuente']->sum('monto');
-                                            $totalCount = $data['client_accounts']->count() + 
-                                                         ($data['client_accounts_payments']->count() ?? 0) +
+                                            $totalCount = ($data['client_accounts_payments']->count() ?? 0) +
                                                          $data['technical_records']->count() + 
+                                                         $data['product_sales']->count() +
                                                          $data['cliente_no_frecuente']->count();
                                             $average = $totalCount > 0 ? $totalAmount / $totalCount : 0;
                                         @endphp

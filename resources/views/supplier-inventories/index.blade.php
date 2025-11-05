@@ -52,6 +52,22 @@
                                 </div>
                             </div>
                         @else
+                            <!-- Resumen de Inversión -->
+                            <div class="card bg-primary text-white mb-4">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h5 class="card-title mb-0">
+                                                <i class="fas fa-chart-line me-2"></i>Resumen de Inversión
+                                            </h5>
+                                        </div>
+                                        <div>
+                                            <h3 class="mb-0">${{ number_format($totalInversion, 2) }}</h3>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="table-responsive">
                                 <table class="table table-striped">
                                     <thead>

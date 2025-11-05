@@ -6,6 +6,7 @@ use App\Models\SupplierInventory;
 use App\Models\DistributorCategory;
 use App\Models\DistributorBrand;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class SupplierInventoryController extends Controller
@@ -55,13 +56,17 @@ class SupplierInventoryController extends Controller
             $query->where('supplier_name', $request->get('supplier'));
         }
 
+        // Calcular el total de inversión antes de paginar (suma de costo * stock_quantity)
+        // Usar COALESCE para manejar valores nulos en costo
+        $totalInversion = $query->sum(DB::raw('COALESCE(costo, 0) * stock_quantity'));
+
         $inventories = $query->latest()->paginate(10);
 
         // Para los filtros en la vista
         $categories = SupplierInventory::distinct('category')->pluck('category');
         $suppliers = SupplierInventory::distinct('supplier_name')->pluck('supplier_name');
 
-        return view('supplier-inventories.index', compact('inventories', 'categories', 'suppliers'));
+        return view('supplier-inventories.index', compact('inventories', 'categories', 'suppliers', 'totalInversion'));
     }
 
     /**

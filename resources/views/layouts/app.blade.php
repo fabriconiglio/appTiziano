@@ -183,6 +183,13 @@
                                         {{ __('Presupuestos') }}
                                     </a>
                                 </li>
+                                <!-- Submenú Presupuestos Clientes No Registrados -->
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item" href="{{ route('distributor-quotation-no-clients.index') }}">
+                                        <i class="fas fa-file-invoice text-info me-2"></i>
+                                        {{ __('Presupuestos Clientes No Registrados') }}
+                                    </a>
+                                </li>
                                 <!-- Submenú Descuentos -->
                                 <li class="dropdown-submenu">
                                     <a class="dropdown-item" href="{{ route('distributor-discounts.index') }}">

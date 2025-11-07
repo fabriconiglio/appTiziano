@@ -115,6 +115,12 @@
                                             Presupuestos
                                         </a>
 
+                                        <a href="{{ route('distributor-quotation-no-clients.index') }}"
+                                           class="btn btn-outline-success">
+                                            <i class="fas fa-file-invoice me-2"></i>
+                                            Presupuestos Clientes No Registrados
+                                        </a>
+
                                         <a href="{{ route('distributor-discounts.index') }}"
                                            class="btn btn-outline-success">
                                             <i class="fas fa-percent me-2"></i>

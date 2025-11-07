@@ -88,6 +88,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('distributor-clients/{distributorClient}/quotations/{quotation}/export-pdf', [DistributorQuotationController::class, 'exportToPdf'])->name('distributor-clients.quotations.export-pdf');
     Route::post('distributor-clients/{distributorClient}/quotations/{quotation}/change-status', [DistributorQuotationController::class, 'changeStatus'])->name('distributor-clients.quotations.change-status');
 
+    // CRUD de presupuestos para clientes no registrados
+    Route::resource('distributor-quotation-no-clients', \App\Http\Controllers\DistributorQuotationNoClientController::class);
+    Route::get('distributor-quotation-no-clients/{distributorQuotationNoClient}/export-pdf', [\App\Http\Controllers\DistributorQuotationNoClientController::class, 'exportToPdf'])->name('distributor-quotation-no-clients.export-pdf');
+    Route::post('distributor-quotation-no-clients/{distributorQuotationNoClient}/change-status', [\App\Http\Controllers\DistributorQuotationNoClientController::class, 'changeStatus'])->name('distributor-quotation-no-clients.change-status');
+
     // CRUD de descuentos de distribuidores
     Route::resource('distributor-discounts', DistributorDiscountController::class);
     Route::patch('distributor-discounts/{distributorDiscount}/toggle-status', [DistributorDiscountController::class, 'toggleStatus'])->name('distributor-discounts.toggle-status');

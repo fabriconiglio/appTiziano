@@ -155,6 +155,11 @@
             <div class="amount">${{ number_format($todaySales['client_accounts'] + $todaySales['distributor_accounts'], 2) }}</div>
             <div class="count">{{ $todaySales['count_client_accounts'] + $todaySales['count_distributor_accounts'] }} ventas</div>
         </div>
+        <div class="card">
+            <h3>CC Pagas</h3>
+            <div class="amount">${{ number_format($todaySales['distributor_accounts_payments'] ?? 0, 2) }}</div>
+            <div class="count">{{ $todaySales['count_distributor_accounts_payments'] ?? 0 }} pagos</div>
+        </div>
     </div>
 
     <!-- Comparaciones -->

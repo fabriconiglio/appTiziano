@@ -124,15 +124,29 @@ class DailySalesController extends Controller
         // Ventas de cuentas corrientes de distribuidores (solo si la tabla existe)
         $distributorAccountSales = 0;
         $countDistributorAccounts = 0;
+        $distributorAccountPayments = 0;
+        $countDistributorAccountPayments = 0;
         try {
             if (Schema::hasTable('distributor_current_accounts')) {
-                $distributorAccountSales = DistributorCurrentAccount::whereBetween('created_at', [$startOfPeriod, $endOfPeriod])
+                // Deudas de cuentas corrientes de distribuidores
+                $distributorAccountSales = DistributorCurrentAccount::where('type', 'debt')
+                    ->whereBetween('created_at', [$startOfPeriod, $endOfPeriod])
                     ->sum('amount');
-                $countDistributorAccounts = DistributorCurrentAccount::whereBetween('created_at', [$startOfPeriod, $endOfPeriod])->count();
+                $countDistributorAccounts = DistributorCurrentAccount::where('type', 'debt')
+                    ->whereBetween('created_at', [$startOfPeriod, $endOfPeriod])->count();
+                
+                // Pagos recibidos de cuentas corrientes de distribuidores
+                $distributorAccountPayments = DistributorCurrentAccount::where('type', 'payment')
+                    ->whereBetween('created_at', [$startOfPeriod, $endOfPeriod])
+                    ->sum('amount');
+                $countDistributorAccountPayments = DistributorCurrentAccount::where('type', 'payment')
+                    ->whereBetween('created_at', [$startOfPeriod, $endOfPeriod])->count();
             }
         } catch (\Exception $e) {
             $distributorAccountSales = 0;
             $countDistributorAccounts = 0;
+            $distributorAccountPayments = 0;
+            $countDistributorAccountPayments = 0;
         }
 
         // Ventas de clientes no frecuentes (solo si la tabla existe)
@@ -149,7 +163,9 @@ class DailySalesController extends Controller
             $countClienteNoFrecuente = 0;
         }
 
-        $totalSales = $quotationSales + $technicalRecordSales + $clientAccountSales + $distributorAccountSales + $clienteNoFrecuenteSales;
+        // Total solo incluye: Fichas Técnicas + CC Pagas + Clientes No Frecuentes
+        // NO incluye Presupuestos ni las deudas de CC (distributorAccountSales) porque ese dinero aún no se recibió
+        $totalSales = $technicalRecordSales + $distributorAccountPayments + $clienteNoFrecuenteSales;
 
         return [
             'total' => $totalSales,
@@ -157,11 +173,13 @@ class DailySalesController extends Controller
             'technical_records' => $technicalRecordSales,
             'client_accounts' => $clientAccountSales,
             'distributor_accounts' => $distributorAccountSales,
+            'distributor_accounts_payments' => $distributorAccountPayments,
             'cliente_no_frecuente' => $clienteNoFrecuenteSales,
             'count_quotations' => $countQuotations,
             'count_technical_records' => $countTechnicalRecords,
             'count_client_accounts' => $countClientAccounts,
             'count_distributor_accounts' => $countDistributorAccounts,
+            'count_distributor_accounts_payments' => $countDistributorAccountPayments,
             'count_cliente_no_frecuente' => $countClienteNoFrecuente,
         ];
     }
@@ -212,15 +230,29 @@ class DailySalesController extends Controller
         // Ventas de cuentas corrientes de distribuidores (solo si la tabla existe)
         $distributorAccountSales = 0;
         $countDistributorAccounts = 0;
+        $distributorAccountPayments = 0;
+        $countDistributorAccountPayments = 0;
         try {
             if (Schema::hasTable('distributor_current_accounts')) {
-                $distributorAccountSales = DistributorCurrentAccount::whereBetween('created_at', [$startOfDay, $endOfDay])
+                // Deudas de cuentas corrientes de distribuidores
+                $distributorAccountSales = DistributorCurrentAccount::where('type', 'debt')
+                    ->whereBetween('created_at', [$startOfDay, $endOfDay])
                     ->sum('amount');
-                $countDistributorAccounts = DistributorCurrentAccount::whereBetween('created_at', [$startOfDay, $endOfDay])->count();
+                $countDistributorAccounts = DistributorCurrentAccount::where('type', 'debt')
+                    ->whereBetween('created_at', [$startOfDay, $endOfDay])->count();
+                
+                // Pagos recibidos de cuentas corrientes de distribuidores
+                $distributorAccountPayments = DistributorCurrentAccount::where('type', 'payment')
+                    ->whereBetween('created_at', [$startOfDay, $endOfDay])
+                    ->sum('amount');
+                $countDistributorAccountPayments = DistributorCurrentAccount::where('type', 'payment')
+                    ->whereBetween('created_at', [$startOfDay, $endOfDay])->count();
             }
         } catch (\Exception $e) {
             $distributorAccountSales = 0;
             $countDistributorAccounts = 0;
+            $distributorAccountPayments = 0;
+            $countDistributorAccountPayments = 0;
         }
 
         // Ventas de clientes no frecuentes (solo si la tabla existe)
@@ -237,7 +269,9 @@ class DailySalesController extends Controller
             $countClienteNoFrecuente = 0;
         }
 
-        $totalSales = $quotationSales + $technicalRecordSales + $clientAccountSales + $distributorAccountSales + $clienteNoFrecuenteSales;
+        // Total solo incluye: Fichas Técnicas + CC Pagas + Clientes No Frecuentes
+        // NO incluye Presupuestos ni las deudas de CC (distributorAccountSales) porque ese dinero aún no se recibió
+        $totalSales = $technicalRecordSales + $distributorAccountPayments + $clienteNoFrecuenteSales;
 
         return [
             'total' => $totalSales,
@@ -245,11 +279,13 @@ class DailySalesController extends Controller
             'technical_records' => $technicalRecordSales,
             'client_accounts' => $clientAccountSales,
             'distributor_accounts' => $distributorAccountSales,
+            'distributor_accounts_payments' => $distributorAccountPayments,
             'cliente_no_frecuente' => $clienteNoFrecuenteSales,
             'count_quotations' => $countQuotations,
             'count_technical_records' => $countTechnicalRecords,
             'count_client_accounts' => $countClientAccounts,
             'count_distributor_accounts' => $countDistributorAccounts,
+            'count_distributor_accounts_payments' => $countDistributorAccountPayments,
             'count_cliente_no_frecuente' => $countClienteNoFrecuente,
         ];
     }
@@ -302,21 +338,32 @@ class DailySalesController extends Controller
 
         // Ventas mensuales de cuentas corrientes de distribuidores (solo si la tabla existe)
         $monthlyDistributorAccounts = 0;
+        $monthlyDistributorAccountPayments = 0;
         try {
             if (Schema::hasTable('distributor_current_accounts')) {
-                $monthlyDistributorAccounts = DistributorCurrentAccount::whereBetween('created_at', [$startOfMonth, $endOfMonth])
+                // Deudas mensuales
+                $monthlyDistributorAccounts = DistributorCurrentAccount::where('type', 'debt')
+                    ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
+                    ->sum('amount');
+                
+                // Pagos mensuales
+                $monthlyDistributorAccountPayments = DistributorCurrentAccount::where('type', 'payment')
+                    ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
                     ->sum('amount');
             }
         } catch (\Exception $e) {
             $monthlyDistributorAccounts = 0;
+            $monthlyDistributorAccountPayments = 0;
         }
 
+        // Total mensual solo incluye: Fichas Técnicas + CC Pagas (no incluye Presupuestos ni deudas)
         return [
-            'total' => $monthlySales + $monthlyTechnicalRecords + $monthlyClientAccounts + $monthlyDistributorAccounts,
+            'total' => $monthlyTechnicalRecords + $monthlyDistributorAccountPayments,
             'quotations' => $monthlySales,
             'technical_records' => $monthlyTechnicalRecords,
             'client_accounts' => $monthlyClientAccounts,
             'distributor_accounts' => $monthlyDistributorAccounts,
+            'distributor_accounts_payments' => $monthlyDistributorAccountPayments,
         ];
     }
 
@@ -399,7 +446,9 @@ class DailySalesController extends Controller
                     
             case 'current_accounts':
                 // Solo mostrar cuentas corrientes de distribuidores en ventas diarias de distribuidora
-                $distributorAccounts = DistributorCurrentAccount::whereBetween('created_at', [$startOfPeriod, $endOfPeriod])
+                // Mostrar solo deudas (no pagos)
+                $distributorAccounts = DistributorCurrentAccount::where('type', 'debt')
+                    ->whereBetween('created_at', [$startOfPeriod, $endOfPeriod])
                     ->with('distributorClient')
                     ->orderBy('created_at', 'desc')
                     ->get();
@@ -408,6 +457,13 @@ class DailySalesController extends Controller
                     'client_accounts' => collect(), // Vacío para distribuidora
                     'distributor_accounts' => $distributorAccounts
                 ];
+                
+            case 'distributor_accounts_payments':
+                return DistributorCurrentAccount::where('type', 'payment')
+                    ->whereBetween('created_at', [$startOfPeriod, $endOfPeriod])
+                    ->with('distributorClient')
+                    ->orderBy('created_at', 'desc')
+                    ->get();
                 
             case 'cliente_no_frecuente':
                 return DistributorClienteNoFrecuente::whereBetween('fecha', [$startOfPeriod, $endOfPeriod])
@@ -427,7 +483,13 @@ class DailySalesController extends Controller
                         ->orderBy('created_at', 'desc')
                         ->get(),
                     'client_accounts' => collect(), // Vacío para distribuidora
-                    'distributor_accounts' => DistributorCurrentAccount::whereBetween('created_at', [$startOfPeriod, $endOfPeriod])
+                    'distributor_accounts' => DistributorCurrentAccount::where('type', 'debt')
+                        ->whereBetween('created_at', [$startOfPeriod, $endOfPeriod])
+                        ->with('distributorClient')
+                        ->orderBy('created_at', 'desc')
+                        ->get(),
+                    'distributor_accounts_payments' => DistributorCurrentAccount::where('type', 'payment')
+                        ->whereBetween('created_at', [$startOfPeriod, $endOfPeriod])
                         ->with('distributorClient')
                         ->orderBy('created_at', 'desc')
                         ->get(),

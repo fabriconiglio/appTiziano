@@ -23,6 +23,9 @@
                             @case('current_accounts')
                                 Cuentas Corrientes
                                 @break
+                            @case('distributor_accounts_payments')
+                                CC Pagas
+                                @break
                             @case('cliente_no_frecuente')
                                 Clientes No Frecuentes
                                 @break
@@ -56,31 +59,31 @@
                     </div>
                     <div class="card-body">
                         <div class="row">
-                            <div class="col-md-3">
-                                <div class="text-center">
-                                    <h6 class="text-success">Presupuestos</h6>
-                                    <h4 class="text-success">${{ number_format($details['quotations']->sum('final_amount'), 2) }}</h4>
-                                    <small class="text-muted">{{ $details['quotations']->count() }} registros</small>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
+                            <div class="col-md-3 mb-3">
                                 <div class="text-center">
                                     <h6 class="text-info">Fichas Técnicas</h6>
                                     <h4 class="text-info">${{ number_format($details['technical_records']->sum('final_amount'), 2) }}</h4>
                                     <small class="text-muted">{{ $details['technical_records']->count() }} registros</small>
                                 </div>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-3 mb-3">
                                 <div class="text-center">
-                                    <h6 class="text-warning">Cuentas Corrientes</h6>
-                                    <h4 class="text-warning">${{ number_format($details['client_accounts']->sum('amount') + $details['distributor_accounts']->sum('amount'), 2) }}</h4>
-                                    <small class="text-muted">{{ $details['client_accounts']->count() + $details['distributor_accounts']->count() }} movimientos</small>
+                                    <h6 class="mb-3" style="color: #6f42c1;">CC Pagas</h6>
+                                    <h4 style="color: #6f42c1;">${{ number_format($details['distributor_accounts_payments']->sum('amount') ?? 0, 2) }}</h4>
+                                    <small class="text-muted">{{ $details['distributor_accounts_payments']->count() ?? 0 }} pagos</small>
                                 </div>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-3 mb-3">
+                                <div class="text-center">
+                                    <h6 class="text-secondary">Clientes No Frecuentes</h6>
+                                    <h4 class="text-secondary">${{ number_format($details['cliente_no_frecuente']->sum('monto') ?? 0, 2) }}</h4>
+                                    <small class="text-muted">{{ $details['cliente_no_frecuente']->count() ?? 0 }} ventas</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
                                 <div class="text-center">
                                     <h6 class="text-primary">TOTAL</h6>
-                                    <h4 class="text-primary">${{ number_format($details['quotations']->sum('final_amount') + $details['technical_records']->sum('final_amount') + $details['client_accounts']->sum('amount') + $details['distributor_accounts']->sum('amount'), 2) }}</h4>
+                                    <h4 class="text-primary">${{ number_format($details['technical_records']->sum('final_amount') + ($details['distributor_accounts_payments']->sum('amount') ?? 0) + ($details['cliente_no_frecuente']->sum('monto') ?? 0), 2) }}</h4>
                                 </div>
                             </div>
                         </div>
@@ -90,7 +93,7 @@
         </div>
     @endif
 
-    @if($category === 'quotations' || $category === 'total')
+    @if($category === 'quotations')
         <!-- Presupuestos -->
         <div class="row mb-4">
             <div class="col-12">
@@ -98,11 +101,11 @@
                     <div class="card-header">
                         <h5 class="card-title mb-0">
                             <i class="fas fa-file-invoice-dollar text-success"></i>
-                            Presupuestos ({{ $category === 'total' ? $details['quotations']->count() : $details->count() }} registros)
+                            Presupuestos ({{ $details->count() }} registros)
                         </h5>
                     </div>
                     <div class="card-body">
-                        @if(($category === 'quotations' ? $details : $details['quotations'])->count() > 0)
+                        @if($details->count() > 0)
                             <div class="table-responsive">
                                 <table class="table table-striped">
                                     <thead>
@@ -115,7 +118,7 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach($category === 'quotations' ? $details : $details['quotations'] as $quotation)
+                                        @foreach($details as $quotation)
                                         <tr>
                                             <td>#{{ $quotation->id }}</td>
                                             <td>{{ $quotation->distributorClient->name ?? 'N/A' }}</td>
@@ -192,7 +195,68 @@
         </div>
     @endif
 
-    @if($category === 'current_accounts' || $category === 'total')
+    @if($category === 'distributor_accounts_payments' || $category === 'total')
+        <!-- CC Pagas -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-money-bill-wave" style="color: #6f42c1;"></i>
+                            CC Pagas
+                            @if($category === 'total')
+                                ({{ $details['distributor_accounts_payments']->count() ?? 0 }} pagos)
+                            @else
+                                ({{ $details->count() }} pagos)
+                            @endif
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        @php
+                            $payments = $category === 'distributor_accounts_payments' ? $details : ($details['distributor_accounts_payments'] ?? collect());
+                        @endphp
+
+                        @if($payments->count() > 0)
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Cliente</th>
+                                            <th>Fecha</th>
+                                            <th>Descripción</th>
+                                            <th>Monto</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($payments as $payment)
+                                        <tr>
+                                            <td>
+                                                <div class="fw-bold">{{ $payment->distributorClient->name ?? 'N/A' }}</div>
+                                                <small class="text-muted">{{ $payment->distributorClient->email ?? '' }}</small>
+                                            </td>
+                                            <td>{{ $payment->created_at->format('d/m/Y H:i') }}</td>
+                                            <td>{{ $payment->description ?? 'Sin descripción' }}</td>
+                                            <td>
+                                                <span class="fw-bold" style="color: #6f42c1;">${{ number_format($payment->amount, 2) }}</span>
+                                            </td>
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @else
+                            <div class="text-center py-4">
+                                <i class="fas fa-money-bill-wave fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">No hay pagos de cuentas corrientes en este período</p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    @if($category === 'current_accounts')
         <!-- Cuentas Corrientes -->
         <div class="row mb-4">
             <div class="col-12">
@@ -201,17 +265,13 @@
                         <h5 class="card-title mb-0">
                             <i class="fas fa-calculator text-warning"></i>
                             Cuentas Corrientes
-                            @if($category === 'total')
-                                ({{ $details['client_accounts']->count() + $details['distributor_accounts']->count() }} movimientos)
-                            @else
-                                ({{ $details['client_accounts']->count() + $details['distributor_accounts']->count() }} movimientos)
-                            @endif
+                            ({{ $details['client_accounts']->count() + $details['distributor_accounts']->count() }} movimientos)
                         </h5>
                     </div>
                     <div class="card-body">
                         @php
-                            $clientAccounts = $category === 'current_accounts' ? $details['client_accounts'] : $details['client_accounts'];
-                            $distributorAccounts = $category === 'current_accounts' ? $details['distributor_accounts'] : $details['distributor_accounts'];
+                            $clientAccounts = $details['client_accounts'];
+                            $distributorAccounts = $details['distributor_accounts'];
                         @endphp
 
                         @if($clientAccounts->count() > 0 || $distributorAccounts->count() > 0)

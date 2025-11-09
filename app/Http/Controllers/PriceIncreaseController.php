@@ -64,7 +64,7 @@ class PriceIncreaseController extends Controller
         $rules = [
             'type' => 'required|in:porcentual,fijo',
             'increase_value' => 'required|numeric|min:0.01',
-            'scope_type' => 'required|in:producto,marca',
+            'scope_type' => 'required|in:producto,marca,multiples',
             'price_types' => 'required|array',
             'price_types.*' => 'in:precio_mayor,precio_menor'
         ];
@@ -73,12 +73,27 @@ class PriceIncreaseController extends Controller
         if ($request->scope_type === 'producto') {
             $rules['supplier_inventory_id'] = 'required|exists:supplier_inventories,id';
             $rules['distributor_brand_id'] = 'nullable';
-        } else {
+            $rules['supplier_inventory_ids'] = 'nullable';
+        } elseif ($request->scope_type === 'marca') {
             $rules['distributor_brand_id'] = 'required|exists:distributor_brands,id';
             $rules['supplier_inventory_id'] = 'nullable';
+            $rules['supplier_inventory_ids'] = 'nullable';
+        } else {
+            // multiples
+            $rules['supplier_inventory_ids'] = 'required|array';
+            $rules['supplier_inventory_ids.*'] = 'exists:supplier_inventories,id';
+            $rules['supplier_inventory_id'] = 'nullable';
+            $rules['distributor_brand_id'] = 'nullable';
         }
 
         $validated = $request->validate($rules);
+
+        // Normalizar supplier_inventory_ids para multiples
+        if ($validated['scope_type'] === 'multiples' && isset($validated['supplier_inventory_ids'])) {
+            $validated['supplier_inventory_ids'] = is_array($validated['supplier_inventory_ids']) 
+                ? $validated['supplier_inventory_ids'] 
+                : [$validated['supplier_inventory_ids']];
+        }
 
         // Validación adicional para porcentual
         if ($validated['type'] === 'porcentual' && $validated['increase_value'] > 100) {
@@ -134,7 +149,7 @@ class PriceIncreaseController extends Controller
         $validated = $request->validate([
             'type' => 'required|in:porcentual,fijo',
             'increase_value' => 'required|numeric|min:0.01',
-            'scope_type' => 'required|in:producto,marca',
+            'scope_type' => 'required|in:producto,marca,multiples',
             'supplier_inventory_id' => 'nullable|exists:supplier_inventories,id',
             'distributor_brand_id' => 'nullable|exists:distributor_brands,id',
             'price_types' => 'required|array',
@@ -244,8 +259,12 @@ class PriceIncreaseController extends Controller
     {
         if ($data['scope_type'] === 'producto') {
             return SupplierInventory::where('id', $data['supplier_inventory_id'])->get();
-        } else {
+        } elseif ($data['scope_type'] === 'marca') {
             return SupplierInventory::where('distributor_brand_id', $data['distributor_brand_id'])->get();
+        } else {
+            // multiples
+            $productIds = $data['supplier_inventory_ids'] ?? [];
+            return SupplierInventory::whereIn('id', $productIds)->get();
         }
     }
 
@@ -261,3 +280,4 @@ class PriceIncreaseController extends Controller
         }
     }
 }
+

@@ -76,6 +76,12 @@
                                             Por Marca (todos los productos de una marca)
                                         </label>
                                     </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="scope_type" id="scope_multiples" value="multiples" {{ old('scope_type') == 'multiples' ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="scope_multiples">
+                                            Varios Productos (de distintas marcas)
+                                        </label>
+                                    </div>
                                     @error('scope_type')
                                         <div class="text-danger small">{{ $message }}</div>
                                     @enderror
@@ -104,6 +110,17 @@
                                     @error('distributor_brand_id')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
+                                </div>
+
+                                <div class="col-md-12 mb-3" id="multiples_select_container" style="display: none;">
+                                    <label for="supplier_inventory_ids" class="form-label">Seleccionar Productos *</label>
+                                    <select class="form-select @error('supplier_inventory_ids') is-invalid @enderror" 
+                                            id="supplier_inventory_ids" name="supplier_inventory_ids[]" multiple>
+                                    </select>
+                                    @error('supplier_inventory_ids')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                    <small class="form-text text-muted">Puede seleccionar múltiples productos de distintas marcas</small>
                                 </div>
 
                                 <div class="col-md-12 mb-3">
@@ -147,10 +164,45 @@
         <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
         <script>
             $(document).ready(function() {
-                // Configurar Select2 para búsqueda de productos
+                // Configurar Select2 para búsqueda de productos individuales
                 $('#supplier_inventory_id').select2({
                     placeholder: 'Buscar producto...',
                     allowClear: true,
+                    ajax: {
+                        url: '{{ route("api.supplier-inventories.search") }}',
+                        dataType: 'json',
+                        delay: 250,
+                        data: function(params) {
+                            return {
+                                q: params.term,
+                                page: params.page
+                            };
+                        },
+                        processResults: function(data) {
+                            return {
+                                results: data.map(function(item) {
+                                    let displayText = item.display_text || item.product_name;
+                                    if (item.brand) {
+                                        displayText += ' - ' + item.brand;
+                                    }
+                                    return {
+                                        id: item.id,
+                                        text: displayText
+                                    };
+                                })
+                            };
+                        },
+                        cache: true
+                    },
+                    minimumInputLength: 2
+                });
+
+                // Configurar Select2 para selección múltiple de productos
+                $('#supplier_inventory_ids').select2({
+                    placeholder: 'Buscar y seleccionar productos...',
+                    allowClear: true,
+                    multiple: true,
+                    tags: false,
                     ajax: {
                         url: '{{ route("api.supplier-inventories.search") }}',
                         dataType: 'json',
@@ -203,13 +255,25 @@
                     if (scopeType === 'producto') {
                         $('#product_select_container').show();
                         $('#brand_select_container').hide();
+                        $('#multiples_select_container').hide();
                         $('#supplier_inventory_id').prop('required', true);
                         $('#distributor_brand_id').prop('required', false).val('');
-                    } else {
+                        $('#supplier_inventory_ids').prop('required', false).val(null).trigger('change');
+                    } else if (scopeType === 'marca') {
                         $('#product_select_container').hide();
                         $('#brand_select_container').show();
+                        $('#multiples_select_container').hide();
                         $('#supplier_inventory_id').prop('required', false).val(null).trigger('change');
                         $('#distributor_brand_id').prop('required', true);
+                        $('#supplier_inventory_ids').prop('required', false).val(null).trigger('change');
+                    } else {
+                        // multiples
+                        $('#product_select_container').hide();
+                        $('#brand_select_container').hide();
+                        $('#multiples_select_container').show();
+                        $('#supplier_inventory_id').prop('required', false).val(null).trigger('change');
+                        $('#distributor_brand_id').prop('required', false).val('');
+                        $('#supplier_inventory_ids').prop('required', true);
                     }
                 });
 
@@ -224,14 +288,24 @@
                 });
 
                 // Inicializar según valores antiguos
-                if ($('input[name="scope_type"]:checked').val() === 'marca') {
+                const scopeType = $('input[name="scope_type"]:checked').val();
+                if (scopeType === 'marca') {
                     $('#product_select_container').hide();
                     $('#brand_select_container').show();
+                    $('#multiples_select_container').hide();
                     $('#supplier_inventory_id').prop('required', false).val('');
                     $('#distributor_brand_id').prop('required', true);
+                } else if (scopeType === 'multiples') {
+                    $('#product_select_container').hide();
+                    $('#brand_select_container').hide();
+                    $('#multiples_select_container').show();
+                    $('#supplier_inventory_id').prop('required', false).val('');
+                    $('#distributor_brand_id').prop('required', false).val('');
+                    $('#supplier_inventory_ids').prop('required', true);
                 } else {
                     $('#supplier_inventory_id').prop('required', true);
                     $('#distributor_brand_id').prop('required', false).val('');
+                    $('#supplier_inventory_ids').prop('required', false).val('');
                 }
             });
         </script>

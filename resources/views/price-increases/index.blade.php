@@ -42,6 +42,7 @@
                                         <option value="">Todos</option>
                                         <option value="producto" {{ request('scope_type') == 'producto' ? 'selected' : '' }}>Producto Individual</option>
                                         <option value="marca" {{ request('scope_type') == 'marca' ? 'selected' : '' }}>Por Marca</option>
+                                        <option value="multiples" {{ request('scope_type') == 'multiples' ? 'selected' : '' }}>Varios Productos</option>
                                     </select>
                                 </div>
                                 <div class="col-md-3">

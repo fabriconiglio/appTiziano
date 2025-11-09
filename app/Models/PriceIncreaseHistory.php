@@ -65,7 +65,13 @@ class PriceIncreaseHistory extends Model
      */
     public function getScopeTypeFormattedAttribute(): string
     {
-        return $this->scope_type === 'producto' ? 'Producto Individual' : 'Por Marca';
+        if ($this->scope_type === 'producto') {
+            return 'Producto Individual';
+        } elseif ($this->scope_type === 'marca') {
+            return 'Por Marca';
+        } else {
+            return 'Varios Productos';
+        }
     }
 
     /**

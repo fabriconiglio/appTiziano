@@ -24,7 +24,15 @@
                                     ${{ number_format($form_data['increase_value'], 2) }}
                                 @endif
                                 |
-                                <strong>Alcance:</strong> {{ $form_data['scope_type'] === 'producto' ? 'Producto Individual' : 'Por Marca' }} |
+                                <strong>Alcance:</strong> 
+                                @if($form_data['scope_type'] === 'producto')
+                                    Producto Individual
+                                @elseif($form_data['scope_type'] === 'marca')
+                                    Por Marca
+                                @else
+                                    Varios Productos
+                                @endif
+                                |
                                 <strong>Precios afectados:</strong> 
                                 @foreach($form_data['price_types'] as $priceType)
                                     {{ $priceType === 'precio_mayor' ? 'Mayor' : 'Menor' }}

@@ -18,6 +18,7 @@ use App\Http\Controllers\DistributorDiscountController;
 use App\Http\Controllers\PriceIncreaseController;
 use App\Http\Controllers\PriceDecreaseController;
 use App\Http\Controllers\CostDecreaseController;
+use App\Http\Controllers\CostIncreaseController;
 use App\Http\Controllers\StockAlertController;
 use App\Http\Controllers\ClientCurrentAccountController;
 use App\Http\Controllers\AfipInvoiceController;
@@ -120,6 +121,13 @@ Route::middleware(['auth'])->group(function () {
     Route::post('cost-decreases/preview', [CostDecreaseController::class, 'preview'])->name('cost-decreases.preview');
     Route::post('cost-decreases', [CostDecreaseController::class, 'store'])->name('cost-decreases.store');
     Route::get('cost-decreases/{costDecrease}', [CostDecreaseController::class, 'show'])->name('cost-decreases.show');
+    
+    // CRUD de aumentos de costos
+    Route::get('cost-increases', [CostIncreaseController::class, 'index'])->name('cost-increases.index');
+    Route::get('cost-increases/create', [CostIncreaseController::class, 'create'])->name('cost-increases.create');
+    Route::post('cost-increases/preview', [CostIncreaseController::class, 'preview'])->name('cost-increases.preview');
+    Route::post('cost-increases', [CostIncreaseController::class, 'store'])->name('cost-increases.store');
+    Route::get('cost-increases/{costIncrease}', [CostIncreaseController::class, 'show'])->name('cost-increases.show');
     
     // Ruta para ejecutar comandos Artisan
     Route::post('artisan', [ArtisanController::class, 'executeCommand'])->name('artisan.execute');

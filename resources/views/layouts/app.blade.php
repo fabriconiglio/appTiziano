@@ -218,6 +218,13 @@
                                         {{ __('Disminución de Costos') }}
                                     </a>
                                 </li>
+                                <!-- Submenú Aumento de Costos -->
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item" href="{{ route('cost-increases.index') }}">
+                                        <i class="fas fa-dollar-sign text-success me-2"></i>
+                                        {{ __('Aumento de Costos') }}
+                                    </a>
+                                </li>
                                 <!-- Submenú Categorías Distribuidora -->
                                 <li class="dropdown-submenu">
                                     <a class="dropdown-item" href="{{ route('distributor_categories.index') }}">

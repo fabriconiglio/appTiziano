@@ -16,6 +16,8 @@ use App\Http\Controllers\TechnicalRecordController;
 use App\Http\Controllers\DistributorTechnicalRecordController;
 use App\Http\Controllers\DistributorDiscountController;
 use App\Http\Controllers\PriceIncreaseController;
+use App\Http\Controllers\PriceDecreaseController;
+use App\Http\Controllers\CostDecreaseController;
 use App\Http\Controllers\StockAlertController;
 use App\Http\Controllers\ClientCurrentAccountController;
 use App\Http\Controllers\AfipInvoiceController;
@@ -104,6 +106,20 @@ Route::middleware(['auth'])->group(function () {
     Route::post('price-increases/preview', [PriceIncreaseController::class, 'preview'])->name('price-increases.preview');
     Route::post('price-increases', [PriceIncreaseController::class, 'store'])->name('price-increases.store');
     Route::get('price-increases/{priceIncrease}', [PriceIncreaseController::class, 'show'])->name('price-increases.show');
+    
+    // CRUD de disminuciones de precios
+    Route::get('price-decreases', [PriceDecreaseController::class, 'index'])->name('price-decreases.index');
+    Route::get('price-decreases/create', [PriceDecreaseController::class, 'create'])->name('price-decreases.create');
+    Route::post('price-decreases/preview', [PriceDecreaseController::class, 'preview'])->name('price-decreases.preview');
+    Route::post('price-decreases', [PriceDecreaseController::class, 'store'])->name('price-decreases.store');
+    Route::get('price-decreases/{priceDecrease}', [PriceDecreaseController::class, 'show'])->name('price-decreases.show');
+    
+    // CRUD de disminuciones de costos
+    Route::get('cost-decreases', [CostDecreaseController::class, 'index'])->name('cost-decreases.index');
+    Route::get('cost-decreases/create', [CostDecreaseController::class, 'create'])->name('cost-decreases.create');
+    Route::post('cost-decreases/preview', [CostDecreaseController::class, 'preview'])->name('cost-decreases.preview');
+    Route::post('cost-decreases', [CostDecreaseController::class, 'store'])->name('cost-decreases.store');
+    Route::get('cost-decreases/{costDecrease}', [CostDecreaseController::class, 'show'])->name('cost-decreases.show');
     
     // Ruta para ejecutar comandos Artisan
     Route::post('artisan', [ArtisanController::class, 'executeCommand'])->name('artisan.execute');

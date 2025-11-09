@@ -133,6 +133,18 @@
                                             Aumento de Precios
                                         </a>
 
+                                        <a href="{{ route('price-decreases.index') }}"
+                                           class="btn btn-outline-success">
+                                            <i class="fas fa-arrow-down me-2"></i>
+                                            Disminución de Precios
+                                        </a>
+
+                                        <a href="{{ route('cost-decreases.index') }}"
+                                           class="btn btn-outline-success">
+                                            <i class="fas fa-dollar-sign me-2"></i>
+                                            Disminución de Costos
+                                        </a>
+
                                         <a href="{{ route('daily-sales.index') }}"
                                            class="btn btn-outline-info">
                                             <i class="fas fa-chart-line me-2"></i>

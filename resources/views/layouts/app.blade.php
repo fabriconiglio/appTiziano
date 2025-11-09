@@ -204,6 +204,20 @@
                                         {{ __('Aumento de Precios') }}
                                     </a>
                                 </li>
+                                <!-- Submenú Disminución de Precios -->
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item" href="{{ route('price-decreases.index') }}">
+                                        <i class="fas fa-arrow-down text-danger me-2"></i>
+                                        {{ __('Disminución de Precios') }}
+                                    </a>
+                                </li>
+                                <!-- Submenú Disminución de Costos -->
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item" href="{{ route('cost-decreases.index') }}">
+                                        <i class="fas fa-dollar-sign text-warning me-2"></i>
+                                        {{ __('Disminución de Costos') }}
+                                    </a>
+                                </li>
                                 <!-- Submenú Categorías Distribuidora -->
                                 <li class="dropdown-submenu">
                                     <a class="dropdown-item" href="{{ route('distributor_categories.index') }}">

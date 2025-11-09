@@ -33,13 +33,50 @@ class DistributorCurrentAccountController extends Controller
             });
         }
 
-        $distributorClients = $query->paginate(15);
+        // Obtener todos los distribuidores para calcular saldos y aplicar filtro
+        $allDistributorClients = $query->get();
 
-        // Calcular saldos para cada cliente
-        foreach ($distributorClients as $client) {
+        // Calcular saldos para todos los distribuidores
+        foreach ($allDistributorClients as $client) {
             $client->current_balance = $client->getCurrentBalance();
             $client->formatted_balance = $client->getFormattedBalance();
         }
+
+        // Aplicar filtro por estado de deuda
+        if ($request->filled('debt_status')) {
+            $debtStatus = $request->debt_status;
+            $allDistributorClients = $allDistributorClients->filter(function($client) use ($debtStatus) {
+                switch ($debtStatus) {
+                    case 'with_debt':
+                        return $client->current_balance > 0;
+                    case 'up_to_date':
+                        return $client->current_balance == 0;
+                    case 'in_favor':
+                        return $client->current_balance < 0;
+                    default:
+                        return true;
+                }
+            });
+        }
+
+        // Convertir a paginación manual
+        $perPage = 15;
+        $currentPage = $request->get('page', 1);
+        $offset = ($currentPage - 1) * $perPage;
+        
+        $distributorClients = new \Illuminate\Pagination\LengthAwarePaginator(
+            $allDistributorClients->slice($offset, $perPage)->values(),
+            $allDistributorClients->count(),
+            $perPage,
+            $currentPage,
+            [
+                'path' => $request->url(),
+                'pageName' => 'page',
+            ]
+        );
+
+        // Agregar parámetros de consulta a la paginación
+        $distributorClients->appends($request->query());
 
         return view('distributor_current_accounts.index', compact('distributorClients'));
     }

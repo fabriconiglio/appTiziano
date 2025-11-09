@@ -52,8 +52,16 @@
                                 </div>
                             </div>
                         @else
+                            <!-- Botón para mostrar/ocultar inversión (siempre visible) -->
+                            <div class="mb-2 d-flex justify-content-end">
+                                <button type="button" class="btn btn-outline-primary btn-sm" id="toggleInversion" title="Ocultar/Mostrar inversión">
+                                    <i class="fas fa-eye" id="eyeIcon"></i>
+                                    <span id="toggleText">Ocultar Inversión</span>
+                                </button>
+                            </div>
+
                             <!-- Resumen de Inversión -->
-                            <div class="card bg-primary text-white mb-4">
+                            <div class="card bg-primary text-white mb-4" id="inversionCard">
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
@@ -62,7 +70,7 @@
                                             </h5>
                                         </div>
                                         <div>
-                                            <h3 class="mb-0">${{ number_format($totalInversion, 2) }}</h3>
+                                            <h3 class="mb-0" id="inversionAmount">${{ number_format($totalInversion, 2) }}</h3>
                                         </div>
                                     </div>
                                 </div>
@@ -187,4 +195,41 @@
             </div>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const inversionCard = document.getElementById('inversionCard');
+            const toggleButton = document.getElementById('toggleInversion');
+            const eyeIcon = document.getElementById('eyeIcon');
+            const toggleText = document.getElementById('toggleText');
+            
+            // Verificar si hay una preferencia guardada
+            const isHidden = localStorage.getItem('inversionHidden') === 'true';
+            
+            if (isHidden) {
+                inversionCard.style.display = 'none';
+                eyeIcon.classList.remove('fa-eye');
+                eyeIcon.classList.add('fa-eye-slash');
+                toggleText.textContent = 'Mostrar Inversión';
+            }
+            
+            toggleButton.addEventListener('click', function() {
+                if (inversionCard.style.display === 'none') {
+                    // Mostrar
+                    inversionCard.style.display = 'block';
+                    eyeIcon.classList.remove('fa-eye-slash');
+                    eyeIcon.classList.add('fa-eye');
+                    toggleText.textContent = 'Ocultar Inversión';
+                    localStorage.setItem('inversionHidden', 'false');
+                } else {
+                    // Ocultar
+                    inversionCard.style.display = 'none';
+                    eyeIcon.classList.remove('fa-eye');
+                    eyeIcon.classList.add('fa-eye-slash');
+                    toggleText.textContent = 'Mostrar Inversión';
+                    localStorage.setItem('inversionHidden', 'true');
+                }
+            });
+        });
+    </script>
 @endsection

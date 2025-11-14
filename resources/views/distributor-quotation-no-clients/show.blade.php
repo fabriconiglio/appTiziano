@@ -112,6 +112,7 @@
                                 <thead>
                                     <tr>
                                         <th>Producto</th>
+                                        <th>Marca</th>
                                         <th>Cantidad</th>
                                         <th>Precio Unitario</th>
                                         <th>Subtotal</th>
@@ -122,20 +123,21 @@
                                         <tr>
                                             <td>
                                                 @php
-                                                    $productInfo = App\Models\SupplierInventory::find($product['product_id']);
+                                                    $productInfo = App\Models\SupplierInventory::with('distributorBrand')->find($product['product_id']);
                                                 @endphp
                                                 {{ $productInfo ? $productInfo->product_name : 'Producto no encontrado' }}
                                                 @if($productInfo && $productInfo->description)
                                                     <br><small class="text-muted">{{ $productInfo->description }}</small>
                                                 @endif
                                             </td>
+                                            <td>{{ $productInfo && $productInfo->distributorBrand ? $productInfo->distributorBrand->name : 'N/A' }}</td>
                                             <td>{{ $product['quantity'] }}</td>
                                             <td>${{ number_format($product['price'], 2) }}</td>
                                             <td>${{ number_format($product['quantity'] * $product['price'], 2) }}</td>
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="4" class="text-center text-muted">
+                                            <td colspan="5" class="text-center text-muted">
                                                 No hay productos en este presupuesto
                                             </td>
                                         </tr>

@@ -219,8 +219,9 @@
             <thead>
                 <tr>
                     <th style="width: 5%">#</th>
-                    <th style="width: 45%">Producto</th>
-                    <th style="width: 15%" class="text-center">Cantidad</th>
+                    <th style="width: 35%">Producto</th>
+                    <th style="width: 15%">Marca</th>
+                    <th style="width: 10%" class="text-center">Cantidad</th>
                     <th style="width: 15%" class="text-right">Precio Unit.</th>
                     <th style="width: 20%" class="text-right">Subtotal</th>
                 </tr>
@@ -228,18 +229,18 @@
             <tbody>
                 @foreach($quotation->products_quoted as $index => $product)
                     @php
-                        $productInfo = App\Models\SupplierInventory::find($product['product_id']);
+                        $productInfo = App\Models\SupplierInventory::with('distributorBrand')->find($product['product_id']);
                         $productName = $productInfo ? $productInfo->product_name : 'Producto no encontrado';
                         $productDescription = $productInfo && $productInfo->description ? $productInfo->description : '';
-                        $productBrand = $productInfo && $productInfo->brand ? $productInfo->brand : '';
+                        $productBrand = $productInfo && $productInfo->distributorBrand ? $productInfo->distributorBrand->name : ($productInfo && $productInfo->brand ? $productInfo->brand : 'N/A');
                         
                         $displayText = $productName;
                         if ($productDescription) $displayText .= ' - ' . $productDescription;
-                        if ($productBrand) $displayText .= ' - ' . $productBrand;
                     @endphp
                     <tr>
                         <td class="text-center">{{ $index + 1 }}</td>
                         <td>{{ $displayText }}</td>
+                        <td>{{ $productBrand }}</td>
                         <td class="text-center">{{ $product['quantity'] }}</td>
                         <td class="text-right">${{ number_format($product['price'], 2) }}</td>
                         <td class="text-right">${{ number_format($product['quantity'] * $product['price'], 2) }}</td>

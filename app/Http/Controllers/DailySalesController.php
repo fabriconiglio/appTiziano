@@ -79,6 +79,23 @@ class DailySalesController extends Controller
     }
 
     /**
+     * Obtener IDs de fichas técnicas registradas como cuenta corriente en distribuidora
+     */
+    private function getDistributorTechnicalRecordsInCurrentAccount()
+    {
+        try {
+            if (Schema::hasTable('distributor_current_accounts')) {
+                return DistributorCurrentAccount::whereNotNull('distributor_technical_record_id')
+                    ->pluck('distributor_technical_record_id')
+                    ->toArray();
+            }
+        } catch (\Exception $e) {
+            // Si hay error, retornar array vacío
+        }
+        return [];
+    }
+
+    /**
      * Obtener ventas de un rango de fechas
      */
     private function getPeriodSales($startDate, $endDate)
@@ -104,13 +121,18 @@ class DailySalesController extends Controller
         }
 
         // Ventas de fichas técnicas (solo si la tabla existe)
+        // Excluir fichas técnicas registradas como cuenta corriente
         $technicalRecordSales = 0;
         $countTechnicalRecords = 0;
         try {
             if (Schema::hasTable('distributor_technical_records')) {
+                $distributorTechnicalRecordsInCC = $this->getDistributorTechnicalRecordsInCurrentAccount();
                 $technicalRecordSales = DistributorTechnicalRecord::whereBetween('created_at', [$startOfPeriod, $endOfPeriod])
+                    ->whereNotIn('id', $distributorTechnicalRecordsInCC)
                     ->sum('final_amount');
-                $countTechnicalRecords = DistributorTechnicalRecord::whereBetween('created_at', [$startOfPeriod, $endOfPeriod])->count();
+                $countTechnicalRecords = DistributorTechnicalRecord::whereBetween('created_at', [$startOfPeriod, $endOfPeriod])
+                    ->whereNotIn('id', $distributorTechnicalRecordsInCC)
+                    ->count();
             }
         } catch (\Exception $e) {
             $technicalRecordSales = 0;
@@ -210,13 +232,18 @@ class DailySalesController extends Controller
         }
 
         // Ventas de fichas técnicas (solo si la tabla existe)
+        // Excluir fichas técnicas registradas como cuenta corriente
         $technicalRecordSales = 0;
         $countTechnicalRecords = 0;
         try {
             if (Schema::hasTable('distributor_technical_records')) {
+                $distributorTechnicalRecordsInCC = $this->getDistributorTechnicalRecordsInCurrentAccount();
                 $technicalRecordSales = DistributorTechnicalRecord::whereBetween('created_at', [$startOfDay, $endOfDay])
+                    ->whereNotIn('id', $distributorTechnicalRecordsInCC)
                     ->sum('final_amount');
-                $countTechnicalRecords = DistributorTechnicalRecord::whereBetween('created_at', [$startOfDay, $endOfDay])->count();
+                $countTechnicalRecords = DistributorTechnicalRecord::whereBetween('created_at', [$startOfDay, $endOfDay])
+                    ->whereNotIn('id', $distributorTechnicalRecordsInCC)
+                    ->count();
             }
         } catch (\Exception $e) {
             $technicalRecordSales = 0;
@@ -315,10 +342,13 @@ class DailySalesController extends Controller
         }
 
         // Ventas mensuales de fichas técnicas (solo si la tabla existe)
+        // Excluir fichas técnicas registradas como cuenta corriente
         $monthlyTechnicalRecords = 0;
         try {
             if (Schema::hasTable('distributor_technical_records')) {
+                $distributorTechnicalRecordsInCC = $this->getDistributorTechnicalRecordsInCurrentAccount();
                 $monthlyTechnicalRecords = DistributorTechnicalRecord::whereBetween('created_at', [$startOfMonth, $endOfMonth])
+                    ->whereNotIn('id', $distributorTechnicalRecordsInCC)
                     ->sum('final_amount');
             }
         } catch (\Exception $e) {
@@ -440,6 +470,11 @@ class DailySalesController extends Controller
                     
             case 'technical_records':
                 return DistributorTechnicalRecord::whereBetween('created_at', [$startOfPeriod, $endOfPeriod])
+                    ->whereNotIn('id', function($query) {
+                        $query->select('distributor_technical_record_id')
+                            ->from('distributor_current_accounts')
+                            ->whereNotNull('distributor_technical_record_id');
+                    })
                     ->with('distributorClient')
                     ->orderBy('created_at', 'desc')
                     ->get();
@@ -479,6 +514,11 @@ class DailySalesController extends Controller
                         ->orderBy('created_at', 'desc')
                         ->get(),
                     'technical_records' => DistributorTechnicalRecord::whereBetween('created_at', [$startOfPeriod, $endOfPeriod])
+                        ->whereNotIn('id', function($query) {
+                            $query->select('distributor_technical_record_id')
+                                ->from('distributor_current_accounts')
+                                ->whereNotNull('distributor_technical_record_id');
+                        })
                         ->with('distributorClient')
                         ->orderBy('created_at', 'desc')
                         ->get(),

@@ -84,6 +84,16 @@ class HairdressingDailySalesController extends Controller
     }
 
     /**
+     * Obtener IDs de servicios registrados como cuenta corriente
+     */
+    private function getTechnicalRecordsInCurrentAccount()
+    {
+        return ClientCurrentAccount::whereNotNull('technical_record_id')
+            ->pluck('technical_record_id')
+            ->toArray();
+    }
+
+    /**
      * Obtener ventas de un período específico para peluquería
      */
     private function getPeriodSales($startDate, $endDate)
@@ -102,7 +112,10 @@ class HairdressingDailySalesController extends Controller
             ->sum('amount');
 
         // Ventas de fichas técnicas (costo real del servicio)
+        // Excluir servicios registrados como cuenta corriente
+        $technicalRecordsInCC = $this->getTechnicalRecordsInCurrentAccount();
         $technicalRecordSales = TechnicalRecord::whereBetween('service_date', [$startOfPeriod, $endOfPeriod])
+            ->whereNotIn('id', $technicalRecordsInCC)
             ->sum('service_cost');
 
         // Ventas de productos vendidos (estimación basada en salidas de stock)
@@ -134,7 +147,9 @@ class HairdressingDailySalesController extends Controller
                 ->whereBetween('created_at', [$startOfPeriod, $endOfPeriod])->count(),
             'count_client_accounts_payments' => ClientCurrentAccount::where('type', 'payment')
                 ->whereBetween('created_at', [$startOfPeriod, $endOfPeriod])->count(),
-            'count_technical_records' => TechnicalRecord::whereBetween('service_date', [$startOfPeriod, $endOfPeriod])->count(),
+            'count_technical_records' => TechnicalRecord::whereBetween('service_date', [$startOfPeriod, $endOfPeriod])
+                ->whereNotIn('id', $technicalRecordsInCC)
+                ->count(),
             'count_product_sales' => StockMovement::where('type', 'salida')
                 ->whereBetween('stock_movements.created_at', [$startOfPeriod, $endOfPeriod])->count(),
             'count_cliente_no_frecuente' => ClienteNoFrecuente::whereBetween('fecha', [$startOfPeriod, $endOfPeriod])->count(),
@@ -160,7 +175,10 @@ class HairdressingDailySalesController extends Controller
             ->sum('amount');
 
         // Ventas de fichas técnicas (costo real del servicio)
+        // Excluir servicios registrados como cuenta corriente
+        $technicalRecordsInCC = $this->getTechnicalRecordsInCurrentAccount();
         $technicalRecordSales = TechnicalRecord::whereBetween('service_date', [$startOfDay, $endOfDay])
+            ->whereNotIn('id', $technicalRecordsInCC)
             ->sum('service_cost');
 
         // Ventas de productos vendidos (estimación basada en salidas de stock)
@@ -192,7 +210,9 @@ class HairdressingDailySalesController extends Controller
                 ->whereBetween('created_at', [$startOfDay, $endOfDay])->count(),
             'count_client_accounts_payments' => ClientCurrentAccount::where('type', 'payment')
                 ->whereBetween('created_at', [$startOfDay, $endOfDay])->count(),
-            'count_technical_records' => TechnicalRecord::whereBetween('service_date', [$startOfDay, $endOfDay])->count(),
+            'count_technical_records' => TechnicalRecord::whereBetween('service_date', [$startOfDay, $endOfDay])
+                ->whereNotIn('id', $technicalRecordsInCC)
+                ->count(),
             'count_product_sales' => StockMovement::where('type', 'salida')
                 ->whereBetween('stock_movements.created_at', [$startOfDay, $endOfDay])->count(),
             'count_cliente_no_frecuente' => ClienteNoFrecuente::whereDate('fecha', $date)->count(),
@@ -219,7 +239,10 @@ class HairdressingDailySalesController extends Controller
             ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
             ->sum('amount');
 
+        // Excluir servicios registrados como cuenta corriente
+        $technicalRecordsInCC = $this->getTechnicalRecordsInCurrentAccount();
         $monthlyTechnicalRecords = TechnicalRecord::whereBetween('service_date', [$startOfMonth, $endOfMonth])
+            ->whereNotIn('id', $technicalRecordsInCC)
             ->sum('service_cost');
 
         $monthlyProductSales = StockMovement::where('type', 'salida')
@@ -228,6 +251,7 @@ class HairdressingDailySalesController extends Controller
             ->sum(DB::raw('stock_movements.quantity * COALESCE(products.price, 0)'));
 
         $monthlyAdditionalServices = TechnicalRecord::whereBetween('service_date', [$startOfMonth, $endOfMonth])
+            ->whereNotIn('id', $technicalRecordsInCC)
             ->sum('service_cost') * 0.5; // 50% del costo total como servicios adicionales
 
         // Total mensual solo incluye: CC Pagas + Servicios + Productos
@@ -258,7 +282,10 @@ class HairdressingDailySalesController extends Controller
             $endOfDay = $endDate->copy()->endOfDay();
         }
 
+        // Excluir servicios registrados como cuenta corriente
+        $technicalRecordsInCC = $this->getTechnicalRecordsInCurrentAccount();
         return TechnicalRecord::whereBetween('service_date', [$startOfDay, $endOfDay])
+            ->whereNotIn('id', $technicalRecordsInCC)
             ->select('hair_treatments', 'service_type', DB::raw('count(*) as total'), DB::raw('sum(service_cost) as total_cost'))
             ->whereNotNull('hair_treatments')
             ->groupBy('hair_treatments', 'service_type')
@@ -358,6 +385,11 @@ class HairdressingDailySalesController extends Controller
                         ->orderBy('created_at', 'desc')
                         ->get(),
                     'technical_records' => TechnicalRecord::whereBetween('service_date', [$startOfPeriod, $endOfPeriod])
+                        ->whereNotIn('id', function($query) {
+                            $query->select('technical_record_id')
+                                ->from('client_current_accounts')
+                                ->whereNotNull('technical_record_id');
+                        })
                         ->with('client')
                         ->orderBy('service_date', 'desc')
                         ->get(),
@@ -389,6 +421,11 @@ class HairdressingDailySalesController extends Controller
                     
             case 'technical_records':
                 return TechnicalRecord::whereBetween('service_date', [$startOfPeriod, $endOfPeriod])
+                    ->whereNotIn('id', function($query) {
+                        $query->select('technical_record_id')
+                            ->from('client_current_accounts')
+                            ->whereNotNull('technical_record_id');
+                    })
                     ->with('client')
                     ->orderBy('service_date', 'desc')
                     ->get();

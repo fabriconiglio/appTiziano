@@ -126,10 +126,13 @@ class Supplier extends Model
 
     /**
      * Obtener el total de deuda con el proveedor
+     * Usa el mismo cálculo que current_balance para mantener consistencia
      */
     public function getTotalDebtAttribute()
     {
-        return $this->supplierPurchases()->sum('balance_amount');
+        $balance = $this->getCurrentBalance();
+        // Solo retornar saldo positivo (deuda pendiente), 0 si hay crédito o está al día
+        return max(0, $balance);
     }
 
     /**

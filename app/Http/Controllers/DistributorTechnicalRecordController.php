@@ -95,6 +95,7 @@ class DistributorTechnicalRecordController extends Controller
         // Calcular el total automáticamente basado en los productos comprados
         $calculatedTotal = 0;
         $totalDiscountAmount = 0;
+        $totalManualDiscountAmount = 0;
         $giftProducts = [];
         $discountDetails = [];
         
@@ -103,14 +104,15 @@ class DistributorTechnicalRecordController extends Controller
             foreach ($validated['products_purchased'] as $index => $productData) {
                 $supplierInventory = SupplierInventory::find($productData['product_id']);
                 if ($supplierInventory) {
-                    // Usar precio con descuento si está disponible, sino calcular según tipo de compra
+                    // Usar precio con descuento si está disponible (incluso si es 0), sino calcular según tipo de compra
                     $price = 0;
                     $originalPrice = 0;
                     
-                    if (!empty($productData['price']) && $productData['price'] > 0) {
-                        // Usar precio con descuento aplicado
-                        $price = $productData['price'];
-                        $originalPrice = $productData['original_price'] ?? $price;
+                    // Verificar si el precio viene del frontend (puede ser 0 cuando hay descuento del 100%)
+                    if (isset($productData['price'])) {
+                        // Usar precio con descuento aplicado (puede ser 0)
+                        $price = floatval($productData['price']);
+                        $originalPrice = isset($productData['original_price']) ? floatval($productData['original_price']) : $price;
                     } else {
                         // Determinar el precio según el tipo de compra
                         switch ($validated['purchase_type']) {
@@ -126,6 +128,24 @@ class DistributorTechnicalRecordController extends Controller
                                 break;
                         }
                         $originalPrice = $price;
+                    }
+                    
+                    // Calcular descuento manual si existe
+                    $manualDiscountAmount = 0;
+                    if (!empty($productData['discount_type']) && !empty($productData['discount_value'])) {
+                        $discountType = $productData['discount_type'];
+                        $discountValue = floatval($productData['discount_value']);
+                        $originalSubtotal = $originalPrice * $productData['quantity'];
+                        
+                        if ($discountType === 'percentage') {
+                            // Descuento porcentual
+                            $manualDiscountAmount = ($originalSubtotal * $discountValue) / 100;
+                        } elseif ($discountType === 'fixed') {
+                            // Descuento fijo
+                            $manualDiscountAmount = min($discountValue, $originalSubtotal);
+                        }
+                        
+                        $totalManualDiscountAmount += $manualDiscountAmount;
                     }
                     
                     $subtotalProduct = $price * $productData['quantity'];
@@ -197,16 +217,23 @@ class DistributorTechnicalRecordController extends Controller
             }
         }
         
-        // Aplicar descuentos al total
-        $totalAfterDiscounts = $calculatedTotal - $totalDiscountAmount;
-        $validated['total_amount'] = $totalAfterDiscounts;
+        // Aplicar descuentos al total (automáticos y manuales)
+        $totalAfterDiscounts = $calculatedTotal - $totalDiscountAmount - $totalManualDiscountAmount;
+        $validated['total_amount'] = max(0, $totalAfterDiscounts);
         
         // Agregar información de descuentos y regalos a las observaciones
         if (!empty($discountDetails) || !empty($giftProducts)) {
             $discountInfo = "\n\n--- DESCUENTOS Y REGALOS APLICADOS ---\n";
             
             if ($totalDiscountAmount > 0) {
-                $discountInfo .= "Total descuentos aplicados: $" . number_format($totalDiscountAmount, 2) . "\n";
+                $discountInfo .= "Total descuentos automáticos aplicados: $" . number_format($totalDiscountAmount, 2) . "\n";
+            }
+            
+            if ($totalManualDiscountAmount > 0) {
+                $discountInfo .= "Total descuentos manuales aplicados: $" . number_format($totalManualDiscountAmount, 2) . "\n";
+            }
+            
+            if ($totalDiscountAmount > 0 || $totalManualDiscountAmount > 0) {
                 $discountInfo .= "Total original: $" . number_format($calculatedTotal, 2) . "\n";
                 $discountInfo .= "Total con descuentos: $" . number_format($totalAfterDiscounts, 2) . "\n\n";
             }
@@ -254,6 +281,7 @@ class DistributorTechnicalRecordController extends Controller
         // Debug: Log los valores para verificar
         Log::info('Debug Ficha Técnica STORE:', [
             'total_amount' => $calculatedTotal,
+            'total_manual_discount_amount' => $totalManualDiscountAmount,
             'balance_adjustment' => $validated['balance_adjustment'] ?? 0,
             'balance_adjustment_type' => gettype($validated['balance_adjustment'] ?? 0),
             'request_data' => $request->all()
@@ -466,6 +494,7 @@ class DistributorTechnicalRecordController extends Controller
         // Calcular el total automáticamente basado en los productos comprados
         $calculatedTotal = 0;
         $totalDiscountAmount = 0;
+        $totalManualDiscountAmount = 0;
         $giftProducts = [];
         $discountDetails = [];
         
@@ -474,14 +503,15 @@ class DistributorTechnicalRecordController extends Controller
             foreach ($validated['products_purchased'] as $index => $productData) {
                 $supplierInventory = SupplierInventory::find($productData['product_id']);
                 if ($supplierInventory) {
-                    // Usar precio con descuento si está disponible, sino calcular según tipo de compra
+                    // Usar precio con descuento si está disponible (incluso si es 0), sino calcular según tipo de compra
                     $price = 0;
                     $originalPrice = 0;
                     
-                    if (!empty($productData['price']) && $productData['price'] > 0) {
-                        // Usar precio con descuento aplicado
-                        $price = $productData['price'];
-                        $originalPrice = $productData['original_price'] ?? $price;
+                    // Verificar si el precio viene del frontend (puede ser 0 cuando hay descuento del 100%)
+                    if (isset($productData['price'])) {
+                        // Usar precio con descuento aplicado (puede ser 0)
+                        $price = floatval($productData['price']);
+                        $originalPrice = isset($productData['original_price']) ? floatval($productData['original_price']) : $price;
                     } else {
                         // Determinar el precio según el tipo de compra
                         switch ($validated['purchase_type']) {
@@ -497,6 +527,24 @@ class DistributorTechnicalRecordController extends Controller
                                 break;
                         }
                         $originalPrice = $price;
+                    }
+                    
+                    // Calcular descuento manual si existe
+                    $manualDiscountAmount = 0;
+                    if (!empty($productData['discount_type']) && !empty($productData['discount_value'])) {
+                        $discountType = $productData['discount_type'];
+                        $discountValue = floatval($productData['discount_value']);
+                        $originalSubtotal = $originalPrice * $productData['quantity'];
+                        
+                        if ($discountType === 'percentage') {
+                            // Descuento porcentual
+                            $manualDiscountAmount = ($originalSubtotal * $discountValue) / 100;
+                        } elseif ($discountType === 'fixed') {
+                            // Descuento fijo
+                            $manualDiscountAmount = min($discountValue, $originalSubtotal);
+                        }
+                        
+                        $totalManualDiscountAmount += $manualDiscountAmount;
                     }
                     
                     $subtotalProduct = $price * $productData['quantity'];
@@ -568,16 +616,23 @@ class DistributorTechnicalRecordController extends Controller
             }
         }
         
-        // Aplicar descuentos al total
-        $totalAfterDiscounts = $calculatedTotal - $totalDiscountAmount;
-        $validated['total_amount'] = $totalAfterDiscounts;
+        // Aplicar descuentos al total (automáticos y manuales)
+        $totalAfterDiscounts = $calculatedTotal - $totalDiscountAmount - $totalManualDiscountAmount;
+        $validated['total_amount'] = max(0, $totalAfterDiscounts);
         
         // Agregar información de descuentos y regalos a las observaciones
         if (!empty($discountDetails) || !empty($giftProducts)) {
             $discountInfo = "\n\n--- DESCUENTOS Y REGALOS APLICADOS ---\n";
             
             if ($totalDiscountAmount > 0) {
-                $discountInfo .= "Total descuentos aplicados: $" . number_format($totalDiscountAmount, 2) . "\n";
+                $discountInfo .= "Total descuentos automáticos aplicados: $" . number_format($totalDiscountAmount, 2) . "\n";
+            }
+            
+            if ($totalManualDiscountAmount > 0) {
+                $discountInfo .= "Total descuentos manuales aplicados: $" . number_format($totalManualDiscountAmount, 2) . "\n";
+            }
+            
+            if ($totalDiscountAmount > 0 || $totalManualDiscountAmount > 0) {
                 $discountInfo .= "Total original: $" . number_format($calculatedTotal, 2) . "\n";
                 $discountInfo .= "Total con descuentos: $" . number_format($totalAfterDiscounts, 2) . "\n\n";
             }
@@ -626,6 +681,7 @@ class DistributorTechnicalRecordController extends Controller
         Log::info('Debug Ficha Técnica UPDATE:', [
             'total_amount' => $totalAfterDiscounts,
             'total_discount_amount' => $totalDiscountAmount,
+            'total_manual_discount_amount' => $totalManualDiscountAmount,
             'balance_adjustment' => $validated['balance_adjustment'] ?? 0,
             'request_data' => $request->all()
         ]);

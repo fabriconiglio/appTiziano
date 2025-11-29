@@ -148,8 +148,10 @@ class DistributorTechnicalRecordController extends Controller
                         $totalManualDiscountAmount += $manualDiscountAmount;
                     }
                     
-                    $subtotalProduct = $price * $productData['quantity'];
-                    $calculatedTotal += $subtotalProduct;
+                    // CORRECCIÓN: Calcular el total usando el precio original, no el precio con descuentos aplicados
+                    // Esto evita aplicar los descuentos dos veces (una vez en el precio y otra vez restando del total)
+                    $subtotalProductOriginal = $originalPrice * $productData['quantity'];
+                    $calculatedTotal += $subtotalProductOriginal;
                     
                     // MOD: Inicializar precio final del producto
                     $finalPricePerUnit = $price;
@@ -169,8 +171,9 @@ class DistributorTechnicalRecordController extends Controller
                                                                 );
                                                             });
                     
+                    // CORRECCIÓN: Calcular descuentos automáticos usando el precio original, no el precio con descuentos manuales
                     foreach ($availableDiscounts as $discount) {
-                        $calculation = $discount->calculateDiscount($productData['quantity'], $price);
+                        $calculation = $discount->calculateDiscount($productData['quantity'], $originalPrice);
                         
                         // Aplicar descuento si hay monto de descuento o si es un regalo (final_price = 0)
                         if ($calculation['discount_amount'] > 0 || $calculation['final_price'] == 0) {
@@ -205,9 +208,14 @@ class DistributorTechnicalRecordController extends Controller
                         }
                     }
                     
-                    // MOD: Calcular precio final por unidad con descuento aplicado
+                    // MOD: Calcular precio final por unidad con descuentos aplicados (manuales y automáticos)
+                    // El precio final es: precio original - descuentos manuales - descuentos automáticos
+                    $subtotalWithManualDiscount = $subtotalProductOriginal - $manualDiscountAmount;
                     if ($productDiscountAmount > 0 && $productData['quantity'] > 0) {
-                        $finalPricePerUnit = ($subtotalProduct - $productDiscountAmount) / $productData['quantity'];
+                        $finalPricePerUnit = ($subtotalWithManualDiscount - $productDiscountAmount) / $productData['quantity'];
+                    } else {
+                        // Si no hay descuentos automáticos, el precio final es el precio con descuento manual
+                        $finalPricePerUnit = $price;
                     }
                     
                     // MOD: Guardar el precio final con descuento en el array de productos
@@ -218,6 +226,7 @@ class DistributorTechnicalRecordController extends Controller
         }
         
         // Aplicar descuentos al total (automáticos y manuales)
+        // CORRECCIÓN: Ahora calculatedTotal está calculado con precios originales, así que solo restamos los descuentos una vez
         $totalAfterDiscounts = $calculatedTotal - $totalDiscountAmount - $totalManualDiscountAmount;
         $validated['total_amount'] = max(0, $totalAfterDiscounts);
         
@@ -549,8 +558,10 @@ class DistributorTechnicalRecordController extends Controller
                         $totalManualDiscountAmount += $manualDiscountAmount;
                     }
                     
-                    $subtotalProduct = $price * $productData['quantity'];
-                    $calculatedTotal += $subtotalProduct;
+                    // CORRECCIÓN: Calcular el total usando el precio original, no el precio con descuentos aplicados
+                    // Esto evita aplicar los descuentos dos veces (una vez en el precio y otra vez restando del total)
+                    $subtotalProductOriginal = $originalPrice * $productData['quantity'];
+                    $calculatedTotal += $subtotalProductOriginal;
                     
                     // MOD: Inicializar precio final del producto
                     $finalPricePerUnit = $price;
@@ -570,8 +581,9 @@ class DistributorTechnicalRecordController extends Controller
                                                                 );
                                                             });
                     
+                    // CORRECCIÓN: Calcular descuentos automáticos usando el precio original, no el precio con descuentos manuales
                     foreach ($availableDiscounts as $discount) {
-                        $calculation = $discount->calculateDiscount($productData['quantity'], $price);
+                        $calculation = $discount->calculateDiscount($productData['quantity'], $originalPrice);
                         
                         // Aplicar descuento si hay monto de descuento o si es un regalo (final_price = 0)
                         if ($calculation['discount_amount'] > 0 || $calculation['final_price'] == 0) {
@@ -606,9 +618,14 @@ class DistributorTechnicalRecordController extends Controller
                         }
                     }
                     
-                    // MOD: Calcular precio final por unidad con descuento aplicado
+                    // MOD: Calcular precio final por unidad con descuentos aplicados (manuales y automáticos)
+                    // El precio final es: precio original - descuentos manuales - descuentos automáticos
+                    $subtotalWithManualDiscount = $subtotalProductOriginal - $manualDiscountAmount;
                     if ($productDiscountAmount > 0 && $productData['quantity'] > 0) {
-                        $finalPricePerUnit = ($subtotalProduct - $productDiscountAmount) / $productData['quantity'];
+                        $finalPricePerUnit = ($subtotalWithManualDiscount - $productDiscountAmount) / $productData['quantity'];
+                    } else {
+                        // Si no hay descuentos automáticos, el precio final es el precio con descuento manual
+                        $finalPricePerUnit = $price;
                     }
                     
                     // MOD: Guardar el precio final con descuento en el array de productos
@@ -619,6 +636,7 @@ class DistributorTechnicalRecordController extends Controller
         }
         
         // Aplicar descuentos al total (automáticos y manuales)
+        // CORRECCIÓN: Ahora calculatedTotal está calculado con precios originales, así que solo restamos los descuentos una vez
         $totalAfterDiscounts = $calculatedTotal - $totalDiscountAmount - $totalManualDiscountAmount;
         $validated['total_amount'] = max(0, $totalAfterDiscounts);
         

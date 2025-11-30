@@ -52,26 +52,26 @@
                                     </td>
                                     <td>{{ $invoice->distributorClient->full_name }}</td>
                                     <td>
-                                        <span class="badge badge-info">Factura {{ $invoice->invoice_type }}</span>
+                                        <span class="badge bg-info text-dark">Factura {{ $invoice->invoice_type }}</span>
                                     </td>
                                     <td>{{ $invoice->invoice_date->format('d/m/Y') }}</td>
                                     <td>${{ number_format($invoice->total, 2, ',', '.') }}</td>
                                     <td>
                                         @switch($invoice->status)
                                             @case('draft')
-                                                <span class="badge badge-secondary">Borrador</span>
+                                                <span class="badge bg-secondary">Borrador</span>
                                                 @break
                                             @case('sent')
-                                                <span class="badge badge-warning">Enviada</span>
+                                                <span class="badge bg-warning text-dark">Enviada</span>
                                                 @break
                                             @case('authorized')
-                                                <span class="badge badge-success">Autorizada</span>
+                                                <span class="badge bg-success">Autorizada</span>
                                                 @break
                                             @case('rejected')
-                                                <span class="badge badge-danger">Rechazada</span>
+                                                <span class="badge bg-danger">Rechazada</span>
                                                 @break
                                             @case('cancelled')
-                                                <span class="badge badge-dark">Cancelada</span>
+                                                <span class="badge bg-dark">Cancelada</span>
                                                 @break
                                         @endswitch
                                     </td>

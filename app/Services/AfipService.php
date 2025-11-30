@@ -317,6 +317,12 @@ class AfipService
         try {
             $response = $this->afip->ElectronicBilling->GetLastVoucher($pointOfSale, $voucherType);
             
+            // El SDK devuelve un entero directamente
+            if (is_int($response)) {
+                return $response;
+            }
+            
+            // Fallback por si devuelve un array
             return $response['CbteNro'] ?? 0;
         } catch (Exception $e) {
             Log::error('Error obteniendo último comprobante: ' . $e->getMessage());

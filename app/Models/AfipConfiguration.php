@@ -62,7 +62,8 @@ class AfipConfiguration extends Model
             'certificate_path' => static::get('afip_certificate_path'),
             'private_key_path' => static::get('afip_private_key_path'),
             'point_of_sale' => static::get('afip_point_of_sale', '1'),
-            'tax_rate' => static::get('afip_tax_rate', '21.00')
+            'tax_rate' => static::get('afip_tax_rate', '21.00'),
+            'access_token' => static::get('afip_access_token') // Token opcional de AFIP SDK
         ];
     }
 }

@@ -70,9 +70,11 @@
                                                 class="form-control @error('invoice_type') is-invalid @enderror" required>
                                             <option value="">Seleccionar tipo</option>
                                             <option value="A" {{ old('invoice_type') == 'A' ? 'selected' : '' }}>Factura A</option>
-                                            <option value="B" {{ old('invoice_type') == 'B' ? 'selected' : '' }}>Factura B</option>
-                                            <option value="C" {{ old('invoice_type') == 'C' ? 'selected' : '' }}>Factura C</option>
+                                            <option value="B" {{ old('invoice_type', 'B') == 'B' ? 'selected' : '' }}>Factura B</option>
                                         </select>
+                                        <small class="form-text text-muted">
+                                            <strong>A:</strong> Cliente Resp. Inscripto | <strong>B:</strong> Consumidor Final
+                                        </small>
                                         @error('invoice_type')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror

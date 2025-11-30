@@ -165,7 +165,7 @@ class AfipInvoiceController extends Controller
                 'distributor_client_id' => $request->distributor_client_id,
                 'technical_record_id' => $request->technical_record_id,
                 'invoice_type' => $request->invoice_type,
-                'point_of_sale' => config('afip.point_of_sale', '1'),
+                'point_of_sale' => AfipConfiguration::get('afip_point_of_sale', '5'),
                 'invoice_number' => $this->getNextInvoiceNumber($request->invoice_type),
                 'invoice_date' => $request->invoice_date,
                 'subtotal' => 0,
@@ -379,7 +379,7 @@ class AfipInvoiceController extends Controller
     private function getNextInvoiceNumber(string $invoiceType): int
     {
         $voucherType = $this->getVoucherType($invoiceType);
-        $pointOfSale = config('afip.point_of_sale', '1');
+        $pointOfSale = AfipConfiguration::get('afip_point_of_sale', '5');
         
         $lastNumber = $this->afipService->getLastAuthorizedVoucher($pointOfSale, $voucherType);
         

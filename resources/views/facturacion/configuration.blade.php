@@ -107,6 +107,21 @@
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
+
+                                <div class="form-group">
+                                    <label for="afip_access_token">Access Token AFIP SDK (Opcional)</label>
+                                    <input type="text" name="afip_access_token" id="afip_access_token" 
+                                           class="form-control @error('afip_access_token') is-invalid @enderror" 
+                                           value="{{ old('afip_access_token', $configurations->where('key', 'afip_access_token')->first()->decrypted_value ?? '') }}" 
+                                           placeholder="Token de acceso de AFIP SDK">
+                                    <small class="form-text text-muted">
+                                        Token opcional para usar los servicios de AFIP SDK. 
+                                        Puedes obtenerlo desde <a href="https://app.afipsdk.com/" target="_blank">https://app.afipsdk.com/</a>
+                                    </small>
+                                    @error('afip_access_token')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
                             </div>
                         </div>
 

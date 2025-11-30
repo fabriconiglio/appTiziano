@@ -24,15 +24,12 @@
                         @endif
                         
                         @if(in_array($facturacion->status, ['draft', 'rejected']))
-                            <form action="{{ route('facturacion.send', $facturacion->id) }}" 
-                                  method="POST" class="d-inline">
-                                @csrf
-                                <button type="submit" class="btn btn-success btn-sm" 
-                                        onclick="return confirm('{{ $facturacion->status === 'rejected' ? '¿Reenviar factura rechazada a AFIP?' : '¿Enviar factura a AFIP?' }}')">
-                                    <i class="fas fa-paper-plane"></i> 
-                                    {{ $facturacion->status === 'rejected' ? 'Re-enviar a AFIP' : 'Enviar a AFIP' }}
-                                </button>
-                            </form>
+                            <button type="button" class="btn btn-success btn-sm" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#sendToAfipModal">
+                                <i class="fas fa-paper-plane"></i> 
+                                {{ $facturacion->status === 'rejected' ? 'Re-enviar a AFIP' : 'Enviar a AFIP' }}
+                            </button>
                         @endif
                         
                         @if($facturacion->canBeCancelled())
@@ -252,4 +249,42 @@
         </div>
     </div>
 </div>
+
+<!-- Modal de confirmación para enviar a AFIP -->
+@if(in_array($facturacion->status, ['draft', 'rejected']))
+<div class="modal fade" id="sendToAfipModal" tabindex="-1" role="dialog" aria-labelledby="sendToAfipModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="sendToAfipModalLabel">
+                    <i class="fas fa-paper-plane"></i> {{ $facturacion->status === 'rejected' ? 'Re-enviar factura a AFIP' : 'Enviar factura a AFIP' }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas {{ $facturacion->status === 'rejected' ? 'reenviar' : 'enviar' }} la factura <strong>{{ $facturacion->formatted_number }}</strong> a AFIP?</p>
+                @if($facturacion->status === 'rejected')
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i> Esta factura fue rechazada anteriormente. Se reseteará el estado antes de reenviarla.
+                    </div>
+                @endif
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> Una vez enviada, la factura será procesada por AFIP y recibirás un CAE (Código de Autorización Electrónica).
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <form action="{{ route('facturacion.send', $facturacion->id) }}" method="POST" class="d-inline">
+                    @csrf
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-paper-plane"></i> {{ $facturacion->status === 'rejected' ? 'Re-enviar' : 'Enviar' }} a AFIP
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
 @endsection

@@ -37,7 +37,8 @@ class AfipConfigurationController extends Controller
             'afip_certificate_path' => 'required|string',
             'afip_private_key_path' => 'required|string',
             'afip_point_of_sale' => 'required|string',
-            'afip_tax_rate' => 'required|numeric|min:0|max:100'
+            'afip_tax_rate' => 'required|numeric|min:0|max:100',
+            'afip_access_token' => 'nullable|string'
         ]);
 
         try {
@@ -48,6 +49,14 @@ class AfipConfigurationController extends Controller
             AfipConfiguration::set('afip_private_key_path', $request->afip_private_key_path, 'Ruta de la clave privada AFIP', true);
             AfipConfiguration::set('afip_point_of_sale', $request->afip_point_of_sale, 'Punto de venta AFIP');
             AfipConfiguration::set('afip_tax_rate', $request->afip_tax_rate, 'Tasa de IVA por defecto');
+            
+            // Actualizar access_token si se proporciona
+            if ($request->has('afip_access_token') && !empty($request->afip_access_token)) {
+                AfipConfiguration::set('afip_access_token', $request->afip_access_token, 'Access Token de AFIP SDK', true);
+            } else {
+                // Si se envía vacío, eliminar el token
+                AfipConfiguration::where('key', 'afip_access_token')->delete();
+            }
 
             return back()->with('success', 'Configuración actualizada exitosamente');
 

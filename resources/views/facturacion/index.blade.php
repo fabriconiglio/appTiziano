@@ -90,15 +90,12 @@
                                             </a>
                                             
                                             @if($invoice->status === 'draft')
-                                                <form action="{{ route('facturacion.send', $invoice->id) }}" 
-                                                      method="POST" class="d-inline">
-                                                    @csrf
-                                                    <button type="submit" class="btn btn-success btn-sm" 
-                                                            title="Enviar a AFIP" 
-                                                            onclick="return confirm('¿Enviar factura a AFIP?')">
-                                                        <i class="fas fa-paper-plane"></i>
-                                                    </button>
-                                                </form>
+                                                <button type="button" class="btn btn-success btn-sm" 
+                                                        title="Enviar a AFIP"
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#sendToAfipModal{{ $invoice->id }}">
+                                                    <i class="fas fa-paper-plane"></i>
+                                                </button>
                                             @endif
                                             
                                             @if($invoice->canBeCancelled())
@@ -136,5 +133,40 @@
         </div>
     </div>
 </div>
+
+<!-- Modales de confirmación para enviar a AFIP -->
+@foreach($invoices as $invoice)
+    @if($invoice->status === 'draft')
+    <div class="modal fade" id="sendToAfipModal{{ $invoice->id }}" tabindex="-1" role="dialog" aria-labelledby="sendToAfipModalLabel{{ $invoice->id }}" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="sendToAfipModalLabel{{ $invoice->id }}">
+                        <i class="fas fa-paper-plane"></i> Enviar factura a AFIP
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Estás seguro de que deseas enviar la factura <strong>{{ $invoice->formatted_number }}</strong> a AFIP?</p>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> Una vez enviada, la factura será procesada por AFIP y recibirás un CAE (Código de Autorización Electrónica).
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                    <form action="{{ route('facturacion.send', $invoice->id) }}" method="POST" class="d-inline">
+                        @csrf
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-paper-plane"></i> Enviar a AFIP
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+@endforeach
 @endsection
 

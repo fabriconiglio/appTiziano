@@ -90,22 +90,37 @@ class AfipService
             ]);
 
             // Asegurar que existe el directorio para tokens de autorización
-            $taFolder = storage_path('app/afip/ta');
+            $taFolder = storage_path('app/afip/ta/');
             if (!is_dir($taFolder)) {
                 mkdir($taFolder, 0755, true);
             }
-
-            // Leer el contenido de los certificados
+            
+            // Leer contenido de certificados (versión 1.2.x)
             $certContent = file_get_contents($cert);
             $keyContent = file_get_contents($key);
             
-            $this->afip = new Afip([
+            // Preparar opciones para el constructor de Afip (versión 1.2.x)
+            // Esta versión usa la API de AFIP SDK
+            $afipOptions = [
                 'CUIT' => $this->config['cuit'],
                 'production' => $this->config['production'],
-                'cert' => $certContent,  // Pasar contenido en lugar de ruta
-                'key' => $keyContent,    // Pasar contenido en lugar de ruta
+                'cert' => $certContent,  // Contenido del certificado
+                'key' => $keyContent,    // Contenido de la clave
                 'ta_folder' => $taFolder
+            ];
+            
+            // Agregar access_token (requerido en versión 1.2.x)
+            if (!empty($this->config['access_token'])) {
+                $afipOptions['access_token'] = $this->config['access_token'];
+            }
+            
+            Log::info('Inicializando AFIP SDK v1.2.x', [
+                'cert' => basename($cert),
+                'key' => basename($key),
+                'production' => $this->config['production']
             ]);
+            
+            $this->afip = new Afip($afipOptions);
         } catch (Exception $e) {
             Log::error('Error inicializando AFIP: ' . $e->getMessage(), [
                 'certificate_path' => $cert ?? 'N/A',
@@ -172,17 +187,31 @@ class AfipService
         // Preparar items
         $items = $this->prepareInvoiceItems($invoice->items);
         
-        // Determinar tipo y número de documento
-        $docTipo = 99; // Consumidor Final por defecto
+        // Determinar tipo y número de documento según tipo de factura
+        $docTipo = 99; // Sin documento por defecto
         $docNro = 0;
         $condicionIva = 5; // Consumidor Final por defecto
         
-        if (!empty($client->dni)) {
-            // Si tiene DNI, usar tipo DNI (96) con el número
-            $docTipo = $this->getDocumentType('DNI');
-            $docNro = intval($client->dni);
-            // Si tiene DNI, asumimos Responsable Inscripto (1)
-            $condicionIva = 1;
+        if ($invoice->invoice_type === 'A') {
+            // Factura A: receptor debe ser Responsable Inscripto
+            // Requiere CUIT del cliente
+            if (!empty($client->cuit)) {
+                $docTipo = $this->getDocumentType('CUIT');
+                $docNro = intval(str_replace(['-', ' '], '', $client->cuit));
+                $condicionIva = 1; // Responsable Inscripto
+            } elseif (!empty($client->dni)) {
+                // Si no tiene CUIT pero tiene DNI, usar DNI
+                $docTipo = $this->getDocumentType('DNI');
+                $docNro = intval($client->dni);
+                $condicionIva = 1; // Responsable Inscripto
+            }
+        } else {
+            // Factura B: receptor es Consumidor Final, Monotributista, Exento, etc.
+            $condicionIva = 5; // Consumidor Final
+            if (!empty($client->dni)) {
+                $docTipo = $this->getDocumentType('DNI');
+                $docNro = intval($client->dni);
+            }
         }
         
         // Para facturas tipo C, el IVA debe ser 0 y no se envía el objeto Iva
@@ -220,9 +249,15 @@ class AfipService
         
         // Log para debug
         Log::info('Datos enviados a AFIP', [
+            'PtoVta' => $data['PtoVta'],
+            'CbteTipo' => $data['CbteTipo'],
             'docTipo' => $docTipo,
             'docNro' => $docNro,
             'condicionIva' => $condicionIva,
+            'ImpTotal' => $data['ImpTotal'],
+            'ImpNeto' => $data['ImpNeto'],
+            'ImpIVA' => $data['ImpIVA'],
+            'CUIT' => $this->config['cuit'],
             'opcionales' => $data['Opcionales']
         ]);
         
@@ -320,9 +355,14 @@ class AfipService
     public function getTaxpayerInfo(string $cuit): array
     {
         try {
-            $response = $this->afip->RegisterScopeFive->GetTaxpayer([
-                'Cuit' => $cuit
-            ]);
+            $response = $this->afip->RegisterScopeFive->GetTaxpayerDetails($cuit);
+            
+            if ($response === null) {
+                return [
+                    'success' => false,
+                    'error' => 'El contribuyente no existe en AFIP'
+                ];
+            }
             
             return [
                 'success' => true,

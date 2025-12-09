@@ -105,10 +105,25 @@ class AfipInvoiceController extends Controller
                     break;
 
                 case 'distributor_no_frecuente':
+                    // Los clientes no frecuentes tienen su compra directamente en el registro
+                    $clienteNoFrecuente = DistributorClienteNoFrecuente::findOrFail($clientId);
+                    $purchases = [[
+                        'id' => $clienteNoFrecuente->id,
+                        'purchase_date' => $clienteNoFrecuente->fecha->format('d/m/Y'),
+                        'total_amount' => number_format($clienteNoFrecuente->monto, 2, ',', '.'),
+                        'purchase_type' => $clienteNoFrecuente->purchase_type ?? 'al_por_menor'
+                    ]];
+                    break;
+
                 case 'client_no_frecuente':
-                    // Los clientes no frecuentes no tienen compras asociadas (fichas técnicas)
-                    // Retornar array vacío
-                    $purchases = [];
+                    // Clientes no frecuentes de peluquería tienen su servicio directamente en el registro
+                    $clienteNoFrecuente = ClienteNoFrecuente::findOrFail($clientId);
+                    $purchases = [[
+                        'id' => $clienteNoFrecuente->id,
+                        'purchase_date' => $clienteNoFrecuente->fecha->format('d/m/Y'),
+                        'total_amount' => number_format($clienteNoFrecuente->monto, 2, ',', '.'),
+                        'purchase_type' => 'servicio'
+                    ]];
                     break;
 
                 default:
@@ -124,44 +139,110 @@ class AfipInvoiceController extends Controller
 
     /**
      * Obtener productos de una ficha técnica para facturación
+     * También maneja clientes no frecuentes donde el ID es del cliente mismo
      */
-    public function getTechnicalRecordProducts($technicalRecordId)
+    public function getTechnicalRecordProducts(Request $request, $technicalRecordId)
     {
         try {
-            $technicalRecord = DistributorTechnicalRecord::findOrFail($technicalRecordId);
+            $clientType = $request->get('client_type', 'distributor_client');
             $products = [];
 
-            if (!empty($technicalRecord->products_purchased)) {
-                foreach ($technicalRecord->products_purchased as $productData) {
-                    $supplierInventory = SupplierInventory::find($productData['product_id']);
-                    
-                    if ($supplierInventory) {
-                        // Usar precio con descuento si está disponible, sino calcular según tipo de compra
-                        $unitPrice = 0;
+            if ($clientType === 'distributor_no_frecuente') {
+                // Cliente no frecuente de distribuidora - obtener productos directamente del registro
+                $clienteNoFrecuente = DistributorClienteNoFrecuente::findOrFail($technicalRecordId);
+                
+                if (!empty($clienteNoFrecuente->products_purchased) && is_array($clienteNoFrecuente->products_purchased)) {
+                    foreach ($clienteNoFrecuente->products_purchased as $productData) {
+                        $supplierInventory = SupplierInventory::find($productData['product_id']);
                         
-                        if (!empty($productData['price']) && $productData['price'] > 0) {
-                            // Usar precio con descuento ya aplicado que se guardó en la ficha técnica
-                            $unitPrice = $productData['price'];
-                        } else {
-                            // Si no hay precio guardado, usar el precio base según tipo de compra
-                            if ($technicalRecord->purchase_type == 'al_por_mayor') {
-                                $unitPrice = $supplierInventory->precio_mayor;
-                            } else {
-                                $unitPrice = $supplierInventory->precio_menor;
-                            }
+                        if ($supplierInventory) {
+                            // Usar precio guardado en la compra
+                            $unitPrice = $productData['price'] ?? 0;
+                            
+                            $products[] = [
+                                'product_id' => $supplierInventory->id,
+                                'product_name' => $supplierInventory->product_name,
+                                'unit_price' => $unitPrice,
+                                'quantity' => $productData['quantity'] ?? 1
+                            ];
                         }
+                    }
+                }
+            } elseif ($clientType === 'client_no_frecuente') {
+                // Cliente no frecuente de peluquería - es un servicio
+                $clienteNoFrecuente = ClienteNoFrecuente::findOrFail($technicalRecordId);
+                
+                $serviceDescription = 'Servicio de peluquería';
+                if ($clienteNoFrecuente->servicios) {
+                    $serviceDescription = $clienteNoFrecuente->servicios;
+                }
+                
+                $products[] = [
+                    'product_id' => null,
+                    'product_name' => $serviceDescription,
+                    'unit_price' => $clienteNoFrecuente->monto ?? 0,
+                    'quantity' => 1
+                ];
+            } elseif ($clientType === 'client') {
+                // Cliente de peluquería - usar TechnicalRecord
+                // En peluquería es un servicio, no productos individuales
+                $technicalRecord = TechnicalRecord::findOrFail($technicalRecordId);
+                
+                // Crear un único item con la descripción del servicio
+                $serviceDescription = $technicalRecord->service_description ?? 'Servicio de peluquería';
+                
+                // Si hay tipo de servicio, agregarlo a la descripción
+                if ($technicalRecord->service_type) {
+                    $serviceDescription = $technicalRecord->service_type . ($serviceDescription ? ' - ' . $serviceDescription : '');
+                }
+                
+                // Si hay tratamientos, agregarlos
+                if ($technicalRecord->hair_treatments) {
+                    $serviceDescription .= ($serviceDescription ? ' - ' : '') . $technicalRecord->hair_treatments;
+                }
+                
+                $products[] = [
+                    'product_id' => null, // No hay producto específico, es un servicio
+                    'product_name' => $serviceDescription ?: 'Servicio de peluquería',
+                    'unit_price' => $technicalRecord->service_cost ?? 0,
+                    'quantity' => 1
+                ];
+            } else {
+                // Cliente de distribuidora - usar DistributorTechnicalRecord
+                $technicalRecord = DistributorTechnicalRecord::findOrFail($technicalRecordId);
+                
+                if (!empty($technicalRecord->products_purchased)) {
+                    foreach ($technicalRecord->products_purchased as $productData) {
+                        $supplierInventory = SupplierInventory::find($productData['product_id']);
                         
-                        // Si no hay precio, usar 0 como fallback
-                        if (empty($unitPrice)) {
+                        if ($supplierInventory) {
+                            // Usar precio con descuento si está disponible, sino calcular según tipo de compra
                             $unitPrice = 0;
+                            
+                            if (!empty($productData['price']) && $productData['price'] > 0) {
+                                // Usar precio con descuento ya aplicado que se guardó en la ficha técnica
+                                $unitPrice = $productData['price'];
+                            } else {
+                                // Si no hay precio guardado, usar el precio base según tipo de compra
+                                if ($technicalRecord->purchase_type == 'al_por_mayor') {
+                                    $unitPrice = $supplierInventory->precio_mayor;
+                                } else {
+                                    $unitPrice = $supplierInventory->precio_menor;
+                                }
+                            }
+                            
+                            // Si no hay precio, usar 0 como fallback
+                            if (empty($unitPrice)) {
+                                $unitPrice = 0;
+                            }
+                            
+                            $products[] = [
+                                'product_id' => $supplierInventory->id,
+                                'product_name' => $supplierInventory->product_name,
+                                'unit_price' => $unitPrice,
+                                'quantity' => $productData['quantity']
+                            ];
                         }
-                        
-                        $products[] = [
-                            'product_id' => $supplierInventory->id,
-                            'product_name' => $supplierInventory->product_name,
-                            'unit_price' => $unitPrice,
-                            'quantity' => $productData['quantity']
-                        ];
                     }
                 }
             }
@@ -169,7 +250,7 @@ class AfipInvoiceController extends Controller
             return response()->json($products);
         } catch (\Exception $e) {
             Log::error('Error al obtener productos de la ficha técnica: ' . $e->getMessage());
-            return response()->json(['error' => 'Error al cargar los productos de la compra'], 500);
+            return response()->json(['error' => 'Error al cargar los productos de la compra: ' . $e->getMessage()], 500);
         }
     }
 
@@ -185,19 +266,31 @@ class AfipInvoiceController extends Controller
             'invoice_type' => 'required|in:A,B,C',
             'invoice_date' => 'required|date',
             'items' => 'required|array|min:1',
-            'items.*.product_id' => 'required|exists:supplier_inventories,id',
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.unit_price' => 'required|numeric|min:0',
             'notes' => 'nullable|string|max:500'
         ];
 
-        // Validar technical_record_id solo si no es cliente no frecuente
-        if (!in_array($request->client_type, ['distributor_no_frecuente', 'client_no_frecuente'])) {
-            if ($request->client_type === 'distributor_client') {
-                $rules['technical_record_id'] = 'required|exists:distributor_technical_records,id';
-            } elseif ($request->client_type === 'client') {
-                $rules['technical_record_id'] = 'required|exists:technical_records,id';
-            }
+        // Validar product_id según el tipo de cliente
+        if ($request->client_type === 'client') {
+            // Cliente de peluquería - productos pueden ser de la tabla products o null (servicio sin producto)
+            $rules['items.*.product_id'] = 'nullable|exists:products,id';
+        } else {
+            // Cliente de distribuidora - productos deben ser de supplier_inventories
+            $rules['items.*.product_id'] = 'required|exists:supplier_inventories,id';
+        }
+
+        // Validar technical_record_id según el tipo de cliente
+        if ($request->client_type === 'distributor_client') {
+            $rules['technical_record_id'] = 'required|exists:distributor_technical_records,id';
+        } elseif ($request->client_type === 'client') {
+            $rules['technical_record_id'] = 'required|exists:technical_records,id';
+        } elseif ($request->client_type === 'distributor_no_frecuente') {
+            // Para clientes no frecuentes, el technical_record_id es el ID del cliente mismo
+            $rules['technical_record_id'] = 'required|exists:distributor_cliente_no_frecuentes,id';
+        } elseif ($request->client_type === 'client_no_frecuente') {
+            // Para clientes no frecuentes de peluquería, el technical_record_id es el ID del cliente mismo
+            $rules['technical_record_id'] = 'required|exists:cliente_no_frecuentes,id';
         }
 
         $request->validate($rules);
@@ -256,12 +349,40 @@ class AfipInvoiceController extends Controller
             $taxAmount = 0;
 
             foreach ($request->items as $itemData) {
-                $supplierInventory = SupplierInventory::find($itemData['product_id']);
+                $productId = $itemData['product_id'] ?? null;
+                $description = $itemData['product_name'] ?? 'Producto sin especificar';
+                
+                // Manejar productos según el tipo de cliente
+                if ($request->client_type === 'client') {
+                    // Cliente de peluquería - productos de la tabla products
+                    if ($productId) {
+                        $product = Product::find($productId);
+                        if ($product) {
+                            $description = $product->name;
+                            // Para facturación AFIP, necesitamos un ID de producto válido
+                            // Como los productos de peluquería no están en supplier_inventories,
+                            // podemos usar null o crear un registro temporal
+                            $productId = null; // No hay correspondencia directa con supplier_inventories
+                        }
+                    }
+                    // Si no hay product_id, es un servicio sin producto específico
+                    // La descripción ya viene en product_name del itemData
+                } else {
+                    // Cliente de distribuidora - productos de supplier_inventories
+                    $supplierInventory = SupplierInventory::find($productId);
+                    if ($supplierInventory) {
+                        $description = $supplierInventory->product_name;
+                        $productId = $supplierInventory->id;
+                    } else {
+                        // Si no se encuentra, continuar con la descripción proporcionada
+                        $productId = null;
+                    }
+                }
                 
                 $item = AfipInvoiceItem::create([
                     'afip_invoice_id' => $invoice->id,
-                    'product_id' => $supplierInventory->id,
-                    'description' => $supplierInventory->product_name,
+                    'product_id' => $productId, // Puede ser null para productos de peluquería
+                    'description' => $description,
                     'quantity' => $itemData['quantity'],
                     'unit_price' => $itemData['unit_price'],
                     'tax_rate' => config('afip.tax_rate', '21.00')

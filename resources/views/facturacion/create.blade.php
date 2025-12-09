@@ -271,6 +271,18 @@ $(document).ready(function() {
         
         // Cargar compras del cliente
         loadClientPurchases(data.client_id, data.client_type);
+        
+        // Si es cliente no frecuente, seleccionar automáticamente su compra
+        if (data.client_type === 'distributor_no_frecuente' || data.client_type === 'client_no_frecuente') {
+            // Esperar a que se carguen las compras y seleccionar automáticamente
+            setTimeout(() => {
+                const technicalRecordSelect = document.getElementById('technical_record_id');
+                if (technicalRecordSelect.options.length > 1) {
+                    technicalRecordSelect.value = data.client_id;
+                    technicalRecordSelect.dispatchEvent(new Event('change'));
+                }
+            }, 500);
+        }
     });
 
     // Limpiar cuando se deselecciona
@@ -290,20 +302,17 @@ function loadClientPurchases(clientId, clientType) {
     const technicalRecordSelect = document.getElementById('technical_record_id');
     technicalRecordSelect.innerHTML = '<option value="">Cargando compras...</option>';
     
-    // Los clientes no frecuentes no tienen compras asociadas
+    // Los clientes no frecuentes tienen su compra directamente en el registro
+    // Mostrar mensaje informativo pero permitir seleccionar
     if (clientType === 'distributor_no_frecuente' || clientType === 'client_no_frecuente') {
-        technicalRecordSelect.innerHTML = '<option value="">No hay compras asociadas (cliente no frecuente)</option>';
-        technicalRecordSelect.disabled = true;
-        technicalRecordSelect.removeAttribute('required');
-        document.getElementById('technical_record_required').style.display = 'none';
         document.getElementById('no_frecuente_message').style.display = 'block';
-        return;
+    } else {
+        document.getElementById('no_frecuente_message').style.display = 'none';
     }
     
     technicalRecordSelect.disabled = false;
     technicalRecordSelect.setAttribute('required', 'required');
     document.getElementById('technical_record_required').style.display = 'inline';
-    document.getElementById('no_frecuente_message').style.display = 'none';
     
     const url = `/facturacion/clients/${clientId}/purchases?client_type=${clientType}`;
     
@@ -328,12 +337,17 @@ function loadClientPurchases(clientId, clientType) {
             return;
         }
         
-        data.forEach(purchase => {
-            const option = document.createElement('option');
-            option.value = purchase.id;
-            option.textContent = `FT-${purchase.id} - ${purchase.purchase_date} - $${purchase.total_amount}`;
-            technicalRecordSelect.appendChild(option);
-        });
+            data.forEach(purchase => {
+                const option = document.createElement('option');
+                option.value = purchase.id;
+                // Para clientes no frecuentes, mostrar texto diferente
+                if (clientType === 'distributor_no_frecuente' || clientType === 'client_no_frecuente') {
+                    option.textContent = `Compra - ${purchase.purchase_date} - $${purchase.total_amount}`;
+                } else {
+                    option.textContent = `FT-${purchase.id} - ${purchase.purchase_date} - $${purchase.total_amount}`;
+                }
+                technicalRecordSelect.appendChild(option);
+            });
     })
     .catch(error => {
         console.error('Error:', error);
@@ -356,7 +370,12 @@ function loadPurchaseProducts(technicalRecordId) {
     // Limpiar tabla actual
     clearProductsTable();
     
-    fetch(`/facturacion/technical-records/${technicalRecordId}/products`, {
+    // Obtener el tipo de cliente para saber qué tipo de ficha técnica buscar
+    const clientType = document.getElementById('client_type').value;
+    
+    const url = `/facturacion/technical-records/${technicalRecordId}/products?client_type=${clientType}`;
+    
+    fetch(url, {
         method: 'GET',
         headers: {
             'X-Requested-With': 'XMLHttpRequest',
@@ -384,6 +403,14 @@ function loadPurchaseProducts(technicalRecordId) {
                     parseInt(product.quantity)
                 );
             });
+            
+            // Si no hay productos y es cliente de peluquería, mostrar mensaje informativo
+            if (data.length === 0) {
+                const clientType = document.getElementById('client_type').value;
+                if (clientType === 'client') {
+                    alert('Esta ficha técnica no tiene productos asociados. Puedes agregar el servicio manualmente.');
+                }
+            }
         })
         .catch(error => {
             console.error('Error:', error);
@@ -438,7 +465,8 @@ function addItemToTable(productId, productName, productPrice, quantity = 1) {
     const row = document.createElement('tr');
     row.innerHTML = `
         <td>
-            <input type="hidden" name="items[${itemCounter}][product_id]" value="${productId}">
+            <input type="hidden" name="items[${itemCounter}][product_id]" value="${productId || ''}">
+            <input type="hidden" name="items[${itemCounter}][product_name]" value="${productName}">
             <strong>${productName}</strong>
         </td>
         <td>

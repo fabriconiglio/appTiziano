@@ -356,24 +356,47 @@
         <div class="info-section">
             <div class="info-box">
                 <div class="info-title">Datos del Receptor</div>
+                @php
+                    $client = $invoice->getClient();
+                @endphp
+                @if($client)
+                    @if($invoice->client_type === 'distributor_client' || $invoice->client_type === 'client' || !$invoice->client_type)
+                    <div class="info-row">
+                        <span class="info-label">Nombre/Razón Social:</span>
+                        <span>{{ $client->full_name ?? ($client->name . ' ' . $client->surname) }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Domicilio:</span>
+                        <span>{{ $client->domicilio ?? 'No especificado' }}</span>
+                    </div>
+                    @if($client->dni)
+                    <div class="info-row">
+                        <span class="info-label">DNI:</span>
+                        <span>{{ $client->dni }}</span>
+                    </div>
+                    @endif
+                    @if($client->phone)
+                    <div class="info-row">
+                        <span class="info-label">Teléfono:</span>
+                        <span>{{ $client->phone }}</span>
+                    </div>
+                    @endif
+                    @else
+                    <div class="info-row">
+                        <span class="info-label">Nombre:</span>
+                        <span>{{ $client->nombre ?? 'No especificado' }}</span>
+                    </div>
+                    @if($client->telefono)
+                    <div class="info-row">
+                        <span class="info-label">Teléfono:</span>
+                        <span>{{ $client->telefono }}</span>
+                    </div>
+                    @endif
+                    @endif
+                @else
                 <div class="info-row">
-                    <span class="info-label">Nombre/Razón Social:</span>
-                    <span>{{ $invoice->distributorClient->full_name }}</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Domicilio:</span>
-                    <span>{{ $invoice->distributorClient->domicilio ?? 'No especificado' }}</span>
-                </div>
-                @if($invoice->distributorClient->dni)
-                <div class="info-row">
-                    <span class="info-label">DNI:</span>
-                    <span>{{ $invoice->distributorClient->dni }}</span>
-                </div>
-                @endif
-                @if($invoice->distributorClient->phone)
-                <div class="info-row">
-                    <span class="info-label">Teléfono:</span>
-                    <span>{{ $invoice->distributorClient->phone }}</span>
+                    <span class="info-label">Cliente:</span>
+                    <span>No disponible</span>
                 </div>
                 @endif
             </div>

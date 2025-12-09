@@ -2,6 +2,10 @@
 
 namespace App\Models;
 
+use App\Models\Client;
+use App\Models\ClienteNoFrecuente;
+use App\Models\DistributorClient;
+use App\Models\DistributorClienteNoFrecuente;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -10,6 +14,8 @@ class AfipInvoice extends Model
 {
     protected $fillable = [
         'distributor_client_id',
+        'client_type',
+        'client_id',
         'technical_record_id',
         'invoice_type',
         'point_of_sale',
@@ -48,6 +54,53 @@ class AfipInvoice extends Model
     public function items(): HasMany
     {
         return $this->hasMany(AfipInvoiceItem::class);
+    }
+
+    /**
+     * Obtener el cliente según su tipo
+     */
+    public function getClient()
+    {
+        if (!$this->client_type || !$this->client_id) {
+            // Compatibilidad hacia atrás: usar distributorClient si existe
+            return $this->distributorClient;
+        }
+
+        switch ($this->client_type) {
+            case 'distributor_client':
+                return DistributorClient::find($this->client_id);
+            case 'client':
+                return Client::find($this->client_id);
+            case 'distributor_no_frecuente':
+                return DistributorClienteNoFrecuente::find($this->client_id);
+            case 'client_no_frecuente':
+                return ClienteNoFrecuente::find($this->client_id);
+            default:
+                return null;
+        }
+    }
+
+    /**
+     * Obtener el nombre completo del cliente
+     */
+    public function getClientFullNameAttribute(): string
+    {
+        $client = $this->getClient();
+        
+        if (!$client) {
+            return 'Cliente no disponible';
+        }
+
+        switch ($this->client_type) {
+            case 'distributor_client':
+            case 'client':
+                return $client->full_name ?? ($client->name . ' ' . $client->surname);
+            case 'distributor_no_frecuente':
+            case 'client_no_frecuente':
+                return $client->nombre ?? 'Sin nombre';
+            default:
+                return 'Cliente no disponible';
+        }
     }
 
     // Scopes

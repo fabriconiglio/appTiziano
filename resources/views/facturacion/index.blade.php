@@ -50,7 +50,7 @@
                                     <td>
                                         <strong>{{ $invoice->formatted_number }}</strong>
                                     </td>
-                                    <td>{{ $invoice->distributorClient->full_name }}</td>
+                                    <td>{{ $invoice->client_full_name }}</td>
                                     <td>
                                         <span class="badge bg-info text-dark">Factura {{ $invoice->invoice_type }}</span>
                                     </td>

@@ -102,32 +102,62 @@
                         
                         <div class="col-md-6">
                             <h5><i class="fas fa-user"></i> Información del Cliente</h5>
+                            @php
+                                $client = $facturacion->getClient();
+                            @endphp
+                            @if($client)
                             <table class="table table-sm">
+                                @if($facturacion->client_type === 'distributor_client' || $facturacion->client_type === 'client' || !$facturacion->client_type)
                                 <tr>
                                     <td><strong>Nombre:</strong></td>
-                                    <td>{{ $facturacion->distributorClient->name }}</td>
+                                    <td>{{ $client->name ?? '' }}</td>
                                 </tr>
                                 <tr>
                                     <td><strong>Apellido:</strong></td>
-                                    <td>{{ $facturacion->distributorClient->surname }}</td>
+                                    <td>{{ $client->surname ?? '' }}</td>
                                 </tr>
                                 <tr>
                                     <td><strong>DNI:</strong></td>
-                                    <td>{{ $facturacion->distributorClient->dni }}</td>
+                                    <td>{{ $client->dni ?? 'No especificado' }}</td>
                                 </tr>
                                 <tr>
                                     <td><strong>Email:</strong></td>
-                                    <td>{{ $facturacion->distributorClient->email }}</td>
+                                    <td>{{ $client->email ?? 'No especificado' }}</td>
                                 </tr>
                                 <tr>
                                     <td><strong>Teléfono:</strong></td>
-                                    <td>{{ $facturacion->distributorClient->phone }}</td>
+                                    <td>{{ $client->phone ?? 'No especificado' }}</td>
                                 </tr>
                                 <tr>
                                     <td><strong>Domicilio:</strong></td>
-                                    <td>{{ $facturacion->distributorClient->domicilio ?? 'No especificado' }}</td>
+                                    <td>{{ $client->domicilio ?? 'No especificado' }}</td>
                                 </tr>
+                                @else
+                                <tr>
+                                    <td><strong>Nombre:</strong></td>
+                                    <td>{{ $client->nombre ?? 'No especificado' }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Teléfono:</strong></td>
+                                    <td>{{ $client->telefono ?? 'No especificado' }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Tipo:</strong></td>
+                                    <td>
+                                        @if($facturacion->client_type === 'distributor_no_frecuente')
+                                            Cliente No Frecuente - Distribuidora
+                                        @elseif($facturacion->client_type === 'client_no_frecuente')
+                                            Cliente No Frecuente - Peluquería
+                                        @endif
+                                    </td>
+                                </tr>
+                                @endif
                             </table>
+                            @else
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle"></i> Cliente no disponible
+                            </div>
+                            @endif
                         </div>
                     </div>
 

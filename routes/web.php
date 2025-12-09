@@ -267,6 +267,7 @@ Route::get('/api/supplier-inventories/get-product', [App\Http\Controllers\Suppli
         Route::post('/configuration/last-voucher', [AfipConfigurationController::class, 'getLastVoucher'])->name('configuration.last-voucher');
         
         // APIs para obtener información
+        Route::get('/clients/search', [AfipInvoiceController::class, 'searchClients'])->name('clients.search');
         Route::get('/clients/{client}/info', [AfipInvoiceController::class, 'getClientInfo'])->name('clients.info');
         Route::get('/products/{product}/info', [AfipInvoiceController::class, 'getProductInfo'])->name('products.info');
         Route::get('/clients/{clientId}/purchases', [AfipInvoiceController::class, 'getClientPurchases'])->name('clients.purchases');

@@ -29,35 +29,34 @@
                             <div class="row">
                                 <div class="col-md-4 mb-3">
                                     <div class="form-group">
-                                        <label for="distributor_client_id">Cliente *</label>
-                                        <select name="distributor_client_id" id="distributor_client_id" 
-                                                class="form-control @error('distributor_client_id') is-invalid @enderror" required>
-                                            <option value="">Seleccionar cliente</option>
-                                            @foreach($clients as $client)
-                                            <option value="{{ $client->id }}" 
-                                                    data-name="{{ $client->name }}"
-                                                    data-surname="{{ $client->surname }}"
-                                                    data-dni="{{ $client->dni }}"
-                                                    data-email="{{ $client->email }}"
-                                                    data-phone="{{ $client->phone }}"
-                                                    data-domicilio="{{ $client->domicilio ?? '' }}">
-                                                {{ $client->full_name }} - {{ $client->dni }}
-                                            </option>
-                                            @endforeach
+                                        <label for="client_search">Cliente *</label>
+                                        <select name="client_search" id="client_search" 
+                                                class="form-control @error('client_type') is-invalid @enderror" required>
+                                            <option value="">Buscar cliente...</option>
                                         </select>
-                                        @error('distributor_client_id')
+                                        <!-- Campos ocultos para almacenar los datos del cliente seleccionado -->
+                                        <input type="hidden" name="client_type" id="client_type">
+                                        <input type="hidden" name="client_id" id="client_id">
+                                        <input type="hidden" name="distributor_client_id" id="distributor_client_id">
+                                        @error('client_type')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                        @error('client_id')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </div>
                                 </div>
                                 <div class="col-md-4 mb-3">
                                     <div class="form-group">
-                                        <label for="technical_record_id">Compra (Ficha Técnica) *</label>
+                                        <label for="technical_record_id">Compra (Ficha Técnica) <span id="technical_record_required" style="display:none;">*</span></label>
                                         <select name="technical_record_id" id="technical_record_id" 
-                                                class="form-control @error('technical_record_id') is-invalid @enderror" required>
+                                                class="form-control @error('technical_record_id') is-invalid @enderror">
                                             <option value="">Primero seleccione un cliente</option>
                                         </select>
                                         <small class="form-text text-muted">Los productos se cargan automáticamente al seleccionar una compra</small>
+                                        <small class="form-text text-info" id="no_frecuente_message" style="display:none;">
+                                            Los clientes no frecuentes no requieren seleccionar una compra
+                                        </small>
                                         @error('technical_record_id')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
@@ -197,40 +196,118 @@
 
 @endsection
 
+@push('styles')
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+@endpush
+
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
 let itemCounter = 0;
+let selectedClientData = null;
 
-// Mostrar información del cliente y cargar compras
-document.getElementById('distributor_client_id').addEventListener('change', function() {
-    const option = this.options[this.selectedIndex];
-    const clientInfo = document.getElementById('client-info');
-    const technicalRecordSelect = document.getElementById('technical_record_id');
-    
-    if (this.value) {
+// Inicializar Select2 para búsqueda de clientes
+$(document).ready(function() {
+    $('#client_search').select2({
+        placeholder: 'Buscar cliente por nombre, DNI, email...',
+        allowClear: true,
+        ajax: {
+            url: '{{ route("facturacion.clients.search") }}',
+            dataType: 'json',
+            delay: 250,
+            data: function(params) {
+                return {
+                    q: params.term,
+                    page: params.page
+                };
+            },
+            processResults: function(data) {
+                return {
+                    results: data.map(function(item) {
+                        return {
+                            id: item.id,
+                            text: item.text,
+                            client_type: item.client_type,
+                            client_id: item.client_id,
+                            name: item.name,
+                            surname: item.surname,
+                            dni: item.dni,
+                            email: item.email,
+                            phone: item.phone,
+                            domicilio: item.domicilio
+                        };
+                    })
+                };
+            },
+            cache: true
+        },
+        minimumInputLength: 2
+    });
+
+    // Manejar selección de cliente
+    $('#client_search').on('select2:select', function(e) {
+        const data = e.params.data;
+        selectedClientData = data;
+        
+        // Llenar campos ocultos
+        $('#client_type').val(data.client_type);
+        $('#client_id').val(data.client_id);
+        
+        // Si es cliente de distribuidora, también llenar distributor_client_id
+        if (data.client_type === 'distributor_client') {
+            $('#distributor_client_id').val(data.client_id);
+        } else {
+            $('#distributor_client_id').val('');
+        }
+        
         // Mostrar información del cliente
-        document.getElementById('client-name').textContent = option.dataset.name;
-        document.getElementById('client-surname').textContent = option.dataset.surname;
-        document.getElementById('client-dni').textContent = option.dataset.dni;
-        document.getElementById('client-email').textContent = option.dataset.email;
-        document.getElementById('client-phone').textContent = option.dataset.phone;
-        document.getElementById('client-domicilio').textContent = option.dataset.domicilio;
-        clientInfo.style.display = 'block';
+        document.getElementById('client-name').textContent = data.name || '';
+        document.getElementById('client-surname').textContent = data.surname || '';
+        document.getElementById('client-dni').textContent = data.dni || 'No especificado';
+        document.getElementById('client-email').textContent = data.email || 'No especificado';
+        document.getElementById('client-phone').textContent = data.phone || 'No especificado';
+        document.getElementById('client-domicilio').textContent = data.domicilio || 'No especificado';
+        document.getElementById('client-info').style.display = 'block';
         
         // Cargar compras del cliente
-        loadClientPurchases(this.value);
-    } else {
-        clientInfo.style.display = 'none';
-        technicalRecordSelect.innerHTML = '<option value="">Primero seleccione un cliente</option>';
-    }
+        loadClientPurchases(data.client_id, data.client_type);
+    });
+
+    // Limpiar cuando se deselecciona
+    $('#client_search').on('select2:clear', function() {
+        selectedClientData = null;
+        $('#client_type').val('');
+        $('#client_id').val('');
+        $('#distributor_client_id').val('');
+        document.getElementById('client-info').style.display = 'none';
+        document.getElementById('technical_record_id').innerHTML = '<option value="">Primero seleccione un cliente</option>';
+        clearProductsTable();
+    });
 });
 
 // Cargar compras del cliente
-function loadClientPurchases(clientId) {
+function loadClientPurchases(clientId, clientType) {
     const technicalRecordSelect = document.getElementById('technical_record_id');
     technicalRecordSelect.innerHTML = '<option value="">Cargando compras...</option>';
     
-    fetch(`/facturacion/clients/${clientId}/purchases`, {
+    // Los clientes no frecuentes no tienen compras asociadas
+    if (clientType === 'distributor_no_frecuente' || clientType === 'client_no_frecuente') {
+        technicalRecordSelect.innerHTML = '<option value="">No hay compras asociadas (cliente no frecuente)</option>';
+        technicalRecordSelect.disabled = true;
+        technicalRecordSelect.removeAttribute('required');
+        document.getElementById('technical_record_required').style.display = 'none';
+        document.getElementById('no_frecuente_message').style.display = 'block';
+        return;
+    }
+    
+    technicalRecordSelect.disabled = false;
+    technicalRecordSelect.setAttribute('required', 'required');
+    document.getElementById('technical_record_required').style.display = 'inline';
+    document.getElementById('no_frecuente_message').style.display = 'none';
+    
+    const url = `/facturacion/clients/${clientId}/purchases?client_type=${clientType}`;
+    
+    fetch(url, {
         method: 'GET',
         headers: {
             'X-Requested-With': 'XMLHttpRequest',
@@ -243,26 +320,26 @@ function loadClientPurchases(clientId) {
         }
         return response.json();
     })
-        .then(data => {
-            technicalRecordSelect.innerHTML = '<option value="">Seleccionar compra</option>';
-            
-            if (data.length === 0) {
-                technicalRecordSelect.innerHTML += '<option value="" disabled>No hay compras registradas</option>';
-                return;
-            }
-            
-            data.forEach(purchase => {
-                const option = document.createElement('option');
-                option.value = purchase.id;
-                option.textContent = `FT-${purchase.id} - ${purchase.purchase_date} - $${purchase.total_amount}`;
-                technicalRecordSelect.appendChild(option);
-            });
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            technicalRecordSelect.innerHTML = '<option value="">Error al cargar compras</option>';
-            alert('Error al cargar las compras del cliente. Verifique la consola para más detalles.');
+    .then(data => {
+        technicalRecordSelect.innerHTML = '<option value="">Seleccionar compra</option>';
+        
+        if (data.length === 0) {
+            technicalRecordSelect.innerHTML += '<option value="" disabled>No hay compras registradas</option>';
+            return;
+        }
+        
+        data.forEach(purchase => {
+            const option = document.createElement('option');
+            option.value = purchase.id;
+            option.textContent = `FT-${purchase.id} - ${purchase.purchase_date} - $${purchase.total_amount}`;
+            technicalRecordSelect.appendChild(option);
         });
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        technicalRecordSelect.innerHTML = '<option value="">Error al cargar compras</option>';
+        alert('Error al cargar las compras del cliente. Verifique la consola para más detalles.');
+    });
 }
 
 // Cargar productos de la compra seleccionada
@@ -432,6 +509,24 @@ function updateTotals() {
 
 // Validación del formulario
 document.getElementById('invoiceForm').addEventListener('submit', function(e) {
+    // Validar que se haya seleccionado un cliente
+    if (!document.getElementById('client_type').value || !document.getElementById('client_id').value) {
+        e.preventDefault();
+        alert('Debe seleccionar un cliente');
+        return false;
+    }
+    
+    // Validar technical_record_id solo si no es cliente no frecuente
+    const clientType = document.getElementById('client_type').value;
+    const technicalRecordId = document.getElementById('technical_record_id').value;
+    
+    if (!['distributor_no_frecuente', 'client_no_frecuente'].includes(clientType) && !technicalRecordId) {
+        e.preventDefault();
+        alert('Debe seleccionar una compra (ficha técnica)');
+        return false;
+    }
+    
+    // Validar que haya al menos un producto
     const items = document.querySelectorAll('#items-tbody tr');
     if (items.length === 0) {
         e.preventDefault();

@@ -5,10 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\AfipConfiguration;
 use App\Models\AfipInvoice;
 use App\Models\AfipInvoiceItem;
+use App\Models\Client;
+use App\Models\ClienteNoFrecuente;
 use App\Models\DistributorClient;
+use App\Models\DistributorClienteNoFrecuente;
 use App\Models\DistributorTechnicalRecord;
 use App\Models\Product;
 use App\Models\SupplierInventory;
+use App\Models\TechnicalRecord;
 use App\Services\AfipService;
 use Barryvdh\DomPDF\Facade\Pdf as PDF;
 use Illuminate\Http\Request;
@@ -55,37 +59,66 @@ class AfipInvoiceController extends Controller
      */
     public function create()
     {
-        $clients = DistributorClient::orderBy('name')->get();
         $products = Product::orderBy('name')->get();
         
-        return view('facturacion.create', compact('clients', 'products'));
+        return view('facturacion.create', compact('products'));
     }
 
     /**
      * Obtener compras de un cliente para facturación
      */
-    public function getClientPurchases($clientId)
+    public function getClientPurchases(Request $request, $clientId)
     {
         try {
-            // Verificar que el cliente existe
-            $client = DistributorClient::findOrFail($clientId);
-            
-            $purchases = DistributorTechnicalRecord::where('distributor_client_id', $clientId)
-                ->orderBy('created_at', 'desc')
-                ->get()
-                ->map(function($purchase) {
-                    return [
-                        'id' => $purchase->id,
-                        'purchase_date' => $purchase->purchase_date->format('d/m/Y'),
-                        'total_amount' => number_format($purchase->total_amount, 2, ',', '.'),
-                        'purchase_type' => $purchase->purchase_type
-                    ];
-                });
+            $clientType = $request->get('client_type', 'distributor_client');
+            $purchases = [];
+
+            switch ($clientType) {
+                case 'distributor_client':
+                    $client = DistributorClient::findOrFail($clientId);
+                    $purchases = DistributorTechnicalRecord::where('distributor_client_id', $clientId)
+                        ->orderBy('created_at', 'desc')
+                        ->get()
+                        ->map(function($purchase) {
+                            return [
+                                'id' => $purchase->id,
+                                'purchase_date' => $purchase->purchase_date->format('d/m/Y'),
+                                'total_amount' => number_format($purchase->total_amount, 2, ',', '.'),
+                                'purchase_type' => $purchase->purchase_type
+                            ];
+                        });
+                    break;
+
+                case 'client':
+                    $client = Client::findOrFail($clientId);
+                    $purchases = TechnicalRecord::where('client_id', $clientId)
+                        ->orderBy('created_at', 'desc')
+                        ->get()
+                        ->map(function($purchase) {
+                            return [
+                                'id' => $purchase->id,
+                                'purchase_date' => $purchase->service_date->format('d/m/Y'),
+                                'total_amount' => number_format($purchase->service_cost ?? 0, 2, ',', '.'),
+                                'purchase_type' => 'servicio'
+                            ];
+                        });
+                    break;
+
+                case 'distributor_no_frecuente':
+                case 'client_no_frecuente':
+                    // Los clientes no frecuentes no tienen compras asociadas (fichas técnicas)
+                    // Retornar array vacío
+                    $purchases = [];
+                    break;
+
+                default:
+                    throw new \Exception('Tipo de cliente no válido');
+            }
 
             return response()->json($purchases);
         } catch (\Exception $e) {
             Log::error('Error al obtener compras del cliente: ' . $e->getMessage());
-            return response()->json(['error' => 'Error al cargar las compras'], 500);
+            return response()->json(['error' => 'Error al cargar las compras: ' . $e->getMessage()], 500);
         }
     }
 
@@ -145,9 +178,10 @@ class AfipInvoiceController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'distributor_client_id' => 'required|exists:distributor_clients,id',
-            'technical_record_id' => 'required|exists:distributor_technical_records,id',
+        // Validación base
+        $rules = [
+            'client_type' => 'required|in:distributor_client,client,distributor_no_frecuente,client_no_frecuente',
+            'client_id' => 'required|integer',
             'invoice_type' => 'required|in:A,B,C',
             'invoice_date' => 'required|date',
             'items' => 'required|array|min:1',
@@ -155,15 +189,57 @@ class AfipInvoiceController extends Controller
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.unit_price' => 'required|numeric|min:0',
             'notes' => 'nullable|string|max:500'
-        ]);
+        ];
+
+        // Validar technical_record_id solo si no es cliente no frecuente
+        if (!in_array($request->client_type, ['distributor_no_frecuente', 'client_no_frecuente'])) {
+            if ($request->client_type === 'distributor_client') {
+                $rules['technical_record_id'] = 'required|exists:distributor_technical_records,id';
+            } elseif ($request->client_type === 'client') {
+                $rules['technical_record_id'] = 'required|exists:technical_records,id';
+            }
+        }
+
+        $request->validate($rules);
 
         try {
             DB::beginTransaction();
 
+            // Validar que el cliente existe según su tipo
+            $clientExists = false;
+            $distributorClientId = null;
+
+            switch ($request->client_type) {
+                case 'distributor_client':
+                    $client = DistributorClient::find($request->client_id);
+                    $clientExists = $client !== null;
+                    $distributorClientId = $request->client_id;
+                    break;
+                case 'client':
+                    $client = Client::find($request->client_id);
+                    $clientExists = $client !== null;
+                    break;
+                case 'distributor_no_frecuente':
+                    $client = DistributorClienteNoFrecuente::find($request->client_id);
+                    $clientExists = $client !== null;
+                    break;
+                case 'client_no_frecuente':
+                    $client = ClienteNoFrecuente::find($request->client_id);
+                    $clientExists = $client !== null;
+                    break;
+            }
+
+            if (!$clientExists) {
+                return back()->withInput()
+                    ->with('error', 'El cliente seleccionado no existe');
+            }
+
             // Crear factura
             $invoice = AfipInvoice::create([
-                'distributor_client_id' => $request->distributor_client_id,
-                'technical_record_id' => $request->technical_record_id,
+                'distributor_client_id' => $distributorClientId, // Solo para compatibilidad con distribuidora
+                'client_type' => $request->client_type,
+                'client_id' => $request->client_id,
+                'technical_record_id' => $request->technical_record_id ?? null,
                 'invoice_type' => $request->invoice_type,
                 'point_of_sale' => AfipConfiguration::get('afip_point_of_sale', '5'),
                 'invoice_number' => $this->getNextInvoiceNumber($request->invoice_type),
@@ -329,6 +405,23 @@ class AfipInvoiceController extends Controller
      */
     private function generateQrCode(AfipInvoice $invoice, array $config): string
     {
+        $client = $invoice->getClient();
+        $dni = 0;
+        $tipoDocRec = 99; // Sin documento por defecto
+        
+        if ($client) {
+            if ($invoice->client_type === 'distributor_client' || $invoice->client_type === 'client' || !$invoice->client_type) {
+                $dni = $client->dni ?? 0;
+            } else {
+                // Clientes no frecuentes pueden no tener DNI
+                $dni = 0;
+            }
+            
+            if ($dni) {
+                $tipoDocRec = 96; // DNI
+            }
+        }
+        
         // URL de verificación AFIP con los datos del comprobante
         $verificationUrl = "https://www.afip.gob.ar/fe/qr/?p=" . urlencode(json_encode([
             'ver' => 1,
@@ -340,8 +433,8 @@ class AfipInvoiceController extends Controller
             'importe' => $invoice->total,
             'moneda' => 'PES',
             'ctz' => 1,
-            'tipoDocRec' => $invoice->distributorClient->dni ? 96 : 99,
-            'nroDocRec' => $invoice->distributorClient->dni ?? 0,
+            'tipoDocRec' => $tipoDocRec,
+            'nroDocRec' => $dni,
             'tipoCodAut' => 'E',
             'codAut' => $invoice->cae
         ]));
@@ -425,5 +518,115 @@ class AfipInvoiceController extends Controller
             'price' => $product->price,
             'description' => $product->description
         ]);
+    }
+
+    /**
+     * Búsqueda unificada de clientes (todos los tipos)
+     */
+    public function searchClients(Request $request)
+    {
+        $search = $request->get('q', '');
+        
+        if (strlen($search) < 2) {
+            return response()->json([]);
+        }
+
+        $results = [];
+
+        // Buscar en Clientes de Distribuidora
+        $distributorClients = DistributorClient::where(function($query) use ($search) {
+            $query->where('name', 'LIKE', "%{$search}%")
+                  ->orWhere('surname', 'LIKE', "%{$search}%")
+                  ->orWhere('dni', 'LIKE', "%{$search}%")
+                  ->orWhere('email', 'LIKE', "%{$search}%");
+        })
+        ->limit(50)
+        ->get();
+
+        foreach ($distributorClients as $client) {
+            $dni = $client->dni ? " - {$client->dni}" : '';
+            $results[] = [
+                'id' => "distributor_client_{$client->id}",
+                'text' => "{$client->full_name}{$dni} - Cliente Distribuidora",
+                'client_type' => 'distributor_client',
+                'client_id' => $client->id,
+                'name' => $client->name,
+                'surname' => $client->surname,
+                'dni' => $client->dni,
+                'email' => $client->email,
+                'phone' => $client->phone,
+                'domicilio' => $client->domicilio ?? ''
+            ];
+        }
+
+        // Buscar en Clientes de Peluquería
+        $clients = Client::where(function($query) use ($search) {
+            $query->where('name', 'LIKE', "%{$search}%")
+                  ->orWhere('surname', 'LIKE', "%{$search}%")
+                  ->orWhere('dni', 'LIKE', "%{$search}%")
+                  ->orWhere('email', 'LIKE', "%{$search}%");
+        })
+        ->limit(50)
+        ->get();
+
+        foreach ($clients as $client) {
+            $dni = $client->dni ? " - {$client->dni}" : '';
+            $results[] = [
+                'id' => "client_{$client->id}",
+                'text' => "{$client->full_name}{$dni} - Cliente Peluquería",
+                'client_type' => 'client',
+                'client_id' => $client->id,
+                'name' => $client->name,
+                'surname' => $client->surname,
+                'dni' => $client->dni,
+                'email' => $client->email,
+                'phone' => $client->phone,
+                'domicilio' => $client->domicilio ?? ''
+            ];
+        }
+
+        // Buscar en Clientes No Frecuentes de Distribuidora
+        $distributorNoFrecuentes = DistributorClienteNoFrecuente::where('nombre', 'LIKE', "%{$search}%")
+            ->orWhere('telefono', 'LIKE', "%{$search}%")
+            ->limit(50)
+            ->get();
+
+        foreach ($distributorNoFrecuentes as $client) {
+            $results[] = [
+                'id' => "distributor_no_frecuente_{$client->id}",
+                'text' => "{$client->nombre} - No Frecuente Distribuidora",
+                'client_type' => 'distributor_no_frecuente',
+                'client_id' => $client->id,
+                'name' => $client->nombre,
+                'surname' => '',
+                'dni' => '',
+                'email' => '',
+                'phone' => $client->telefono ?? '',
+                'domicilio' => ''
+            ];
+        }
+
+        // Buscar en Clientes No Frecuentes de Peluquería
+        $clientesNoFrecuentes = ClienteNoFrecuente::where('nombre', 'LIKE', "%{$search}%")
+            ->orWhere('telefono', 'LIKE', "%{$search}%")
+            ->limit(50)
+            ->get();
+
+        foreach ($clientesNoFrecuentes as $client) {
+            $results[] = [
+                'id' => "client_no_frecuente_{$client->id}",
+                'text' => "{$client->nombre} - No Frecuente Peluquería",
+                'client_type' => 'client_no_frecuente',
+                'client_id' => $client->id,
+                'name' => $client->nombre,
+                'surname' => '',
+                'dni' => '',
+                'email' => '',
+                'phone' => $client->telefono ?? '',
+                'domicilio' => ''
+            ];
+        }
+
+        return response()->json($results);
     }
 }

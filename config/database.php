@@ -59,12 +59,6 @@ return [
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
-                // Timeout de conexión aumentado para conexiones desde móviles (30 segundos)
-                PDO::MYSQL_ATTR_CONNECT_TIMEOUT => env('DB_CONNECT_TIMEOUT', 30),
-                // Habilitar reconexión automática (opcional, puede mejorar estabilidad)
-                PDO::ATTR_PERSISTENT => env('DB_PERSISTENT', false),
-                // Opciones adicionales para mejorar estabilidad en conexiones móviles
-                PDO::MYSQL_ATTR_INIT_COMMAND => "SET sql_mode='STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'",
             ]) : [],
         ],
 

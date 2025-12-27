@@ -203,6 +203,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Same-Site Cookie Auto-Detection for Mobile Browsers
+    |--------------------------------------------------------------------------
+    |
+    | Para mejorar la compatibilidad con navegadores móviles (especialmente
+    | Safari en iOS), si la aplicación usa HTTPS, se puede configurar
+    | automáticamente SameSite según el protocolo.
+    |
+    */
+
+    /*
+    |--------------------------------------------------------------------------
     | Partitioned Cookies
     |--------------------------------------------------------------------------
     |

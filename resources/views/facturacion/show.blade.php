@@ -173,8 +173,6 @@
                                             <th class="text-center">Cantidad</th>
                                             <th class="text-right">Precio Unit.</th>
                                             <th class="text-right">Subtotal</th>
-                                            <th class="text-right">IVA</th>
-                                            <th class="text-right">Total</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -187,26 +185,16 @@
                                             <td class="text-center">{{ $item->quantity }}</td>
                                             <td class="text-right">${{ number_format($item->unit_price, 2, ',', '.') }}</td>
                                             <td class="text-right">${{ number_format($item->subtotal, 2, ',', '.') }}</td>
-                                            <td class="text-right">${{ number_format($item->tax_amount, 2, ',', '.') }}</td>
-                                            <td class="text-right">${{ number_format($item->total, 2, ',', '.') }}</td>
                                         </tr>
                                         @endforeach
                                     </tbody>
                                     <tfoot>
                                         <tr>
-                                            <td colspan="3" class="text-right"><strong>Subtotal (IVA incluido):</strong></td>
+                                            <td colspan="3" class="text-right"><strong>Subtotal:</strong></td>
                                             <td class="text-right"><strong>${{ number_format($facturacion->subtotal, 2, ',', '.') }}</strong></td>
-                                            <td></td>
-                                            <td></td>
-                                        </tr>
-                                        <tr>
-                                            <td colspan="4" class="text-right"><strong>IVA (21% - incluido):</strong></td>
-                                            <td class="text-right"><strong>${{ number_format($facturacion->tax_amount, 2, ',', '.') }}</strong></td>
-                                            <td></td>
                                         </tr>
                                         <tr class="table-primary">
-                                            <td colspan="4" class="text-right"><strong>Total:</strong></td>
-                                            <td></td>
+                                            <td colspan="3" class="text-right"><strong>Total:</strong></td>
                                             <td class="text-right"><strong>${{ number_format($facturacion->total, 2, ',', '.') }}</strong></td>
                                         </tr>
                                     </tfoot>

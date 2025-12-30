@@ -139,11 +139,6 @@
                                             <td><strong id="subtotal-total">$0,00</strong></td>
                                             <td></td>
                                         </tr>
-                                        <tr>
-                                            <td colspan="3" class="text-end"><strong>IVA (21%):</strong></td>
-                                            <td><strong id="tax-total">$0,00</strong></td>
-                                            <td></td>
-                                        </tr>
                                         <tr class="table-primary">
                                             <td colspan="3" class="text-end"><strong>Total:</strong></td>
                                             <td><strong id="grand-total">$0,00</strong></td>
@@ -528,11 +523,6 @@ function updateTotals() {
     const total = subtotal;
     
     document.getElementById('subtotal-total').textContent = '$' + subtotal.toLocaleString('es-AR', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    });
-    
-    document.getElementById('tax-total').textContent = '$' + taxAmount.toLocaleString('es-AR', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
     });

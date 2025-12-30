@@ -502,11 +502,18 @@ function addItemToTable(productId, productName, productPrice, quantity = 1) {
 
 function updateTotals() {
     let subtotal = 0;
+    let taxAmount = 0;
     
     document.querySelectorAll('#items-tbody tr').forEach(row => {
         const quantity = parseFloat(row.querySelector('.item-quantity').value) || 0;
         const price = parseFloat(row.querySelector('.item-price').value) || 0;
         const itemSubtotal = quantity * price;
+        
+        // Calcular IVA interno del precio que ya lo incluye
+        // Base imponible = precio / 1.21
+        // IVA = base imponible × 0.21
+        const baseImponible = itemSubtotal / 1.21;
+        const itemTax = baseImponible * 0.21;
         
         row.querySelector('.item-subtotal').textContent = '$' + itemSubtotal.toLocaleString('es-AR', {
             minimumFractionDigits: 2,
@@ -514,17 +521,18 @@ function updateTotals() {
         });
         
         subtotal += itemSubtotal;
+        taxAmount += itemTax;
     });
     
-    const tax = subtotal * 0.21;
-    const total = subtotal + tax;
+    // El total es igual al subtotal porque el IVA ya está incluido en los precios
+    const total = subtotal;
     
     document.getElementById('subtotal-total').textContent = '$' + subtotal.toLocaleString('es-AR', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
     });
     
-    document.getElementById('tax-total').textContent = '$' + tax.toLocaleString('es-AR', {
+    document.getElementById('tax-total').textContent = '$' + taxAmount.toLocaleString('es-AR', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
     });

@@ -194,13 +194,13 @@
                                     </tbody>
                                     <tfoot>
                                         <tr>
-                                            <td colspan="3" class="text-right"><strong>Subtotal:</strong></td>
+                                            <td colspan="3" class="text-right"><strong>Subtotal (IVA incluido):</strong></td>
                                             <td class="text-right"><strong>${{ number_format($facturacion->subtotal, 2, ',', '.') }}</strong></td>
                                             <td></td>
                                             <td></td>
                                         </tr>
                                         <tr>
-                                            <td colspan="4" class="text-right"><strong>IVA (21%):</strong></td>
+                                            <td colspan="4" class="text-right"><strong>IVA (21% - incluido):</strong></td>
                                             <td class="text-right"><strong>${{ number_format($facturacion->tax_amount, 2, ',', '.') }}</strong></td>
                                             <td></td>
                                         </tr>

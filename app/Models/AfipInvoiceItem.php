@@ -42,17 +42,24 @@ class AfipInvoiceItem extends Model
     // Métodos auxiliares
     public function calculateSubtotal(): float
     {
+        // El subtotal es la cantidad × precio (precio ya incluye IVA)
         return $this->quantity * $this->unit_price;
     }
 
     public function calculateTaxAmount(): float
     {
-        return $this->subtotal * ($this->tax_rate / 100);
+        // Calcular IVA interno del precio que ya lo incluye
+        // Base imponible = precio / 1.21
+        // IVA = base imponible × 0.21
+        $subtotal = $this->calculateSubtotal();
+        $baseImponible = $subtotal / 1.21;
+        return $baseImponible * ($this->tax_rate / 100);
     }
 
     public function calculateTotal(): float
     {
-        return $this->subtotal + $this->tax_amount;
+        // El total es igual al subtotal (IVA ya está incluido en el precio)
+        return $this->calculateSubtotal();
     }
 
     // Eventos del modelo

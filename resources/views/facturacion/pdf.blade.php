@@ -452,12 +452,12 @@
         <div class="totals-section">
             <table class="totals-table">
                 <tr>
-                    <td class="totals-label">Subtotal:</td>
+                    <td class="totals-label">Subtotal (IVA incluido):</td>
                     <td class="totals-amount">${{ number_format($invoice->subtotal, 2, ',', '.') }}</td>
                 </tr>
                 @if($invoice->invoice_type !== 'C')
                 <tr>
-                    <td class="totals-label">IVA (21%):</td>
+                    <td class="totals-label">IVA (21% - incluido):</td>
                     <td class="totals-amount">${{ number_format($invoice->tax_amount, 2, ',', '.') }}</td>
                 </tr>
                 @endif

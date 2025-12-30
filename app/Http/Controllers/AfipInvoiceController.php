@@ -393,10 +393,11 @@ class AfipInvoiceController extends Controller
             }
 
             // Actualizar totales
+            // El total es igual al subtotal porque el IVA ya está incluido en los precios
             $invoice->update([
                 'subtotal' => $subtotal,
-                'tax_amount' => $taxAmount,
-                'total' => $subtotal + $taxAmount
+                'tax_amount' => $taxAmount, // IVA calculado internamente para AFIP
+                'total' => $subtotal // Total igual al subtotal (IVA incluido)
             ]);
 
             DB::commit();

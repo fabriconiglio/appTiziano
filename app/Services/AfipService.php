@@ -215,9 +215,17 @@ class AfipService
         }
         
         // Para facturas tipo C, el IVA debe ser 0 y no se envía el objeto Iva
-        $impIVA = ($invoice->invoice_type === 'C') ? 0 : $invoice->tax_amount;
-        $impNeto = ($invoice->invoice_type === 'C') ? $invoice->total : $invoice->subtotal;
-        $ivaArray = ($invoice->invoice_type === 'C') ? null : $items['iva'];
+        if ($invoice->invoice_type === 'C') {
+            $impIVA = 0;
+            $impNeto = $invoice->total;
+            $ivaArray = null;
+        } else {
+            // Los precios ya incluyen IVA, necesitamos calcular la base imponible total
+            // Base imponible = subtotal / 1.21
+            $impNeto = round($invoice->subtotal / 1.21, 2);
+            $impIVA = round($invoice->tax_amount, 2);
+            $ivaArray = $items['iva'];
+        }
         
         $data = [
             'CantReg' => 1,
@@ -229,12 +237,12 @@ class AfipService
             'CbteDesde' => $invoice->invoice_number,
             'CbteHasta' => $invoice->invoice_number,
             'CbteFch' => $invoice->invoice_date->format('Ymd'),
-            'ImpTotal' => $invoice->total,
+            'ImpTotal' => round($invoice->total, 2), // Total igual al subtotal (IVA incluido)
             'ImpTotConc' => 0,
-            'ImpNeto' => $impNeto,
+            'ImpNeto' => $impNeto, // Base imponible (precio sin IVA)
             'ImpOpEx' => 0,
             'ImpTrib' => 0,
-            'ImpIVA' => $impIVA,
+            'ImpIVA' => $impIVA, // IVA calculado internamente
             'FchServDesde' => null,
             'FchServHasta' => null,
             'FchVtoPago' => null,
@@ -272,10 +280,14 @@ class AfipService
         $ivaItems = [];
         
         foreach ($items as $item) {
+            // El subtotal del item ya incluye IVA, necesitamos calcular la base imponible
+            // Base imponible = subtotal / 1.21
+            $baseImponible = $item->subtotal / 1.21;
+            
             $ivaItems[] = [
                 'Id' => 5, // IVA 21%
-                'BaseImp' => $item->subtotal,
-                'Importe' => $item->tax_amount
+                'BaseImp' => round($baseImponible, 2),
+                'Importe' => round($item->tax_amount, 2)
             ];
         }
 

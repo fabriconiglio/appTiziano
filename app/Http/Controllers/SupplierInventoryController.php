@@ -7,6 +7,7 @@ use App\Models\DistributorCategory;
 use App\Models\DistributorBrand;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class SupplierInventoryController extends Controller
@@ -728,37 +729,46 @@ class SupplierInventoryController extends Controller
      */
     public function exportListaMayorista()
     {
-        // Obtener todos los productos con sus relaciones
-        $products = SupplierInventory::with(['distributorBrand', 'distributorCategory'])
-            ->orderBy('product_name')
-            ->get();
-
-        // Preparar los datos para lista mayorista
-        $mayoristaData = [];
-
-        foreach ($products as $product) {
-            $description = $product->description ?: $product->product_name;
-            $brand = $product->distributorBrand ? $product->distributorBrand->name : '';
-            $displayText = !empty($brand) ? $description . ' - ' . $brand : $description;
-            $category = $product->distributorCategory ? $product->distributorCategory->name : 'Sin categoría';
-            
-            $mayoristaData[] = [
-                'name' => $product->product_name,
-                'description' => $displayText,
-                'precio_mayor' => $product->precio_mayor ? '$' . number_format($product->precio_mayor, 2) : 'N/A',
-                'category' => $category
-            ];
-        }
-
-        $data = [
-            'products' => $mayoristaData,
-            'exportDate' => now()->format('d/m/Y H:i:s'),
-            'title' => 'Lista de Precios por Mayor'
-        ];
-
-        $pdf = Pdf::loadView('supplier-inventories.lista-mayorista', $data);
+        // Aumentar límite de memoria temporalmente para DomPDF
+        ini_set('memory_limit', '256M');
         
-        return $pdf->download('lista_mayorista_' . date('Y-m-d_H-i-s') . '.pdf');
+        try {
+            // Obtener todos los productos con sus relaciones (solo columnas necesarias)
+            $products = SupplierInventory::with(['distributorBrand', 'distributorCategory'])
+                ->select(['id', 'product_name', 'description', 'precio_mayor', 'distributor_brand_id', 'distributor_category_id'])
+                ->orderBy('product_name')
+                ->get();
+
+            // Preparar los datos para lista mayorista
+            $mayoristaData = [];
+
+            foreach ($products as $product) {
+                $description = $product->description ?: $product->product_name;
+                $brand = $product->distributorBrand ? $product->distributorBrand->name : '';
+                $displayText = !empty($brand) ? $description . ' - ' . $brand : $description;
+                $category = $product->distributorCategory ? $product->distributorCategory->name : 'Sin categoría';
+                
+                $mayoristaData[] = [
+                    'name' => $product->product_name,
+                    'description' => $displayText,
+                    'precio_mayor' => $product->precio_mayor ? '$' . number_format($product->precio_mayor, 2) : 'N/A',
+                    'category' => $category
+                ];
+            }
+
+            $data = [
+                'products' => $mayoristaData,
+                'exportDate' => now()->format('d/m/Y H:i:s'),
+                'title' => 'Lista de Precios por Mayor'
+            ];
+
+            $pdf = Pdf::loadView('supplier-inventories.lista-mayorista', $data);
+            
+            return $pdf->download('lista_mayorista_' . date('Y-m-d_H-i-s') . '.pdf');
+        } catch (\Exception $e) {
+            Log::error('Error exportando lista mayorista: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Error al generar el PDF. Por favor, intente nuevamente.');
+        }
     }
 
     /**
@@ -766,36 +776,45 @@ class SupplierInventoryController extends Controller
      */
     public function exportListaMinorista()
     {
-        // Obtener todos los productos con sus relaciones
-        $products = SupplierInventory::with(['distributorBrand', 'distributorCategory'])
-            ->orderBy('product_name')
-            ->get();
-
-        // Preparar los datos para lista minorista
-        $minoristaData = [];
-
-        foreach ($products as $product) {
-            $description = $product->description ?: $product->product_name;
-            $brand = $product->distributorBrand ? $product->distributorBrand->name : '';
-            $displayText = !empty($brand) ? $description . ' - ' . $brand : $description;
-            $category = $product->distributorCategory ? $product->distributorCategory->name : 'Sin categoría';
-            
-            $minoristaData[] = [
-                'name' => $product->product_name,
-                'description' => $displayText,
-                'precio_menor' => $product->precio_menor ? '$' . number_format($product->precio_menor, 2) : 'N/A',
-                'category' => $category
-            ];
-        }
-
-        $data = [
-            'products' => $minoristaData,
-            'exportDate' => now()->format('d/m/Y H:i:s'),
-            'title' => 'Lista de Precios por Menor'
-        ];
-
-        $pdf = Pdf::loadView('supplier-inventories.lista-minorista', $data);
+        // Aumentar límite de memoria temporalmente para DomPDF
+        ini_set('memory_limit', '256M');
         
-        return $pdf->download('lista_minorista_' . date('Y-m-d_H-i-s') . '.pdf');
+        try {
+            // Obtener todos los productos con sus relaciones (solo columnas necesarias)
+            $products = SupplierInventory::with(['distributorBrand', 'distributorCategory'])
+                ->select(['id', 'product_name', 'description', 'precio_menor', 'distributor_brand_id', 'distributor_category_id'])
+                ->orderBy('product_name')
+                ->get();
+
+            // Preparar los datos para lista minorista
+            $minoristaData = [];
+
+            foreach ($products as $product) {
+                $description = $product->description ?: $product->product_name;
+                $brand = $product->distributorBrand ? $product->distributorBrand->name : '';
+                $displayText = !empty($brand) ? $description . ' - ' . $brand : $description;
+                $category = $product->distributorCategory ? $product->distributorCategory->name : 'Sin categoría';
+                
+                $minoristaData[] = [
+                    'name' => $product->product_name,
+                    'description' => $displayText,
+                    'precio_menor' => $product->precio_menor ? '$' . number_format($product->precio_menor, 2) : 'N/A',
+                    'category' => $category
+                ];
+            }
+
+            $data = [
+                'products' => $minoristaData,
+                'exportDate' => now()->format('d/m/Y H:i:s'),
+                'title' => 'Lista de Precios por Menor'
+            ];
+
+            $pdf = Pdf::loadView('supplier-inventories.lista-minorista', $data);
+            
+            return $pdf->download('lista_minorista_' . date('Y-m-d_H-i-s') . '.pdf');
+        } catch (\Exception $e) {
+            Log::error('Error exportando lista minorista: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Error al generar el PDF. Por favor, intente nuevamente.');
+        }
     }
 }

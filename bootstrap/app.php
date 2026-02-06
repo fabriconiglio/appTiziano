@@ -14,6 +14,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             \App\Http\Middleware\SetLocale::class,
         ]);
+        
+        // Excluir webhook de Tienda Nube de la verificación CSRF
+        $middleware->validateCsrfTokens(except: [
+            'webhooks/tiendanube/*',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         // Manejo mejorado de errores de conexión MySQL

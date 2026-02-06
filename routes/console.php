@@ -92,3 +92,13 @@ Artisan::command('hairdressing-sales:reset-daily', function () {
         return 1;
     }
 })->purpose('Resetea las estadísticas de ventas diarias de peluquería al cambiar de día')->dailyAt('00:00');
+
+// Sincronización automática con Tienda Nube
+use Illuminate\Support\Facades\Schedule;
+
+Schedule::command('tiendanube:sync')
+    ->everyFourHours()
+    ->withoutOverlapping()
+    ->runInBackground()
+    ->appendOutputTo(storage_path('logs/tiendanube-sync.log'))
+    ->description('Sincronizar productos con Tienda Nube');

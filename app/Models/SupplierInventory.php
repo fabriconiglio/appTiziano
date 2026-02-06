@@ -26,7 +26,12 @@ class SupplierInventory extends Model
         'distributor_brand_id',
         'precio_mayor',
         'precio_menor',
-        'costo'
+        'costo',
+        'images',
+        'publicar_tiendanube',
+        'tiendanube_product_id',
+        'tiendanube_variant_id',
+        'tiendanube_synced_at'
     ];
 
     protected $dates = [
@@ -40,7 +45,10 @@ class SupplierInventory extends Model
         'precio_menor' => 'decimal:2',
         'costo' => 'decimal:2',
         'stock_quantity' => 'integer',
-        'last_restock_date' => 'date'
+        'last_restock_date' => 'date',
+        'images' => 'array',
+        'publicar_tiendanube' => 'boolean',
+        'tiendanube_synced_at' => 'datetime'
     ];
 
     // Puedes añadir métodos personalizados según necesites
@@ -103,5 +111,76 @@ class SupplierInventory extends Model
     public function supplier()
     {
         return $this->belongsTo(Supplier::class, 'supplier_name', 'name');
+    }
+
+    /**
+     * Obtener la imagen principal del producto
+     */
+    public function getMainImageAttribute()
+    {
+        if (!empty($this->images) && is_array($this->images)) {
+            return $this->images[0] ?? null;
+        }
+        return null;
+    }
+
+    /**
+     * Obtener URLs públicas de las imágenes
+     */
+    public function getImageUrlsAttribute()
+    {
+        if (empty($this->images) || !is_array($this->images)) {
+            return [];
+        }
+
+        return array_map(function ($image) {
+            return asset('storage/' . $image);
+        }, $this->images);
+    }
+
+    /**
+     * Verificar si el producto está sincronizado con Tienda Nube
+     */
+    public function isSyncedWithTiendaNube(): bool
+    {
+        return !empty($this->tiendanube_product_id);
+    }
+
+    /**
+     * Verificar si el producto necesita sincronización
+     */
+    public function needsTiendaNubeSync(): bool
+    {
+        if (!$this->publicar_tiendanube) {
+            return false;
+        }
+
+        if (!$this->isSyncedWithTiendaNube()) {
+            return true;
+        }
+
+        // Si fue modificado después de la última sincronización
+        return $this->updated_at > $this->tiendanube_synced_at;
+    }
+
+    /**
+     * Scope para productos que deben publicarse en Tienda Nube
+     */
+    public function scopeForTiendaNube($query)
+    {
+        return $query->where('publicar_tiendanube', true);
+    }
+
+    /**
+     * Scope para productos pendientes de sincronización
+     */
+    public function scopePendingTiendaNubeSync($query)
+    {
+        return $query->where('publicar_tiendanube', true)
+            ->where(function ($q) {
+                $q->whereNull('tiendanube_product_id')
+                    ->orWhereColumn('updated_at', '>', 'tiendanube_synced_at')
+                    ->orWhereNull('tiendanube_synced_at');
+            });
     }
 }

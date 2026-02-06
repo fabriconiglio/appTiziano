@@ -255,6 +255,14 @@
                                         {{ __('Ventas por Día') }}
                                     </a>
                                 </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <!-- Submenú Tienda Nube -->
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item" href="{{ route('tiendanube.index') }}">
+                                        <i class="fas fa-cloud text-info me-2"></i>
+                                        {{ __('Tienda Nube') }}
+                                    </a>
+                                </li>
                             </ul>
                         </li>
 

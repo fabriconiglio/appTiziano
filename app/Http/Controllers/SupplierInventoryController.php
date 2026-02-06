@@ -8,6 +8,7 @@ use App\Models\DistributorBrand;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class SupplierInventoryController extends Controller
@@ -473,6 +474,8 @@ class SupplierInventoryController extends Controller
             'precio_mayor' => 'nullable|numeric|min:0',
             'precio_menor' => 'nullable|numeric|min:0',
             'costo' => 'nullable|numeric|min:0',
+            'images.*' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'publicar_tiendanube' => 'nullable|boolean',
         ]);
 
         // Establecer el estado basado en el stock
@@ -485,6 +488,19 @@ class SupplierInventoryController extends Controller
                 $validated['status'] = 'available';
             }
         }
+
+        // Procesar imágenes
+        $imagePaths = [];
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $image) {
+                $path = $image->store('supplier-inventories', 'public');
+                $imagePaths[] = $path;
+            }
+        }
+        $validated['images'] = !empty($imagePaths) ? $imagePaths : null;
+        
+        // Procesar checkbox de Tienda Nube
+        $validated['publicar_tiendanube'] = $request->has('publicar_tiendanube');
 
         SupplierInventory::create($validated);
 
@@ -535,6 +551,11 @@ class SupplierInventoryController extends Controller
             'precio_mayor' => 'nullable|numeric|min:0',
             'precio_menor' => 'nullable|numeric|min:0',
             'costo' => 'nullable|numeric|min:0',
+            'images.*' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'delete_images' => 'nullable|array',
+            'delete_images.*' => 'string',
+            'image_order' => 'nullable|string',
+            'publicar_tiendanube' => 'nullable|boolean',
         ]);
 
         // Actualizar el estado basado en el stock
@@ -548,6 +569,50 @@ class SupplierInventoryController extends Controller
             }
         }
 
+        // Manejar imágenes existentes
+        $currentImages = $supplierInventory->images ?? [];
+        
+        // Eliminar imágenes marcadas para borrar
+        if ($request->has('delete_images')) {
+            foreach ($request->delete_images as $imageToDelete) {
+                if (($key = array_search($imageToDelete, $currentImages)) !== false) {
+                    // Eliminar archivo físico
+                    Storage::disk('public')->delete($imageToDelete);
+                    unset($currentImages[$key]);
+                }
+            }
+            $currentImages = array_values($currentImages); // Reindexar array
+        }
+        
+        // Reordenar imágenes si se especificó
+        if ($request->has('image_order') && !empty($request->image_order)) {
+            $orderedPaths = json_decode($request->image_order, true);
+            if (is_array($orderedPaths)) {
+                // Filtrar solo imágenes que aún existen
+                $currentImages = array_values(array_intersect($orderedPaths, $currentImages));
+            }
+        }
+        
+        // Agregar nuevas imágenes
+        if ($request->hasFile('images')) {
+            $maxImages = config('tiendanube.images.max_per_product', 5);
+            foreach ($request->file('images') as $image) {
+                if (count($currentImages) >= $maxImages) {
+                    break; // No agregar más si ya alcanzó el límite
+                }
+                $path = $image->store('supplier-inventories', 'public');
+                $currentImages[] = $path;
+            }
+        }
+        
+        $validated['images'] = !empty($currentImages) ? $currentImages : null;
+        
+        // Procesar checkbox de Tienda Nube
+        $validated['publicar_tiendanube'] = $request->has('publicar_tiendanube');
+        
+        // Remover campos que no son del modelo
+        unset($validated['delete_images'], $validated['image_order']);
+
         $supplierInventory->update($validated);
 
         return redirect()->route('supplier-inventories.index')
@@ -559,9 +624,61 @@ class SupplierInventoryController extends Controller
      */
     public function destroy(SupplierInventory $supplierInventory)
     {
+        // Eliminar imágenes asociadas
+        if (!empty($supplierInventory->images)) {
+            foreach ($supplierInventory->images as $image) {
+                Storage::disk('public')->delete($image);
+            }
+        }
+        
         $supplierInventory->delete();
         return redirect()->route('supplier-inventories.index')
             ->with('success', 'Producto de inventario eliminado exitosamente.');
+    }
+
+    /**
+     * Eliminar una imagen específica del producto
+     */
+    public function deleteImage(Request $request, SupplierInventory $supplierInventory)
+    {
+        $imagePath = $request->input('image_path');
+        
+        if (empty($imagePath)) {
+            return response()->json(['success' => false, 'message' => 'Ruta de imagen no proporcionada'], 400);
+        }
+        
+        $currentImages = $supplierInventory->images ?? [];
+        
+        if (($key = array_search($imagePath, $currentImages)) !== false) {
+            // Eliminar archivo físico
+            Storage::disk('public')->delete($imagePath);
+            unset($currentImages[$key]);
+            $currentImages = array_values($currentImages);
+            
+            $supplierInventory->update(['images' => !empty($currentImages) ? $currentImages : null]);
+            
+            return response()->json(['success' => true, 'message' => 'Imagen eliminada correctamente']);
+        }
+        
+        return response()->json(['success' => false, 'message' => 'Imagen no encontrada'], 404);
+    }
+
+    /**
+     * Toggle publicar en Tienda Nube
+     */
+    public function toggleTiendaNube(SupplierInventory $supplierInventory)
+    {
+        $supplierInventory->update([
+            'publicar_tiendanube' => !$supplierInventory->publicar_tiendanube
+        ]);
+        
+        $status = $supplierInventory->publicar_tiendanube ? 'activada' : 'desactivada';
+        
+        return response()->json([
+            'success' => true,
+            'publicar_tiendanube' => $supplierInventory->publicar_tiendanube,
+            'message' => "Publicación en Tienda Nube {$status}"
+        ]);
     }
 
     /**

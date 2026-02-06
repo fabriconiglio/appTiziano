@@ -23,9 +23,10 @@
                             </div>
                         @endif
 
-                        <form action="{{ route('supplier-inventories.update', $supplierInventory) }}" method="POST">
+                        <form action="{{ route('supplier-inventories.update', $supplierInventory) }}" method="POST" enctype="multipart/form-data">
                             @csrf
                             @method('PUT')
+                            <input type="hidden" name="image_order" id="image_order">
 
                             <div class="row mb-4">
                                 <h5>Información del Producto</h5>
@@ -155,6 +156,67 @@
                                 </div>
                             </div>
 
+                            <div class="row mb-4">
+                                <h5>Imágenes del Producto</h5>
+                                <hr>
+                                
+                                @if($supplierInventory->images && count($supplierInventory->images) > 0)
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label">Imágenes actuales (arrastrar para reordenar)</label>
+                                    <div id="current-images" class="d-flex flex-wrap gap-2">
+                                        @foreach($supplierInventory->images as $index => $image)
+                                        <div class="position-relative image-item" data-path="{{ $image }}" style="width: 120px;">
+                                            <img src="{{ asset('storage/' . $image) }}" class="img-thumbnail" style="width: 100%; height: 100px; object-fit: cover; cursor: move;">
+                                            @if($index === 0)
+                                            <span class="badge bg-primary position-absolute top-0 start-0" style="font-size: 10px;">Principal</span>
+                                            @endif
+                                            <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 delete-image-btn" data-image="{{ $image }}" style="padding: 2px 6px; font-size: 10px;">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                            <input type="hidden" name="delete_images[]" value="" class="delete-input" disabled>
+                                        </div>
+                                        @endforeach
+                                    </div>
+                                    <small class="text-muted">Haz clic en la X para eliminar una imagen. La primera imagen será la principal.</small>
+                                </div>
+                                @endif
+
+                                <div class="col-md-12 mb-3">
+                                    <label for="images" class="form-label">Agregar nuevas imágenes (máximo {{ 5 - count($supplierInventory->images ?? []) }} más)</label>
+                                    <input type="file" class="form-control @error('images.*') is-invalid @enderror" id="images" name="images[]" multiple accept="image/jpeg,image/png,image/webp">
+                                    <small class="text-muted">Formatos permitidos: JPG, PNG, WEBP. Tamaño máximo: 2MB por imagen.</small>
+                                    @error('images.*')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="col-md-12 mb-3" id="new-image-preview-container" style="display: none;">
+                                    <label class="form-label">Vista previa de nuevas imágenes</label>
+                                    <div id="new-image-preview" class="d-flex flex-wrap gap-2"></div>
+                                </div>
+                            </div>
+
+                            <div class="row mb-4">
+                                <h5>Tienda Nube</h5>
+                                <hr>
+                                <div class="col-md-12 mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="publicar_tiendanube" name="publicar_tiendanube" value="1" {{ old('publicar_tiendanube', $supplierInventory->publicar_tiendanube) ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="publicar_tiendanube">
+                                            <i class="fas fa-cloud-upload-alt me-1"></i> Publicar en Tienda Nube
+                                        </label>
+                                        <small class="d-block text-muted">Marcar para sincronizar este producto con tu tienda online.</small>
+                                    </div>
+                                    @if($supplierInventory->tiendanube_product_id)
+                                    <div class="mt-2">
+                                        <span class="badge bg-success"><i class="fas fa-check me-1"></i> Sincronizado con Tienda Nube</span>
+                                        @if($supplierInventory->tiendanube_synced_at)
+                                        <small class="text-muted ms-2">Última sincronización: {{ $supplierInventory->tiendanube_synced_at->format('d/m/Y H:i') }}</small>
+                                        @endif
+                                    </div>
+                                    @endif
+                                </div>
+                            </div>
+
                             <div class="row mb-3">
                                 <h5>Información Adicional</h5>
                                 <hr>
@@ -182,8 +244,38 @@
 @push('styles')
     <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.css" rel="stylesheet">
 @endpush
+@push('styles')
+<style>
+    #current-images .image-item {
+        transition: all 0.3s ease;
+    }
+    #current-images .image-item.dragging {
+        opacity: 0.5;
+    }
+    #current-images .image-item.deleted {
+        opacity: 0.3;
+        filter: grayscale(100%);
+    }
+    #current-images .image-item.deleted .delete-image-btn {
+        display: none;
+    }
+    #current-images .image-item.deleted::after {
+        content: 'Eliminada';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(220, 53, 69, 0.9);
+        color: white;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+    }
+</style>
+@endpush
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script>
         $(document).ready(function() {
             $('#notes').summernote({
@@ -202,6 +294,100 @@
                     ['view', ['fullscreen', 'codeview', 'help']]
                 ]
             });
+
+            // Sortable para reordenar imágenes
+            const currentImagesEl = document.getElementById('current-images');
+            if (currentImagesEl) {
+                new Sortable(currentImagesEl, {
+                    animation: 150,
+                    ghostClass: 'dragging',
+                    onEnd: function() {
+                        updateImageOrder();
+                        updatePrincipalBadge();
+                    }
+                });
+            }
+
+            // Eliminar imagen
+            $(document).on('click', '.delete-image-btn', function() {
+                const $item = $(this).closest('.image-item');
+                const imagePath = $(this).data('image');
+                
+                if ($item.hasClass('deleted')) {
+                    // Restaurar
+                    $item.removeClass('deleted');
+                    $item.find('.delete-input').prop('disabled', true).val('');
+                } else {
+                    // Marcar para eliminar
+                    $item.addClass('deleted');
+                    $item.find('.delete-input').prop('disabled', false).val(imagePath);
+                }
+                
+                updateImageOrder();
+                updatePrincipalBadge();
+            });
+
+            function updateImageOrder() {
+                const order = [];
+                $('#current-images .image-item:not(.deleted)').each(function() {
+                    order.push($(this).data('path'));
+                });
+                $('#image_order').val(JSON.stringify(order));
+            }
+
+            function updatePrincipalBadge() {
+                $('#current-images .badge.bg-primary').remove();
+                const $firstVisible = $('#current-images .image-item:not(.deleted)').first();
+                if ($firstVisible.length) {
+                    $firstVisible.find('img').before('<span class="badge bg-primary position-absolute top-0 start-0" style="font-size: 10px;">Principal</span>');
+                }
+            }
+
+            // Vista previa de nuevas imágenes
+            const currentCount = {{ count($supplierInventory->images ?? []) }};
+            const maxImages = 5;
+            
+            $('#images').on('change', function() {
+                const preview = $('#new-image-preview');
+                const container = $('#new-image-preview-container');
+                preview.empty();
+                
+                const deletedCount = $('#current-images .image-item.deleted').length;
+                const activeCount = currentCount - deletedCount;
+                const maxNew = maxImages - activeCount;
+                
+                const files = this.files;
+                if (files.length > maxNew) {
+                    alert(`Solo puedes agregar ${maxNew} imagen(es) más. Máximo total: ${maxImages}`);
+                    this.value = '';
+                    container.hide();
+                    return;
+                }
+                
+                if (files.length > 0) {
+                    container.show();
+                    Array.from(files).forEach((file) => {
+                        if (file.type.match('image.*')) {
+                            const reader = new FileReader();
+                            reader.onload = function(e) {
+                                const imgHtml = `
+                                    <div class="position-relative" style="width: 100px; height: 100px;">
+                                        <img src="${e.target.result}" class="img-thumbnail" style="width: 100%; height: 100%; object-fit: cover;">
+                                        <span class="badge bg-info position-absolute top-0 start-0" style="font-size: 10px;">Nueva</span>
+                                    </div>
+                                `;
+                                preview.append(imgHtml);
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    });
+                } else {
+                    container.hide();
+                }
+            });
+
+            // Inicializar orden
+            updateImageOrder();
         });
     </script>
 @endpush

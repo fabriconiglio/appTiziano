@@ -8,6 +8,9 @@
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <span>Inventario de Proveedores</span>
                         <div>
+                            <a href="{{ route('tiendanube.index') }}" class="btn btn-info btn-sm me-2">
+                                <i class="fas fa-cloud"></i> Tienda Nube
+                            </a>
                             <a href="{{ route('distributor_categories.create') }}" class="btn btn-outline-primary btn-sm me-2">1. Nueva Categoría Distribuidora</a>
                             <a href="{{ route('distributor_brands.create') }}" class="btn btn-outline-primary btn-sm me-2">2. Nueva Marca Distribuidora</a>
                             <a href="{{ route('supplier-inventories.create') }}" class="btn btn-primary btn-sm me-2">3. Nuevo Producto</a>
@@ -80,31 +83,54 @@
                                 <table class="table table-striped">
                                     <thead>
                                     <tr>
+                                        <th style="width: 60px;">Imagen</th>
                                         <th>Producto</th>
                                         <th>Categoría Distribuidora</th>
                                         <th>Marca Distribuidora</th>
-                                        <th>Descripción</th>
                                         <th>Stock</th>
                                         <th>Precio al Mayor</th>
                                         <th>Precio al Menor</th>
                                         <th>Costo</th>
                                         <th>Estado</th>
+                                        <th style="width: 80px;" class="text-center" title="Tienda Nube"><i class="fas fa-cloud"></i></th>
                                         <th>Acciones</th>
                                     </tr>
                                     </thead>
                                     <tbody>
                                     @foreach ($inventories as $item)
                                     <tr>
+                                        <td>
+                                            @if($item->main_image)
+                                                <img src="{{ asset('storage/' . $item->main_image) }}" alt="{{ $item->product_name }}" class="img-thumbnail" style="width: 50px; height: 50px; object-fit: cover;">
+                                            @else
+                                                <div class="bg-light d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                                    <i class="fas fa-image text-muted"></i>
+                                                </div>
+                                            @endif
+                                        </td>
                                         <td>{{ $item->product_name }}</td>
                                         <td>{{ $item->distributorCategory ? $item->distributorCategory->name : '-' }}</td>
                                         <td>{{ $item->distributorBrand ? $item->distributorBrand->name : '-' }}</td>
-                                        <td>{{ $item->description }}</td>
                                         <td>{{ $item->stock_quantity }}</td>
                                         <td>${{ number_format($item->precio_mayor, 2) }}</td>
                                         <td>${{ number_format($item->precio_menor, 2) }}</td>
                                         <td>${{ number_format($item->costo, 2) }}</td>
                                         <td>
                                             <span class="badge {{ $item->status_badge_class }}">{{ $item->status_text }}</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <button type="button" 
+                                                    class="btn btn-sm toggle-tiendanube-btn {{ $item->publicar_tiendanube ? 'btn-success' : 'btn-outline-secondary' }}" 
+                                                    data-id="{{ $item->id }}"
+                                                    title="{{ $item->publicar_tiendanube ? 'Publicado en Tienda Nube' : 'No publicado en Tienda Nube' }}">
+                                                @if($item->tiendanube_product_id)
+                                                    <i class="fas fa-check-circle"></i>
+                                                @elseif($item->publicar_tiendanube)
+                                                    <i class="fas fa-clock"></i>
+                                                @else
+                                                    <i class="fas fa-cloud"></i>
+                                                @endif
+                                            </button>
                                         </td>
                                         <td>
                                             <div class="btn-group" role="group">
@@ -229,6 +255,51 @@
                     toggleText.textContent = 'Mostrar Inversión';
                     localStorage.setItem('inversionHidden', 'true');
                 }
+            });
+
+            // Toggle Tienda Nube
+            document.querySelectorAll('.toggle-tiendanube-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    const productId = this.dataset.id;
+                    const button = this;
+                    
+                    button.disabled = true;
+                    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                    
+                    fetch('/supplier-inventories/' + productId + '/toggle-tiendanube', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            if (data.publicar_tiendanube) {
+                                button.classList.remove('btn-outline-secondary');
+                                button.classList.add('btn-success');
+                                button.innerHTML = '<i class="fas fa-clock"></i>';
+                                button.title = 'Publicado en Tienda Nube (pendiente sincronización)';
+                            } else {
+                                button.classList.remove('btn-success');
+                                button.classList.add('btn-outline-secondary');
+                                button.innerHTML = '<i class="fas fa-cloud"></i>';
+                                button.title = 'No publicado en Tienda Nube';
+                            }
+                        } else {
+                            alert('Error: ' + (data.error || 'Error desconocido'));
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Error al actualizar el estado');
+                    })
+                    .finally(() => {
+                        button.disabled = false;
+                    });
+                });
             });
         });
     </script>

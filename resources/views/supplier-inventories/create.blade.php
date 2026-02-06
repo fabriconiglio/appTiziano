@@ -23,7 +23,7 @@
                             </div>
                         @endif
 
-                        <form action="{{ route('supplier-inventories.store') }}" method="POST">
+                        <form action="{{ route('supplier-inventories.store') }}" method="POST" enctype="multipart/form-data">
                             @csrf
 
                             <div class="row mb-4">
@@ -142,6 +142,37 @@
                                 </div>
                             </div>
 
+                            <div class="row mb-4">
+                                <h5>Imágenes del Producto</h5>
+                                <hr>
+                                <div class="col-md-12 mb-3">
+                                    <label for="images" class="form-label">Imágenes (máximo 5)</label>
+                                    <input type="file" class="form-control @error('images.*') is-invalid @enderror" id="images" name="images[]" multiple accept="image/jpeg,image/png,image/webp">
+                                    <small class="text-muted">Formatos permitidos: JPG, PNG, WEBP. Tamaño máximo: 2MB por imagen.</small>
+                                    @error('images.*')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="col-md-12 mb-3" id="image-preview-container" style="display: none;">
+                                    <label class="form-label">Vista previa</label>
+                                    <div id="image-preview" class="d-flex flex-wrap gap-2"></div>
+                                </div>
+                            </div>
+
+                            <div class="row mb-4">
+                                <h5>Tienda Nube</h5>
+                                <hr>
+                                <div class="col-md-12 mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="publicar_tiendanube" name="publicar_tiendanube" value="1" {{ old('publicar_tiendanube') ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="publicar_tiendanube">
+                                            <i class="fas fa-cloud-upload-alt me-1"></i> Publicar en Tienda Nube
+                                        </label>
+                                        <small class="d-block text-muted">Marcar para sincronizar este producto con tu tienda online.</small>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="row mb-3">
                                 <h5>Información Adicional</h5>
                                 <hr>
@@ -188,6 +219,42 @@
                     ['insert', ['link', 'picture', 'video']],
                     ['view', ['fullscreen', 'codeview', 'help']]
                 ]
+            });
+
+            // Vista previa de imágenes
+            $('#images').on('change', function() {
+                const preview = $('#image-preview');
+                const container = $('#image-preview-container');
+                preview.empty();
+                
+                const files = this.files;
+                if (files.length > 5) {
+                    alert('Solo puedes subir un máximo de 5 imágenes');
+                    this.value = '';
+                    container.hide();
+                    return;
+                }
+                
+                if (files.length > 0) {
+                    container.show();
+                    Array.from(files).forEach((file, index) => {
+                        if (file.type.match('image.*')) {
+                            const reader = new FileReader();
+                            reader.onload = function(e) {
+                                const imgHtml = `
+                                    <div class="position-relative" style="width: 100px; height: 100px;">
+                                        <img src="${e.target.result}" class="img-thumbnail" style="width: 100%; height: 100%; object-fit: cover;">
+                                        ${index === 0 ? '<span class="badge bg-primary position-absolute top-0 start-0" style="font-size: 10px;">Principal</span>' : ''}
+                                    </div>
+                                `;
+                                preview.append(imgHtml);
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    });
+                } else {
+                    container.hide();
+                }
             });
         });
     </script>

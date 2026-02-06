@@ -30,6 +30,10 @@ use Illuminate\Support\Facades\Auth;
 // Ruta principal
 Route::get('/', [App\Http\Controllers\HomeController::class, 'index']);
 
+// Webhook de Tienda Nube (ruta pública, sin autenticación)
+Route::post('/webhooks/tiendanube/order-completed', [\App\Http\Controllers\TiendaNubeWebhookController::class, 'orderCompleted'])
+    ->name('webhooks.tiendanube.order-completed');
+
 // Rutas de autenticación con verificación de correo habilitada
 Auth::routes(['verify' => true]);
 
@@ -153,6 +157,20 @@ Route::get('/api/supplier-inventories/get-product', [App\Http\Controllers\Suppli
         ->name('supplier-inventories.export-lista-mayorista');
     Route::get('supplier-inventories/export/lista-minorista', [SupplierInventoryController::class, 'exportListaMinorista'])
         ->name('supplier-inventories.export-lista-minorista');
+    Route::delete('supplier-inventories/{supplierInventory}/delete-image', [SupplierInventoryController::class, 'deleteImage'])
+        ->name('supplier-inventories.delete-image');
+    Route::post('supplier-inventories/{supplierInventory}/toggle-tiendanube', [SupplierInventoryController::class, 'toggleTiendaNube'])
+        ->name('supplier-inventories.toggle-tiendanube');
+
+    // Integración con Tienda Nube
+    Route::prefix('tiendanube')->name('tiendanube.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\TiendaNubeController::class, 'index'])->name('index');
+        Route::post('/sync-all', [\App\Http\Controllers\TiendaNubeController::class, 'syncAll'])->name('sync-all');
+        Route::post('/sync/{supplierInventory}', [\App\Http\Controllers\TiendaNubeController::class, 'sync'])->name('sync');
+        Route::get('/config', [\App\Http\Controllers\TiendaNubeController::class, 'config'])->name('config');
+        Route::post('/test-connection', [\App\Http\Controllers\TiendaNubeController::class, 'testConnection'])->name('test-connection');
+        Route::post('/register-webhook', [\App\Http\Controllers\TiendaNubeController::class, 'registerWebhook'])->name('register-webhook');
+    });
 
     // CRUD de categorías
     Route::resource('categories', CategoryController::class);

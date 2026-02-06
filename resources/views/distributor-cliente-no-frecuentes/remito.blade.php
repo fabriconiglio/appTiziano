@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Remito - Cliente No Frecuente</title>
+    <title>Tiziano Distribuidora</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -115,8 +115,9 @@
 </head>
 <body>
     <div class="header">
-        <h1>REMITO DE VENTA</h1>
-        <p>Cliente No Frecuente - Distribuidora</p>
+        <h1>Tiziano Distribuidora</h1>
+        <p style="font-size: 16px; font-weight: bold; margin: 10px 0;">REMITO DE VENTA</p>
+        <p>Cliente No Frecuente</p>
         <p>Generado el: {{ $generatedDate }}</p>
     </div>
 
@@ -211,7 +212,7 @@
     @endif
 
     <div class="footer">
-        <p>Este remito fue generado automáticamente por el sistema.</p>
+        <p>Documento generado automáticamente por Tiziano Distribuidora</p>
         <p>ID del Cliente: {{ $cliente->id }} | Generado el: {{ $generatedDate }}</p>
     </div>
 </body>

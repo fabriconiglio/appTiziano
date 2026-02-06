@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Remito - Ficha Técnica</title>
+    <title>Tiziano Distribuidora</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -156,7 +156,8 @@
 </head>
 <body>
     <div class="header">
-        <h1>REMITO</h1>
+        <h1>Tiziano Distribuidora</h1>
+        <p style="font-size: 16px; font-weight: bold; margin: 10px 0;">REMITO</p>
         <p>Fecha de generación: {{ $generatedDate }}</p>
     </div>
 
@@ -335,7 +336,7 @@
     </div>
 
     <div class="footer">
-        <p>Documento generado automáticamente por App Tiziano</p>
+        <p>Documento generado automáticamente por Tiziano Distribuidora</p>
         <p>Total de productos: {{ count($products) }}</p>
     </div>
 </body>

@@ -250,9 +250,9 @@
                                     <i class="fas fa-money-bill-wave me-2"></i>CC Pagas ({{ $data['client_accounts_payments']->count() ?? 0 }})
                                 </h6>
                                 @if(($data['client_accounts_payments']->count() ?? 0) > 0)
-                                    <div class="table-responsive">
-                                        <table class="table table-sm">
-                                            <thead>
+                                    <div style="max-height: 350px; overflow-y: auto;">
+                                        <table class="table table-sm table-striped">
+                                            <thead class="sticky-top bg-white">
                                                 <tr>
                                                     <th>Cliente</th>
                                                     <th>Fecha</th>
@@ -260,7 +260,7 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                @foreach($data['client_accounts_payments']->take(5) as $item)
+                                                @foreach($data['client_accounts_payments'] as $item)
                                                     <tr>
                                                         <td>{{ $item->client->name ?? 'Sin cliente' }}</td>
                                                         <td>{{ $item->created_at->format('d/m/Y') }}</td>
@@ -270,9 +270,6 @@
                                             </tbody>
                                         </table>
                                     </div>
-                                    @if($data['client_accounts_payments']->count() > 5)
-                                        <small class="text-muted">Y {{ $data['client_accounts_payments']->count() - 5 }} más...</small>
-                                    @endif
                                 @else
                                     <p class="text-muted">No hay pagos de cuentas corrientes</p>
                                 @endif
@@ -283,9 +280,9 @@
                                     <i class="fas fa-scissors me-2"></i>Servicios ({{ $data['technical_records']->count() }})
                                 </h6>
                                 @if($data['technical_records']->count() > 0)
-                                    <div class="table-responsive">
-                                        <table class="table table-sm">
-                                            <thead>
+                                    <div style="max-height: 350px; overflow-y: auto;">
+                                        <table class="table table-sm table-striped">
+                                            <thead class="sticky-top bg-white">
                                                 <tr>
                                                     <th>Cliente</th>
                                                     <th>Fecha</th>
@@ -293,7 +290,7 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                @foreach($data['technical_records']->take(5) as $item)
+                                                @foreach($data['technical_records'] as $item)
                                                     <tr>
                                                         <td>{{ $item->client->name ?? 'Sin cliente' }}</td>
                                                         <td>{{ $item->service_date->format('d/m/Y') }}</td>
@@ -303,9 +300,6 @@
                                             </tbody>
                                         </table>
                                     </div>
-                                    @if($data['technical_records']->count() > 5)
-                                        <small class="text-muted">Y {{ $data['technical_records']->count() - 5 }} más...</small>
-                                    @endif
                                 @else
                                     <p class="text-muted">No hay servicios</p>
                                 @endif
@@ -316,9 +310,9 @@
                                     <i class="fas fa-box me-2"></i>Productos ({{ $data['product_sales']->count() }})
                                 </h6>
                                 @if($data['product_sales']->count() > 0)
-                                    <div class="table-responsive">
-                                        <table class="table table-sm">
-                                            <thead>
+                                    <div style="max-height: 350px; overflow-y: auto;">
+                                        <table class="table table-sm table-striped">
+                                            <thead class="sticky-top bg-white">
                                                 <tr>
                                                     <th>Producto</th>
                                                     <th>Fecha</th>
@@ -326,7 +320,7 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                @foreach($data['product_sales']->take(5) as $item)
+                                                @foreach($data['product_sales'] as $item)
                                                     <tr>
                                                         <td>{{ $item->product_name ?? 'Sin nombre' }}</td>
                                                         <td>{{ $item->created_at->format('d/m/Y') }}</td>
@@ -336,9 +330,6 @@
                                             </tbody>
                                         </table>
                                     </div>
-                                    @if($data['product_sales']->count() > 5)
-                                        <small class="text-muted">Y {{ $data['product_sales']->count() - 5 }} más...</small>
-                                    @endif
                                 @else
                                     <p class="text-muted">No hay ventas de productos</p>
                                 @endif
@@ -349,9 +340,9 @@
                                     <i class="fas fa-user-clock me-2"></i>Clientes No Frecuentes ({{ $data['cliente_no_frecuente']->count() }})
                                 </h6>
                                 @if($data['cliente_no_frecuente']->count() > 0)
-                                    <div class="table-responsive">
-                                        <table class="table table-sm">
-                                            <thead>
+                                    <div style="max-height: 350px; overflow-y: auto;">
+                                        <table class="table table-sm table-striped">
+                                            <thead class="sticky-top bg-white">
                                                 <tr>
                                                     <th>Cliente</th>
                                                     <th>Fecha</th>
@@ -359,7 +350,7 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                @foreach($data['cliente_no_frecuente']->take(5) as $item)
+                                                @foreach($data['cliente_no_frecuente'] as $item)
                                                     <tr>
                                                         <td>{{ $item->nombre ?: 'Sin nombre' }}</td>
                                                         <td>{{ $item->fecha->format('d/m/Y') }}</td>
@@ -369,9 +360,6 @@
                                             </tbody>
                                         </table>
                                     </div>
-                                    @if($data['cliente_no_frecuente']->count() > 5)
-                                        <small class="text-muted">Y {{ $data['cliente_no_frecuente']->count() - 5 }} más...</small>
-                                    @endif
                                 @else
                                     <p class="text-muted">No hay clientes no frecuentes</p>
                                 @endif

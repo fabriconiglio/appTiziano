@@ -342,7 +342,7 @@ class HairdressingDailySalesController extends Controller
         $request->validate([
             'start_date' => 'nullable|date|before_or_equal:today',
             'end_date' => 'nullable|date|before_or_equal:today|after_or_equal:start_date',
-            'category' => 'required|string|in:total,client_accounts,client_accounts_payments,technical_records,product_sales,cliente_no_frecuente'
+            'category' => 'required|string|in:total,client_accounts,client_accounts_payments,technical_records,product_sales,cliente_no_frecuente,forma_pago_efectivo,forma_pago_tarjeta,forma_pago_transferencia,forma_pago_deudor'
         ], [
             'start_date.before_or_equal' => 'La fecha de inicio no puede ser futura',
             'end_date.before_or_equal' => 'La fecha de fin no puede ser futura',
@@ -454,6 +454,39 @@ class HairdressingDailySalesController extends Controller
                     ->with('user')
                     ->orderBy('fecha', 'desc')
                     ->get();
+                    
+            case 'forma_pago_efectivo':
+            case 'forma_pago_tarjeta':
+            case 'forma_pago_transferencia':
+            case 'forma_pago_deudor':
+                // Extraer el método de pago de la categoría
+                $formaPago = str_replace('forma_pago_', '', $category);
+                // Mapear deudor a deuda para fichas técnicas
+                $paymentMethodFT = $formaPago === 'deudor' ? 'deuda' : $formaPago;
+                
+                // Obtener IDs de fichas técnicas en CC
+                $technicalRecordsInCC = $this->getTechnicalRecordsInCurrentAccount($startDate, $endDate);
+                
+                // Fichas técnicas con este método de pago
+                $fichasTecnicas = TechnicalRecord::whereBetween('service_date', [$startOfPeriod, $endOfPeriod])
+                    ->whereNotIn('id', $technicalRecordsInCC)
+                    ->where('payment_method', $paymentMethodFT)
+                    ->with('client')
+                    ->orderBy('service_date', 'desc')
+                    ->get();
+                
+                // Clientes no frecuentes con este método de pago
+                $clientesNoFrecuentes = ClienteNoFrecuente::whereBetween('fecha', [$startOfPeriod, $endOfPeriod])
+                    ->where('forma_pago', $formaPago)
+                    ->with('user')
+                    ->orderBy('fecha', 'desc')
+                    ->get();
+                
+                return collect([
+                    'forma_pago' => $formaPago,
+                    'technical_records' => $fichasTecnicas,
+                    'cliente_no_frecuente' => $clientesNoFrecuentes
+                ]);
                     
             default:
                 return collect();

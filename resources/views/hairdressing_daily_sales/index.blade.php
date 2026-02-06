@@ -221,6 +221,177 @@
         </div>
     </div>
 
+    <!-- Tercera fila: Resumen GENERAL por Forma de Pago (Todas las ventas) -->
+    @php
+        $startOfPeriod = $startDate->copy()->startOfDay();
+        $endOfPeriod = $endDate->copy()->endOfDay();
+        
+        // Obtener IDs de fichas técnicas en cuenta corriente (para excluirlas)
+        $technicalRecordsInCC = \App\Models\ClientCurrentAccount::whereNotNull('technical_record_id')
+            ->where('type', 'debt')
+            ->join('technical_records', 'client_current_accounts.technical_record_id', '=', 'technical_records.id')
+            ->whereBetween('technical_records.service_date', [$startOfPeriod, $endOfPeriod])
+            ->pluck('client_current_accounts.technical_record_id')->toArray();
+        
+        // Fichas técnicas (servicios) - excluyendo las que están en CC
+        $fichasTecnicas = \App\Models\TechnicalRecord::whereBetween('service_date', [$startOfPeriod, $endOfPeriod])
+            ->whereNotIn('id', $technicalRecordsInCC)
+            ->get();
+        
+        // Clientes no frecuentes
+        $clientesNoFrecuentes = \App\Models\ClienteNoFrecuente::whereBetween('fecha', [$startOfPeriod, $endOfPeriod])->get();
+        
+        // Calcular totales por forma de pago - Fichas técnicas
+        $ftEfectivo = $fichasTecnicas->where('payment_method', 'efectivo')->sum('service_cost');
+        $ftTarjeta = $fichasTecnicas->where('payment_method', 'tarjeta')->sum('service_cost');
+        $ftTransferencia = $fichasTecnicas->where('payment_method', 'transferencia')->sum('service_cost');
+        $ftDeuda = $fichasTecnicas->where('payment_method', 'deuda')->sum('service_cost');
+        
+        $countFtEfectivo = $fichasTecnicas->where('payment_method', 'efectivo')->count();
+        $countFtTarjeta = $fichasTecnicas->where('payment_method', 'tarjeta')->count();
+        $countFtTransferencia = $fichasTecnicas->where('payment_method', 'transferencia')->count();
+        $countFtDeuda = $fichasTecnicas->where('payment_method', 'deuda')->count();
+        
+        // Calcular totales por forma de pago - Clientes no frecuentes
+        $cnfEfectivo = $clientesNoFrecuentes->where('forma_pago', 'efectivo')->sum('monto');
+        $cnfTarjeta = $clientesNoFrecuentes->where('forma_pago', 'tarjeta')->sum('monto');
+        $cnfTransferencia = $clientesNoFrecuentes->where('forma_pago', 'transferencia')->sum('monto');
+        $cnfDeudor = $clientesNoFrecuentes->where('forma_pago', 'deudor')->sum('monto');
+        
+        $countCnfEfectivo = $clientesNoFrecuentes->where('forma_pago', 'efectivo')->count();
+        $countCnfTarjeta = $clientesNoFrecuentes->where('forma_pago', 'tarjeta')->count();
+        $countCnfTransferencia = $clientesNoFrecuentes->where('forma_pago', 'transferencia')->count();
+        $countCnfDeudor = $clientesNoFrecuentes->where('forma_pago', 'deudor')->count();
+        
+        // TOTALES GENERALES
+        $totalEfectivo = $ftEfectivo + $cnfEfectivo;
+        $totalTarjeta = $ftTarjeta + $cnfTarjeta;
+        $totalTransferencia = $ftTransferencia + $cnfTransferencia;
+        $totalDeudor = $ftDeuda + $cnfDeudor;
+        
+        $countEfectivo = $countFtEfectivo + $countCnfEfectivo;
+        $countTarjeta = $countFtTarjeta + $countCnfTarjeta;
+        $countTransferencia = $countFtTransferencia + $countCnfTransferencia;
+        $countDeudor = $countFtDeuda + $countCnfDeudor;
+    @endphp
+    
+    <div class="row mb-4">
+        <div class="col-12 mb-2">
+            <h5 class="text-muted">
+                <i class="fas fa-credit-card me-2"></i>Resumen General por Forma de Pago
+            </h5>
+            <small class="text-muted">Incluye: Servicios (Fichas Técnicas) + Clientes No Frecuentes</small>
+        </div>
+        
+        <!-- Efectivo -->
+        <div class="col-md-3 mb-3">
+            <a href="{{ route('hairdressing-daily-sales.detail', ['category' => 'forma_pago_efectivo', 'start_date' => $startDate->format('Y-m-d'), 'end_date' => $endDate->format('Y-m-d')]) }}" 
+               class="text-decoration-none">
+                <div class="card border-success" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title text-success">Efectivo</h6>
+                                <h4 class="card-text text-success">${{ number_format($totalEfectivo, 2) }}</h4>
+                                <small class="text-muted">{{ $countEfectivo }} venta(s)</small>
+                            </div>
+                            <div>
+                                <i class="fas fa-money-bill-wave fa-2x text-success"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent border-success py-1">
+                        <small class="text-muted">
+                            Servicios: ${{ number_format($ftEfectivo, 2) }} ({{ $countFtEfectivo }}) | 
+                            No Frec: ${{ number_format($cnfEfectivo, 2) }} ({{ $countCnfEfectivo }})
+                        </small>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Tarjeta -->
+        <div class="col-md-3 mb-3">
+            <a href="{{ route('hairdressing-daily-sales.detail', ['category' => 'forma_pago_tarjeta', 'start_date' => $startDate->format('Y-m-d'), 'end_date' => $endDate->format('Y-m-d')]) }}" 
+               class="text-decoration-none">
+                <div class="card border-primary" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title text-primary">Tarjeta</h6>
+                                <h4 class="card-text text-primary">${{ number_format($totalTarjeta, 2) }}</h4>
+                                <small class="text-muted">{{ $countTarjeta }} venta(s)</small>
+                            </div>
+                            <div>
+                                <i class="fas fa-credit-card fa-2x text-primary"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent border-primary py-1">
+                        <small class="text-muted">
+                            Servicios: ${{ number_format($ftTarjeta, 2) }} ({{ $countFtTarjeta }}) | 
+                            No Frec: ${{ number_format($cnfTarjeta, 2) }} ({{ $countCnfTarjeta }})
+                        </small>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Transferencia -->
+        <div class="col-md-3 mb-3">
+            <a href="{{ route('hairdressing-daily-sales.detail', ['category' => 'forma_pago_transferencia', 'start_date' => $startDate->format('Y-m-d'), 'end_date' => $endDate->format('Y-m-d')]) }}" 
+               class="text-decoration-none">
+                <div class="card border-info" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title text-info">Transferencia</h6>
+                                <h4 class="card-text text-info">${{ number_format($totalTransferencia, 2) }}</h4>
+                                <small class="text-muted">{{ $countTransferencia }} venta(s)</small>
+                            </div>
+                            <div>
+                                <i class="fas fa-university fa-2x text-info"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent border-info py-1">
+                        <small class="text-muted">
+                            Servicios: ${{ number_format($ftTransferencia, 2) }} ({{ $countFtTransferencia }}) | 
+                            No Frec: ${{ number_format($cnfTransferencia, 2) }} ({{ $countCnfTransferencia }})
+                        </small>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Deudor -->
+        <div class="col-md-3 mb-3">
+            <a href="{{ route('hairdressing-daily-sales.detail', ['category' => 'forma_pago_deudor', 'start_date' => $startDate->format('Y-m-d'), 'end_date' => $endDate->format('Y-m-d')]) }}" 
+               class="text-decoration-none">
+                <div class="card border-danger" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title text-danger">Deudor</h6>
+                                <h4 class="card-text text-danger">${{ number_format($totalDeudor, 2) }}</h4>
+                                <small class="text-muted">{{ $countDeudor }} venta(s)</small>
+                            </div>
+                            <div>
+                                <i class="fas fa-exclamation-triangle fa-2x text-danger"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent border-danger py-1">
+                        <small class="text-muted">
+                            Servicios: ${{ number_format($ftDeuda, 2) }} ({{ $countFtDeuda }}) | 
+                            No Frec: ${{ number_format($cnfDeudor, 2) }} ({{ $countCnfDeudor }})
+                        </small>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
     <!-- Comparación con ayer -->
     <div class="row mb-4">
         <!-- Comparación del día -->

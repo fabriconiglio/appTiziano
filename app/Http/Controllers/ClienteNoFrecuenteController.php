@@ -50,6 +50,7 @@ class ClienteNoFrecuenteController extends Controller
             'telefono' => 'nullable|string|max:20',
             'fecha' => 'required|date|before_or_equal:today',
             'monto' => 'required|numeric|min:0',
+            'forma_pago' => 'required|in:efectivo,tarjeta,transferencia,deudor',
             'peluquero' => 'required|string|max:255',
             'servicios' => 'nullable|string',
             'observaciones' => 'nullable|string',
@@ -58,6 +59,8 @@ class ClienteNoFrecuenteController extends Controller
             'fecha.before_or_equal' => 'La fecha no puede ser futura',
             'monto.required' => 'El valor del servicio es requerido',
             'monto.min' => 'El valor del servicio debe ser mayor a 0',
+            'forma_pago.required' => 'La forma de pago es requerida',
+            'forma_pago.in' => 'La forma de pago seleccionada no es válida',
             'peluquero.required' => 'El nombre del peluquero es requerido',
         ]);
 
@@ -96,6 +99,7 @@ class ClienteNoFrecuenteController extends Controller
             'telefono' => 'nullable|string|max:20',
             'fecha' => 'required|date|before_or_equal:today',
             'monto' => 'required|numeric|min:0',
+            'forma_pago' => 'required|in:efectivo,tarjeta,transferencia,deudor',
             'peluquero' => 'required|string|max:255',
             'servicios' => 'nullable|string',
             'observaciones' => 'nullable|string',
@@ -104,6 +108,8 @@ class ClienteNoFrecuenteController extends Controller
             'fecha.before_or_equal' => 'La fecha no puede ser futura',
             'monto.required' => 'El valor del servicio es requerido',
             'monto.min' => 'El valor del servicio debe ser mayor a 0',
+            'forma_pago.required' => 'La forma de pago es requerida',
+            'forma_pago.in' => 'La forma de pago seleccionada no es válida',
             'peluquero.required' => 'El nombre del peluquero es requerido',
         ]);
 

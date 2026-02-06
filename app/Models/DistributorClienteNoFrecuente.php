@@ -12,11 +12,22 @@ class DistributorClienteNoFrecuente extends Model
         'telefono',
         'fecha',
         'monto',
+        'forma_pago',
         'productos',
         'products_purchased',
         'purchase_type',
         'observaciones',
         'user_id'
+    ];
+
+    /**
+     * Opciones de forma de pago disponibles
+     */
+    public const FORMAS_PAGO = [
+        'efectivo' => 'Efectivo',
+        'tarjeta' => 'Tarjeta',
+        'transferencia' => 'Transferencia',
+        'deudor' => 'Deudor',
     ];
 
     protected $casts = [

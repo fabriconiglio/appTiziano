@@ -150,6 +150,22 @@
 
                         <div class="row mb-3">
                             <div class="col-md-6 mb-3">
+                                <label for="forma_pago" class="form-label">Forma de Pago *</label>
+                                <select class="form-select @error('forma_pago') is-invalid @enderror" 
+                                        id="forma_pago" name="forma_pago" required>
+                                    <option value="">Seleccionar forma de pago...</option>
+                                    @foreach(\App\Models\DistributorClienteNoFrecuente::FORMAS_PAGO as $valor => $etiqueta)
+                                        <option value="{{ $valor }}" {{ old('forma_pago', 'efectivo') == $valor ? 'selected' : '' }}>
+                                            {{ $etiqueta }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('forma_pago')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="col-md-6 mb-3">
                                 <label for="purchase_type" class="form-label">Tipo de Compra</label>
                                 <select class="form-select @error('purchase_type') is-invalid @enderror"
                                         id="purchase_type" name="purchase_type">

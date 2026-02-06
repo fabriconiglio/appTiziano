@@ -506,6 +506,39 @@ class DailySalesController extends Controller
                     ->orderBy('fecha', 'desc')
                     ->get();
                 
+            case 'forma_pago_efectivo':
+            case 'forma_pago_tarjeta':
+            case 'forma_pago_transferencia':
+            case 'forma_pago_deudor':
+                // Extraer el método de pago de la categoría
+                $formaPago = str_replace('forma_pago_', '', $category);
+                // Mapear deudor a deuda para fichas técnicas
+                $paymentMethodFT = $formaPago === 'deudor' ? 'deuda' : $formaPago;
+                
+                // Obtener IDs de fichas técnicas en CC
+                $technicalRecordsInCC = $this->getDistributorTechnicalRecordsInCurrentAccount();
+                
+                // Fichas técnicas con este método de pago
+                $fichasTecnicas = DistributorTechnicalRecord::whereBetween('created_at', [$startOfPeriod, $endOfPeriod])
+                    ->whereNotIn('id', $technicalRecordsInCC)
+                    ->where('payment_method', $paymentMethodFT)
+                    ->with('distributorClient')
+                    ->orderBy('created_at', 'desc')
+                    ->get();
+                
+                // Clientes no frecuentes con este método de pago
+                $clientesNoFrecuentes = DistributorClienteNoFrecuente::whereBetween('fecha', [$startOfPeriod, $endOfPeriod])
+                    ->where('forma_pago', $formaPago)
+                    ->with('user')
+                    ->orderBy('fecha', 'desc')
+                    ->get();
+                
+                return [
+                    'forma_pago' => $formaPago,
+                    'technical_records' => $fichasTecnicas,
+                    'cliente_no_frecuente' => $clientesNoFrecuentes
+                ];
+                
             case 'total':
                 return [
                     'quotations' => DistributorQuotation::where('status', 'active')

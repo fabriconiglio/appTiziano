@@ -35,6 +35,18 @@
                     @case('cliente_no_frecuente')
                         Detalle de Clientes No Frecuentes
                         @break
+                    @case('forma_pago_efectivo')
+                        Pagos en Efectivo
+                        @break
+                    @case('forma_pago_tarjeta')
+                        Pagos con Tarjeta
+                        @break
+                    @case('forma_pago_transferencia')
+                        Pagos por Transferencia
+                        @break
+                    @case('forma_pago_deudor')
+                        Ventas a Deudores
+                        @break
                     @default
                         Detalle de {{ ucfirst(str_replace('_', ' ', $category)) }}
                 @endswitch
@@ -79,13 +91,158 @@
                             @case('cliente_no_frecuente')
                                 <i class="fas fa-user-clock me-2"></i>Clientes No Frecuentes
                                 @break
+                            @case('forma_pago_efectivo')
+                                <i class="fas fa-money-bill-wave me-2 text-success"></i>Pagos en Efectivo
+                                @break
+                            @case('forma_pago_tarjeta')
+                                <i class="fas fa-credit-card me-2 text-primary"></i>Pagos con Tarjeta
+                                @break
+                            @case('forma_pago_transferencia')
+                                <i class="fas fa-university me-2 text-info"></i>Pagos por Transferencia
+                                @break
+                            @case('forma_pago_deudor')
+                                <i class="fas fa-exclamation-triangle me-2 text-danger"></i>Ventas a Deudores
+                                @break
                             @default
                                 <i class="fas fa-list me-2"></i>Detalles
                         @endswitch
                     </h5>
                 </div>
                 <div class="card-body">
-                    @if($category === 'total')
+                    @if(str_starts_with($category, 'forma_pago_'))
+                        <!-- Vista especial para forma de pago -->
+                        @php
+                            $formaPago = $data['forma_pago'];
+                            $badgeClass = match($formaPago) {
+                                'efectivo' => 'bg-success',
+                                'tarjeta' => 'bg-primary',
+                                'transferencia' => 'bg-info',
+                                'deudor' => 'bg-danger',
+                                default => 'bg-secondary'
+                            };
+                            $totalFichas = $data['technical_records']->sum('service_cost');
+                            $totalNoFrec = $data['cliente_no_frecuente']->sum('monto');
+                            $totalGeneral = $totalFichas + $totalNoFrec;
+                        @endphp
+                        
+                        <!-- Resumen -->
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <div class="card border-{{ match($formaPago) { 'efectivo' => 'success', 'tarjeta' => 'primary', 'transferencia' => 'info', 'deudor' => 'danger', default => 'secondary' } }}">
+                                    <div class="card-body text-center">
+                                        <h6 class="text-muted">Total General</h6>
+                                        <h3 class="{{ match($formaPago) { 'efectivo' => 'text-success', 'tarjeta' => 'text-primary', 'transferencia' => 'text-info', 'deudor' => 'text-danger', default => 'text-secondary' } }}">${{ number_format($totalGeneral, 2) }}</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-body text-center">
+                                        <h6 class="text-muted">Servicios</h6>
+                                        <h4 class="text-info">${{ number_format($totalFichas, 2) }}</h4>
+                                        <small class="text-muted">{{ $data['technical_records']->count() }} fichas</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-body text-center">
+                                        <h6 class="text-muted">No Frecuentes</h6>
+                                        <h4 class="text-secondary">${{ number_format($totalNoFrec, 2) }}</h4>
+                                        <small class="text-muted">{{ $data['cliente_no_frecuente']->count() }} clientes</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Fichas Técnicas -->
+                        @if($data['technical_records']->count() > 0)
+                        <div class="mb-4">
+                            <h6 class="text-info mb-3">
+                                <i class="fas fa-scissors me-2"></i>Servicios (Fichas Técnicas) - {{ $data['technical_records']->count() }}
+                            </h6>
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>Cliente</th>
+                                            <th>Fecha</th>
+                                            <th>Tipo de Servicio</th>
+                                            <th>Tratamiento</th>
+                                            <th>Monto</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($data['technical_records'] as $record)
+                                        <tr>
+                                            <td>
+                                                <div class="fw-bold">{{ $record->client->name ?? 'Sin cliente' }}</div>
+                                                <small class="text-muted">{{ $record->client->email ?? '' }}</small>
+                                            </td>
+                                            <td>{{ $record->service_date->format('d/m/Y') }}</td>
+                                            <td>{{ $record->service_type ?? '-' }}</td>
+                                            <td>{{ $record->hair_treatments ?? '-' }}</td>
+                                            <td>
+                                                <span class="fw-bold text-info">${{ number_format($record->service_cost, 2) }}</span>
+                                            </td>
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        @endif
+
+                        <!-- Clientes No Frecuentes -->
+                        @if($data['cliente_no_frecuente']->count() > 0)
+                        <div class="mb-4">
+                            <h6 class="text-secondary mb-3">
+                                <i class="fas fa-user-clock me-2"></i>Clientes No Frecuentes - {{ $data['cliente_no_frecuente']->count() }}
+                            </h6>
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>Cliente</th>
+                                            <th>Teléfono</th>
+                                            <th>Fecha</th>
+                                            <th>Peluquero</th>
+                                            <th>Servicios</th>
+                                            <th>Monto</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($data['cliente_no_frecuente'] as $cliente)
+                                        <tr>
+                                            <td>
+                                                <div class="fw-bold">{{ $cliente->nombre ?: 'Sin nombre' }}</div>
+                                            </td>
+                                            <td>{{ $cliente->telefono ?: '-' }}</td>
+                                            <td>{{ $cliente->fecha->format('d/m/Y') }}</td>
+                                            <td><span class="badge bg-info">{{ $cliente->peluquero }}</span></td>
+                                            <td>{{ Str::limit($cliente->servicios, 40) ?: '-' }}</td>
+                                            <td>
+                                                <span class="fw-bold text-secondary">${{ number_format($cliente->monto, 2) }}</span>
+                                            </td>
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        @endif
+
+                        @if($data['technical_records']->count() == 0 && $data['cliente_no_frecuente']->count() == 0)
+                        <div class="text-center py-5">
+                            <div class="text-muted">
+                                <i class="fas fa-inbox fa-4x mb-3"></i>
+                                <h5>No hay registros para mostrar</h5>
+                                <p class="mb-0">No se encontraron ventas con esta forma de pago en el período seleccionado</p>
+                            </div>
+                        </div>
+                        @endif
+
+                    @elseif($category === 'total')
                         <!-- Vista especial para el total -->
                         <div class="row">
                             <div class="col-md-6 mb-4">
@@ -257,6 +414,7 @@
                                                 <th>Peluquero</th>
                                                 <th>Servicios</th>
                                                 <th>Valor</th>
+                                                <th>Forma de Pago</th>
                                                 @break
                                         @endswitch
                                     </tr>
@@ -339,6 +497,20 @@
                                                     </td>
                                                     <td>
                                                         <span class="fw-bold text-secondary">${{ number_format($item->monto, 2) }}</span>
+                                                    </td>
+                                                    <td>
+                                                        @php
+                                                            $badgeClass = match($item->forma_pago) {
+                                                                'efectivo' => 'bg-success',
+                                                                'tarjeta' => 'bg-primary',
+                                                                'transferencia' => 'bg-info',
+                                                                'deudor' => 'bg-danger',
+                                                                default => 'bg-secondary'
+                                                            };
+                                                        @endphp
+                                                        <span class="badge {{ $badgeClass }}">
+                                                            {{ \App\Models\ClienteNoFrecuente::FORMAS_PAGO[$item->forma_pago] ?? 'Sin definir' }}
+                                                        </span>
                                                     </td>
                                                     @break
                                             @endswitch

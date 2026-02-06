@@ -77,6 +77,25 @@
                         </div>
 
                         <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold text-muted">Forma de Pago</label>
+                            <div class="form-control-plaintext">
+                                @php
+                                    $badgeClass = match($distributorClienteNoFrecuente->forma_pago) {
+                                        'efectivo' => 'bg-success',
+                                        'tarjeta' => 'bg-primary',
+                                        'transferencia' => 'bg-info',
+                                        'deudor' => 'bg-danger',
+                                        default => 'bg-secondary'
+                                    };
+                                @endphp
+                                <span class="badge {{ $badgeClass }} fs-6 px-3 py-2">
+                                    <i class="fas fa-credit-card me-1"></i>
+                                    {{ \App\Models\DistributorClienteNoFrecuente::FORMAS_PAGO[$distributorClienteNoFrecuente->forma_pago] ?? 'Sin definir' }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold text-muted">Tipo de Compra</label>
                             <div class="form-control-plaintext">
                                 @if($distributorClienteNoFrecuente->purchase_type)

@@ -54,6 +54,7 @@ class DistributorClienteNoFrecuenteController extends Controller
             'telefono' => 'nullable|string|max:20',
             'fecha' => 'required|date|before_or_equal:today',
             'monto' => 'required|numeric|min:0',
+            'forma_pago' => 'required|in:efectivo,tarjeta,transferencia,deudor',
             'productos' => 'nullable|string',
             'products_purchased' => 'nullable|array',
             'products_purchased.*.product_id' => 'required_with:products_purchased|exists:supplier_inventories,id',
@@ -70,6 +71,8 @@ class DistributorClienteNoFrecuenteController extends Controller
             'fecha.before_or_equal' => 'La fecha no puede ser futura',
             'monto.required' => 'El valor de la venta es requerido',
             'monto.min' => 'El valor de la venta debe ser mayor a 0',
+            'forma_pago.required' => 'La forma de pago es requerida',
+            'forma_pago.in' => 'La forma de pago seleccionada no es válida',
         ]);
 
         $validated['user_id'] = Auth::id();
@@ -151,6 +154,7 @@ class DistributorClienteNoFrecuenteController extends Controller
             'telefono' => 'nullable|string|max:20',
             'fecha' => 'required|date|before_or_equal:today',
             'monto' => 'required|numeric|min:0',
+            'forma_pago' => 'required|in:efectivo,tarjeta,transferencia,deudor',
             'productos' => 'nullable|string',
             'products_purchased' => 'nullable|array',
             'products_purchased.*.product_id' => 'required_with:products_purchased|exists:supplier_inventories,id',
@@ -167,6 +171,8 @@ class DistributorClienteNoFrecuenteController extends Controller
             'fecha.before_or_equal' => 'La fecha no puede ser futura',
             'monto.required' => 'El valor de la venta es requerido',
             'monto.min' => 'El valor de la venta debe ser mayor a 0',
+            'forma_pago.required' => 'La forma de pago es requerida',
+            'forma_pago.in' => 'La forma de pago seleccionada no es válida',
         ]);
 
         // Recalcular el monto desde los productos para asegurar que sea correcto

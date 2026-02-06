@@ -12,10 +12,21 @@ class ClienteNoFrecuente extends Model
         'telefono',
         'fecha',
         'monto',
+        'forma_pago',
         'peluquero',
         'servicios',
         'observaciones',
         'user_id'
+    ];
+
+    /**
+     * Opciones de forma de pago disponibles
+     */
+    public const FORMAS_PAGO = [
+        'efectivo' => 'Efectivo',
+        'tarjeta' => 'Tarjeta',
+        'transferencia' => 'Transferencia',
+        'deudor' => 'Deudor',
     ];
 
     protected $casts = [

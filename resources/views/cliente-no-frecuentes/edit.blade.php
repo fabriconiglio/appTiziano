@@ -98,6 +98,22 @@
                             </div>
 
                             <div class="col-md-6 mb-3">
+                                <label for="forma_pago" class="form-label">Forma de Pago *</label>
+                                <select class="form-select @error('forma_pago') is-invalid @enderror" 
+                                        id="forma_pago" name="forma_pago" required>
+                                    <option value="">Seleccionar forma de pago...</option>
+                                    @foreach(\App\Models\ClienteNoFrecuente::FORMAS_PAGO as $valor => $etiqueta)
+                                        <option value="{{ $valor }}" {{ old('forma_pago', $clienteNoFrecuente->forma_pago) == $valor ? 'selected' : '' }}>
+                                            {{ $etiqueta }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('forma_pago')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="col-md-6 mb-3">
                                 <label for="servicios" class="form-label">Servicios Realizados</label>
                                 <input type="text" class="form-control @error('servicios') is-invalid @enderror" 
                                        id="servicios" name="servicios" 

@@ -63,6 +63,7 @@
                             <th>Peluquero</th>
                             <th>Servicios</th>
                             <th>Valor</th>
+                            <th>Forma de Pago</th>
                             <th>Registrado por</th>
                             <th class="text-center">Acciones</th>
                         </tr>
@@ -106,6 +107,20 @@
                                     <span class="fw-bold text-success">${{ number_format($cliente->monto, 2) }}</span>
                                 </td>
                                 <td>
+                                    @php
+                                        $badgeClass = match($cliente->forma_pago) {
+                                            'efectivo' => 'bg-success',
+                                            'tarjeta' => 'bg-primary',
+                                            'transferencia' => 'bg-info',
+                                            'deudor' => 'bg-danger',
+                                            default => 'bg-secondary'
+                                        };
+                                    @endphp
+                                    <span class="badge {{ $badgeClass }}">
+                                        {{ \App\Models\ClienteNoFrecuente::FORMAS_PAGO[$cliente->forma_pago] ?? 'Sin definir' }}
+                                    </span>
+                                </td>
+                                <td>
                                     <small class="text-muted">{{ $cliente->user->name }}</small>
                                 </td>
                                 <td class="text-center">
@@ -129,7 +144,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="text-center py-5">
+                                <td colspan="9" class="text-center py-5">
                                     <div class="text-muted">
                                         <i class="fas fa-user-clock fa-4x mb-3"></i>
                                         <h5>No hay clientes no frecuentes registrados</h5>

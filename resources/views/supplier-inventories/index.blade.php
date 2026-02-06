@@ -8,9 +8,6 @@
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <span>Inventario de Proveedores</span>
                         <div>
-                            <a href="{{ route('tiendanube.index') }}" class="btn btn-info btn-sm me-2">
-                                <i class="fas fa-cloud"></i> Tienda Nube
-                            </a>
                             <a href="{{ route('distributor_categories.create') }}" class="btn btn-outline-primary btn-sm me-2">1. Nueva Categoría Distribuidora</a>
                             <a href="{{ route('distributor_brands.create') }}" class="btn btn-outline-primary btn-sm me-2">2. Nueva Marca Distribuidora</a>
                             <a href="{{ route('supplier-inventories.create') }}" class="btn btn-primary btn-sm me-2">3. Nuevo Producto</a>

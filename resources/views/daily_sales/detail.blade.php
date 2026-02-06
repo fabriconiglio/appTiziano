@@ -41,6 +41,12 @@
                             @case('forma_pago_deudor')
                                 Ventas a Deudores
                                 @break
+                            @case('facturas_a')
+                                Facturas A
+                                @break
+                            @case('facturas_b')
+                                Facturas B
+                                @break
                         @endswitch
                     </h1>
                     <p class="text-muted">
@@ -61,7 +67,87 @@
         </div>
     </div>
 
-    @if(str_starts_with($category, 'forma_pago_'))
+    @if($category === 'facturas_a' || $category === 'facturas_b')
+        <!-- Vista especial para facturas AFIP -->
+        @php
+            $tipoFactura = $category === 'facturas_a' ? 'A' : 'B';
+            $colorFactura = $category === 'facturas_a' ? '#0d6efd' : '#198754';
+        @endphp
+        
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card" style="border-color: {{ $colorFactura }};">
+                    <div class="card-header" style="background-color: {{ $colorFactura }}; color: white;">
+                        <h5 class="card-title mb-0" style="color:black;">
+                            <i class="fas fa-file-invoice me-2" style="color:black;"></i>Facturas {{ $tipoFactura }} ({{ $details->count() }})
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="text-center">
+                                    <h6 class="text-muted">Total Facturado</h6>
+                                    <h3 style="color: {{ $colorFactura }};">${{ number_format($details->sum('total'), 2) }}</h3>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="text-center">
+                                    <h6 class="text-muted">Cantidad de Facturas</h6>
+                                    <h3 style="color: {{ $colorFactura }};">{{ $details->count() }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        @if($details->count() > 0)
+                            <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                                <table class="table table-striped table-hover">
+                                    <thead class="sticky-top table-dark">
+                                        <tr>
+                                            <th>Número</th>
+                                            <th>Cliente</th>
+                                            <th>Fecha</th>
+                                            <th>Subtotal</th>
+                                            <th>IVA</th>
+                                            <th>Total</th>
+                                            <th>CAE</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($details as $factura)
+                                        <tr>
+                                            <td>
+                                                <strong>{{ $factura->formatted_number }}</strong>
+                                            </td>
+                                            <td>
+                                                {{ $factura->client_full_name }}
+                                            </td>
+                                            <td>{{ $factura->invoice_date->format('d/m/Y') }}</td>
+                                            <td>${{ number_format($factura->subtotal, 2) }}</td>
+                                            <td>${{ number_format($factura->tax_amount, 2) }}</td>
+                                            <td>
+                                                <strong style="color: {{ $colorFactura }};">${{ number_format($factura->total, 2) }}</strong>
+                                            </td>
+                                            <td>
+                                                <small class="text-muted">{{ $factura->cae }}</small>
+                                            </td>
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @else
+                            <div class="text-center py-5">
+                                <i class="fas fa-file-invoice fa-4x text-muted mb-3"></i>
+                                <h5>No hay facturas {{ $tipoFactura }}</h5>
+                                <p class="text-muted mb-0">No se encontraron facturas tipo {{ $tipoFactura }} autorizadas en el período seleccionado</p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    @elseif(str_starts_with($category, 'forma_pago_'))
         <!-- Vista especial para forma de pago -->
         @php
             $formaPago = $details['forma_pago'];

@@ -7,6 +7,7 @@ use App\Models\DistributorTechnicalRecord;
 use App\Models\ClientCurrentAccount;
 use App\Models\DistributorCurrentAccount;
 use App\Models\DistributorClienteNoFrecuente;
+use App\Models\AfipInvoice;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -538,6 +539,20 @@ class DailySalesController extends Controller
                     'technical_records' => $fichasTecnicas,
                     'cliente_no_frecuente' => $clientesNoFrecuentes
                 ];
+            
+            case 'facturas_a':
+                return AfipInvoice::whereBetween('invoice_date', [$startOfPeriod, $endOfPeriod])
+                    ->where('invoice_type', 'A')
+                    ->where('status', 'authorized')
+                    ->orderBy('invoice_date', 'desc')
+                    ->get();
+            
+            case 'facturas_b':
+                return AfipInvoice::whereBetween('invoice_date', [$startOfPeriod, $endOfPeriod])
+                    ->where('invoice_type', 'B')
+                    ->where('status', 'authorized')
+                    ->orderBy('invoice_date', 'desc')
+                    ->get();
                 
             case 'total':
                 return [

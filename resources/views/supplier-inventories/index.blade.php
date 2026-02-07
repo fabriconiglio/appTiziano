@@ -84,6 +84,7 @@
                                         <th>Producto</th>
                                         <th>Categoría Distribuidora</th>
                                         <th>Marca Distribuidora</th>
+                                        <th>Descripción</th>
                                         <th>Stock</th>
                                         <th>Precio al Mayor</th>
                                         <th>Precio al Menor</th>
@@ -108,6 +109,7 @@
                                         <td>{{ $item->product_name }}</td>
                                         <td>{{ $item->distributorCategory ? $item->distributorCategory->name : '-' }}</td>
                                         <td>{{ $item->distributorBrand ? $item->distributorBrand->name : '-' }}</td>
+                                        <td>{{ $item->description }}</td>
                                         <td>{{ $item->stock_quantity }}</td>
                                         <td>${{ number_format($item->precio_mayor, 2) }}</td>
                                         <td>${{ number_format($item->precio_menor, 2) }}</td>

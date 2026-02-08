@@ -91,6 +91,21 @@
                                     </div>
                                 </div>
                             </div>
+                            
+                            <!-- Checkbox Consumidor Final (solo para Factura B) -->
+                            <div class="row" id="consumidor-final-row" style="display: none;">
+                                <div class="col-md-12 mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="consumidor_final" name="consumidor_final">
+                                        <label class="form-check-label" for="consumidor_final">
+                                            <strong>Consumidor Final</strong> (sin datos de cliente)
+                                        </label>
+                                        <small class="form-text text-muted d-block">
+                                            Marcar esta opción para crear la factura sin asociar un cliente. Se registrará como "Consumidor Final".
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Información del cliente -->
@@ -123,9 +138,10 @@
                                 <table class="table table-bordered" id="items-table">
                                     <thead class="table-light">
                                         <tr>
-                                            <th width="40%">Producto</th>
-                                            <th width="15%">Cantidad</th>
+                                            <th width="30%">Producto</th>
+                                            <th width="12%">Cantidad</th>
                                             <th width="15%">Precio Unit.</th>
+                                            <th width="13%">IVA</th>
                                             <th width="15%">Subtotal</th>
                                             <th width="15%">Acciones</th>
                                         </tr>
@@ -135,12 +151,17 @@
                                     </tbody>
                                     <tfoot class="table-light">
                                         <tr>
-                                            <td colspan="3" class="text-end"><strong>Subtotal:</strong></td>
-                                            <td><strong id="subtotal-total">$0,00</strong></td>
+                                            <td colspan="4" class="text-end"><strong>Neto (Base Imponible):</strong></td>
+                                            <td><strong id="neto-total">$0,00</strong></td>
+                                            <td></td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="4" class="text-end"><strong>IVA 21%:</strong></td>
+                                            <td><strong id="iva-total">$0,00</strong></td>
                                             <td></td>
                                         </tr>
                                         <tr class="table-primary">
-                                            <td colspan="3" class="text-end"><strong>Total:</strong></td>
+                                            <td colspan="4" class="text-end"><strong>Total:</strong></td>
                                             <td><strong id="grand-total">$0,00</strong></td>
                                             <td></td>
                                         </tr>
@@ -153,6 +174,31 @@
                                     <i class="fas fa-info-circle me-1"></i> 
                                     Los productos se cargan automáticamente al seleccionar una compra.
                                 </small>
+                            </div>
+                            
+                            <!-- Botón para agregar producto/servicio manualmente (Consumidor Final) -->
+                            <div id="manual-item-section" style="display: none;" class="mt-3">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="mb-3"><i class="fas fa-plus-circle me-1"></i> Agregar Producto/Servicio</h6>
+                                        <div class="row">
+                                            <div class="col-md-5 mb-2">
+                                                <input type="text" id="manual-product-name" class="form-control form-control-sm" placeholder="Descripción del producto/servicio">
+                                            </div>
+                                            <div class="col-md-2 mb-2">
+                                                <input type="number" id="manual-product-qty" class="form-control form-control-sm" placeholder="Cantidad" value="1" min="1">
+                                            </div>
+                                            <div class="col-md-3 mb-2">
+                                                <input type="number" id="manual-product-price" class="form-control form-control-sm" placeholder="Precio unitario" step="0.01" min="0">
+                                            </div>
+                                            <div class="col-md-2 mb-2">
+                                                <button type="button" id="add-manual-item" class="btn btn-primary btn-sm w-100">
+                                                    <i class="fas fa-plus me-1"></i> Agregar
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -421,10 +467,12 @@ function clearProductsTable() {
     updateTotals();
 }
 
-// Agregar item
-document.getElementById('add-item').addEventListener('click', function() {
-    $('#productModal').modal('show');
-});
+// Agregar item (si existe el botón add-item)
+if (document.getElementById('add-item')) {
+    document.getElementById('add-item').addEventListener('click', function() {
+        $('#productModal').modal('show');
+    });
+}
 
 // Seleccionar producto
 document.addEventListener('click', function(e) {
@@ -438,16 +486,18 @@ document.addEventListener('click', function(e) {
     }
 });
 
-// Buscar productos
-document.getElementById('product-search').addEventListener('input', function() {
-    const searchTerm = this.value.toLowerCase();
-    const rows = document.querySelectorAll('#products-list tr');
-    
-    rows.forEach(row => {
-        const productName = row.querySelector('strong').textContent.toLowerCase();
-        row.style.display = productName.includes(searchTerm) ? '' : 'none';
+// Buscar productos (si existe el campo product-search)
+if (document.getElementById('product-search')) {
+    document.getElementById('product-search').addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        const rows = document.querySelectorAll('#products-list tr');
+        
+        rows.forEach(row => {
+            const productName = row.querySelector('strong').textContent.toLowerCase();
+            row.style.display = productName.includes(searchTerm) ? '' : 'none';
+        });
     });
-});
+}
 
 function addItemToTable(productId, productName, productPrice, quantity = 1) {
     itemCounter++;
@@ -461,8 +511,9 @@ function addItemToTable(productId, productName, productPrice, quantity = 1) {
     row.innerHTML = `
         <td>
             <input type="hidden" name="items[${itemCounter}][product_id]" value="${productId || ''}">
-            <input type="hidden" name="items[${itemCounter}][product_name]" value="${productName}">
-            <strong>${productName}</strong>
+            <input type="text" name="items[${itemCounter}][product_name]" 
+                   class="form-control form-control-sm" 
+                   value="${productName}" required>
         </td>
         <td>
             <input type="number" name="items[${itemCounter}][quantity]" 
@@ -475,6 +526,7 @@ function addItemToTable(productId, productName, productPrice, quantity = 1) {
                    value="${price.toFixed(2)}" 
                    step="0.01" min="0" required>
         </td>
+        <td class="item-iva">$0,00</td>
         <td class="item-subtotal">$0,00</td>
         <td>
             <button type="button" class="btn btn-danger btn-sm remove-item">
@@ -510,6 +562,11 @@ function updateTotals() {
         const baseImponible = itemSubtotal / 1.21;
         const itemTax = baseImponible * 0.21;
         
+        row.querySelector('.item-iva').textContent = '$' + itemTax.toLocaleString('es-AR', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+        
         row.querySelector('.item-subtotal').textContent = '$' + itemSubtotal.toLocaleString('es-AR', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
@@ -521,8 +578,14 @@ function updateTotals() {
     
     // El total es igual al subtotal porque el IVA ya está incluido en los precios
     const total = subtotal;
+    const neto = subtotal / 1.21;
     
-    document.getElementById('subtotal-total').textContent = '$' + subtotal.toLocaleString('es-AR', {
+    document.getElementById('neto-total').textContent = '$' + neto.toLocaleString('es-AR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+    
+    document.getElementById('iva-total').textContent = '$' + taxAmount.toLocaleString('es-AR', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
     });
@@ -533,17 +596,119 @@ function updateTotals() {
     });
 }
 
+// Manejar cambio de tipo de factura (mostrar/ocultar checkbox consumidor final)
+document.getElementById('invoice_type').addEventListener('change', function() {
+    const consumidorFinalRow = document.getElementById('consumidor-final-row');
+    const consumidorFinalCheckbox = document.getElementById('consumidor_final');
+    
+    if (this.value === 'B') {
+        consumidorFinalRow.style.display = 'block';
+    } else {
+        consumidorFinalRow.style.display = 'none';
+        // Desmarcar si no es factura B
+        if (consumidorFinalCheckbox.checked) {
+            consumidorFinalCheckbox.checked = false;
+            consumidorFinalCheckbox.dispatchEvent(new Event('change'));
+        }
+    }
+});
+
+// Disparar evento change para inicializar el estado del checkbox
+document.getElementById('invoice_type').dispatchEvent(new Event('change'));
+
+// Manejar checkbox de Consumidor Final
+document.getElementById('consumidor_final').addEventListener('change', function() {
+    const isConsumidorFinal = this.checked;
+    const clientSearchContainer = document.getElementById('client_search').closest('.col-md-4');
+    const technicalRecordContainer = document.getElementById('technical_record_id').closest('.col-md-4');
+    const clientInfo = document.getElementById('client-info');
+    const manualItemSection = document.getElementById('manual-item-section');
+    
+    if (isConsumidorFinal) {
+        // Ocultar selectores de cliente y compra
+        clientSearchContainer.style.display = 'none';
+        technicalRecordContainer.style.display = 'none';
+        clientInfo.style.display = 'none';
+        
+        // Setear tipo de cliente como consumidor_final
+        document.getElementById('client_type').value = 'consumidor_final';
+        document.getElementById('client_id').value = '';
+        document.getElementById('distributor_client_id').value = '';
+        
+        // Limpiar selección de cliente
+        $('#client_search').val(null).trigger('change');
+        document.getElementById('technical_record_id').innerHTML = '<option value="">No aplica</option>';
+        
+        // Limpiar tabla de productos
+        clearProductsTable();
+        
+        // Mostrar sección de agregar producto manual
+        manualItemSection.style.display = 'block';
+    } else {
+        // Mostrar selectores
+        clientSearchContainer.style.display = 'block';
+        technicalRecordContainer.style.display = 'block';
+        
+        // Resetear tipo de cliente
+        document.getElementById('client_type').value = '';
+        document.getElementById('client_id').value = '';
+        
+        // Ocultar sección manual
+        manualItemSection.style.display = 'none';
+        
+        // Limpiar tabla
+        clearProductsTable();
+        document.getElementById('technical_record_id').innerHTML = '<option value="">Primero seleccione un cliente</option>';
+    }
+});
+
+// Agregar producto/servicio manualmente (Consumidor Final)
+document.getElementById('add-manual-item').addEventListener('click', function() {
+    const name = document.getElementById('manual-product-name').value.trim();
+    const qty = parseInt(document.getElementById('manual-product-qty').value) || 1;
+    const price = parseFloat(document.getElementById('manual-product-price').value) || 0;
+    
+    if (!name) {
+        alert('Ingrese la descripción del producto/servicio');
+        return;
+    }
+    if (price <= 0) {
+        alert('Ingrese un precio válido');
+        return;
+    }
+    
+    addItemToTable(null, name, price, qty);
+    
+    // Limpiar campos
+    document.getElementById('manual-product-name').value = '';
+    document.getElementById('manual-product-qty').value = '1';
+    document.getElementById('manual-product-price').value = '';
+});
+
 // Validación del formulario
 document.getElementById('invoiceForm').addEventListener('submit', function(e) {
+    const clientType = document.getElementById('client_type').value;
+    
+    // Si es consumidor final, no validar cliente
+    if (clientType === 'consumidor_final') {
+        // Solo validar que haya al menos un producto
+        const items = document.querySelectorAll('#items-tbody tr');
+        if (items.length === 0) {
+            e.preventDefault();
+            alert('Debe agregar al menos un producto a la factura');
+            return false;
+        }
+        return true;
+    }
+    
     // Validar que se haya seleccionado un cliente
-    if (!document.getElementById('client_type').value || !document.getElementById('client_id').value) {
+    if (!clientType || !document.getElementById('client_id').value) {
         e.preventDefault();
         alert('Debe seleccionar un cliente');
         return false;
     }
     
     // Validar technical_record_id solo si no es cliente no frecuente
-    const clientType = document.getElementById('client_type').value;
     const technicalRecordId = document.getElementById('technical_record_id').value;
     
     if (!['distributor_no_frecuente', 'client_no_frecuente'].includes(clientType) && !technicalRecordId) {

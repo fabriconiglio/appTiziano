@@ -24,6 +24,10 @@
                         @endif
                         
                         @if(in_array($facturacion->status, ['draft', 'rejected']))
+                            <a href="{{ route('facturacion.edit', $facturacion->id) }}" 
+                               class="btn btn-warning btn-sm">
+                                <i class="fas fa-edit"></i> Editar Descripciones
+                            </a>
                             <button type="button" class="btn btn-success btn-sm" 
                                     data-bs-toggle="modal" 
                                     data-bs-target="#sendToAfipModal">
@@ -102,6 +106,12 @@
                         
                         <div class="col-md-6">
                             <h5><i class="fas fa-user"></i> Información del Cliente</h5>
+                            @if($facturacion->isConsumidorFinal())
+                            <div class="alert alert-secondary">
+                                <i class="fas fa-user-slash me-1"></i> <strong>Consumidor Final</strong><br>
+                                <small>Factura emitida sin datos de cliente</small>
+                            </div>
+                            @else
                             @php
                                 $client = $facturacion->getClient();
                             @endphp
@@ -158,6 +168,7 @@
                                 <i class="fas fa-exclamation-triangle"></i> Cliente no disponible
                             </div>
                             @endif
+                            @endif
                         </div>
                     </div>
 
@@ -171,8 +182,9 @@
                                         <tr>
                                             <th>Producto</th>
                                             <th class="text-center">Cantidad</th>
-                                            <th class="text-right">Precio Unit.</th>
-                                            <th class="text-right">Subtotal</th>
+                                            <th class="text-end">Precio Unit.</th>
+                                            <th class="text-end">IVA</th>
+                                            <th class="text-end">Subtotal</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -183,19 +195,27 @@
                                                 <small class="text-muted">SKU: {{ $item->product->sku ?? 'N/A' }}</small>
                                             </td>
                                             <td class="text-center">{{ $item->quantity }}</td>
-                                            <td class="text-right">${{ number_format($item->unit_price, 2, ',', '.') }}</td>
-                                            <td class="text-right">${{ number_format($item->subtotal, 2, ',', '.') }}</td>
+                                            <td class="text-end">${{ number_format($item->unit_price, 2, ',', '.') }}</td>
+                                            <td class="text-end">${{ number_format($item->tax_amount, 2, ',', '.') }}</td>
+                                            <td class="text-end">${{ number_format($item->subtotal, 2, ',', '.') }}</td>
                                         </tr>
                                         @endforeach
                                     </tbody>
                                     <tfoot>
+                                        @php
+                                            $neto = $facturacion->subtotal / 1.21;
+                                        @endphp
                                         <tr>
-                                            <td colspan="3" class="text-right"><strong>Subtotal:</strong></td>
-                                            <td class="text-right"><strong>${{ number_format($facturacion->subtotal, 2, ',', '.') }}</strong></td>
+                                            <td colspan="4" class="text-end"><strong>Neto (Base Imponible):</strong></td>
+                                            <td class="text-end"><strong>${{ number_format($neto, 2, ',', '.') }}</strong></td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="4" class="text-end"><strong>IVA 21%:</strong></td>
+                                            <td class="text-end"><strong>${{ number_format($facturacion->tax_amount, 2, ',', '.') }}</strong></td>
                                         </tr>
                                         <tr class="table-primary">
-                                            <td colspan="3" class="text-right"><strong>Total:</strong></td>
-                                            <td class="text-right"><strong>${{ number_format($facturacion->total, 2, ',', '.') }}</strong></td>
+                                            <td colspan="4" class="text-end"><strong>Total:</strong></td>
+                                            <td class="text-end"><strong>${{ number_format($facturacion->total, 2, ',', '.') }}</strong></td>
                                         </tr>
                                     </tfoot>
                                 </table>

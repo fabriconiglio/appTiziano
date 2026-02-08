@@ -356,6 +356,16 @@
         <div class="info-section">
             <div class="info-box">
                 <div class="info-title">Datos del Receptor</div>
+                @if($invoice->isConsumidorFinal())
+                <div class="info-row">
+                    <span class="info-label">Nombre/Razón Social:</span>
+                    <span>Consumidor Final</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Documento:</span>
+                    <span>Sin identificar</span>
+                </div>
+                @else
                 @php
                     $client = $invoice->getClient();
                 @endphp
@@ -399,6 +409,7 @@
                     <span>No disponible</span>
                 </div>
                 @endif
+                @endif
             </div>
             
             <div class="info-box">
@@ -426,11 +437,12 @@
         <table class="products-table">
             <thead>
                 <tr>
-                    <th style="width: 10%;">Código</th>
-                    <th style="width: 40%;">Producto / Servicio</th>
-                    <th style="width: 10%;" class="text-center">Cantidad</th>
+                    <th style="width: 8%;">Código</th>
+                    <th style="width: 32%;">Producto / Servicio</th>
+                    <th style="width: 8%;" class="text-center">Cant.</th>
                     <th style="width: 15%;" class="text-right">Precio Unit.</th>
-                    <th style="width: 10%;" class="text-right">% IVA</th>
+                    <th style="width: 7%;" class="text-right">% IVA</th>
+                    <th style="width: 15%;" class="text-right">IVA ($)</th>
                     <th style="width: 15%;" class="text-right">Subtotal</th>
                 </tr>
             </thead>
@@ -442,6 +454,7 @@
                     <td class="text-center">{{ $item->quantity }}</td>
                     <td class="text-right">${{ number_format($item->unit_price, 2, ',', '.') }}</td>
                     <td class="text-right">{{ number_format($item->tax_rate, 2) }}%</td>
+                    <td class="text-right">${{ number_format($item->tax_amount, 2, ',', '.') }}</td>
                     <td class="text-right">${{ number_format($item->subtotal, 2, ',', '.') }}</td>
                 </tr>
                 @endforeach
@@ -449,16 +462,24 @@
         </table>
 
         <!-- Totales -->
+        @php
+            $neto = $invoice->subtotal / 1.21;
+        @endphp
         <div class="totals-section">
             <table class="totals-table">
+                @if($invoice->invoice_type !== 'C')
+                <tr>
+                    <td class="totals-label">Neto (Base Imponible):</td>
+                    <td class="totals-amount">${{ number_format($neto, 2, ',', '.') }}</td>
+                </tr>
+                <tr>
+                    <td class="totals-label">IVA 21%:</td>
+                    <td class="totals-amount">${{ number_format($invoice->tax_amount, 2, ',', '.') }}</td>
+                </tr>
+                @else
                 <tr>
                     <td class="totals-label">Subtotal:</td>
                     <td class="totals-amount">${{ number_format($invoice->subtotal, 2, ',', '.') }}</td>
-                </tr>
-                @if($invoice->invoice_type !== 'C')
-                <tr style="font-size: 6px; color: #666;">
-                    <td class="totals-label" style="font-weight: normal;">IVA 21% (incluido):</td>
-                    <td class="totals-amount" style="font-weight: normal;">${{ number_format($invoice->tax_amount, 2, ',', '.') }}</td>
                 </tr>
                 @endif
                 <tr class="total-row">

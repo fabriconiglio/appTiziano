@@ -61,6 +61,11 @@ class AfipInvoice extends Model
      */
     public function getClient()
     {
+        // Consumidor Final no tiene cliente asociado
+        if ($this->client_type === 'consumidor_final') {
+            return null;
+        }
+
         if (!$this->client_type || !$this->client_id) {
             // Compatibilidad hacia atrás: usar distributorClient si existe
             return $this->distributorClient;
@@ -81,10 +86,22 @@ class AfipInvoice extends Model
     }
 
     /**
+     * Verificar si es Consumidor Final
+     */
+    public function isConsumidorFinal(): bool
+    {
+        return $this->client_type === 'consumidor_final';
+    }
+
+    /**
      * Obtener el nombre completo del cliente
      */
     public function getClientFullNameAttribute(): string
     {
+        if ($this->client_type === 'consumidor_final') {
+            return 'Consumidor Final';
+        }
+
         $client = $this->getClient();
         
         if (!$client) {

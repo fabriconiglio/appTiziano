@@ -293,6 +293,8 @@ Route::get('/api/supplier-inventories/get-product', [App\Http\Controllers\Suppli
         
         // Rutas con parámetros (deben ir al final)
         Route::get('/{facturacion}', [AfipInvoiceController::class, 'show'])->name('show');
+        Route::get('/{facturacion}/edit', [AfipInvoiceController::class, 'edit'])->name('edit');
+        Route::put('/{facturacion}', [AfipInvoiceController::class, 'update'])->name('update');
         Route::post('/{facturacion}/send', [AfipInvoiceController::class, 'sendToAfip'])->name('send');
         Route::post('/{facturacion}/cancel', [AfipInvoiceController::class, 'cancel'])->name('cancel');
         Route::get('/{facturacion}/download-pdf', [AfipInvoiceController::class, 'downloadPdf'])->name('download-pdf');

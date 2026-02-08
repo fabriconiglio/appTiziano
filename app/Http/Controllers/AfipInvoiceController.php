@@ -261,8 +261,7 @@ class AfipInvoiceController extends Controller
     {
         // Validación base
         $rules = [
-            'client_type' => 'required|in:distributor_client,client,distributor_no_frecuente,client_no_frecuente',
-            'client_id' => 'required|integer',
+            'client_type' => 'required|in:distributor_client,client,distributor_no_frecuente,client_no_frecuente,consumidor_final',
             'invoice_type' => 'required|in:A,B,C',
             'invoice_date' => 'required|date',
             'items' => 'required|array|min:1',
@@ -271,26 +270,31 @@ class AfipInvoiceController extends Controller
             'notes' => 'nullable|string|max:500'
         ];
 
-        // Validar product_id según el tipo de cliente
-        if ($request->client_type === 'client') {
-            // Cliente de peluquería - productos pueden ser de la tabla products o null (servicio sin producto)
-            $rules['items.*.product_id'] = 'nullable|exists:products,id';
+        // Consumidor Final no requiere client_id ni technical_record_id
+        if ($request->client_type === 'consumidor_final') {
+            $rules['client_id'] = 'nullable';
+            $rules['items.*.product_id'] = 'nullable';
+            $rules['items.*.product_name'] = 'required|string|max:255';
         } else {
-            // Cliente de distribuidora - productos deben ser de supplier_inventories
-            $rules['items.*.product_id'] = 'required|exists:supplier_inventories,id';
-        }
+            $rules['client_id'] = 'required|integer';
 
-        // Validar technical_record_id según el tipo de cliente
-        if ($request->client_type === 'distributor_client') {
-            $rules['technical_record_id'] = 'required|exists:distributor_technical_records,id';
-        } elseif ($request->client_type === 'client') {
-            $rules['technical_record_id'] = 'required|exists:technical_records,id';
-        } elseif ($request->client_type === 'distributor_no_frecuente') {
-            // Para clientes no frecuentes, el technical_record_id es el ID del cliente mismo
-            $rules['technical_record_id'] = 'required|exists:distributor_cliente_no_frecuentes,id';
-        } elseif ($request->client_type === 'client_no_frecuente') {
-            // Para clientes no frecuentes de peluquería, el technical_record_id es el ID del cliente mismo
-            $rules['technical_record_id'] = 'required|exists:cliente_no_frecuentes,id';
+            // Validar product_id según el tipo de cliente
+            if ($request->client_type === 'client' || $request->client_type === 'client_no_frecuente') {
+                $rules['items.*.product_id'] = 'nullable';
+            } else {
+                $rules['items.*.product_id'] = 'required|exists:supplier_inventories,id';
+            }
+
+            // Validar technical_record_id según el tipo de cliente
+            if ($request->client_type === 'distributor_client') {
+                $rules['technical_record_id'] = 'required|exists:distributor_technical_records,id';
+            } elseif ($request->client_type === 'client') {
+                $rules['technical_record_id'] = 'required|exists:technical_records,id';
+            } elseif ($request->client_type === 'distributor_no_frecuente') {
+                $rules['technical_record_id'] = 'required|exists:distributor_cliente_no_frecuentes,id';
+            } elseif ($request->client_type === 'client_no_frecuente') {
+                $rules['technical_record_id'] = 'required|exists:cliente_no_frecuentes,id';
+            }
         }
 
         $request->validate($rules);
@@ -298,40 +302,46 @@ class AfipInvoiceController extends Controller
         try {
             DB::beginTransaction();
 
-            // Validar que el cliente existe según su tipo
-            $clientExists = false;
             $distributorClientId = null;
 
-            switch ($request->client_type) {
-                case 'distributor_client':
-                    $client = DistributorClient::find($request->client_id);
-                    $clientExists = $client !== null;
-                    $distributorClientId = $request->client_id;
-                    break;
-                case 'client':
-                    $client = Client::find($request->client_id);
-                    $clientExists = $client !== null;
-                    break;
-                case 'distributor_no_frecuente':
-                    $client = DistributorClienteNoFrecuente::find($request->client_id);
-                    $clientExists = $client !== null;
-                    break;
-                case 'client_no_frecuente':
-                    $client = ClienteNoFrecuente::find($request->client_id);
-                    $clientExists = $client !== null;
-                    break;
-            }
+            // Consumidor Final - no requiere validación de cliente
+            if ($request->client_type === 'consumidor_final') {
+                // No se necesita validar cliente
+            } else {
+                // Validar que el cliente existe según su tipo
+                $clientExists = false;
 
-            if (!$clientExists) {
-                return back()->withInput()
-                    ->with('error', 'El cliente seleccionado no existe');
+                switch ($request->client_type) {
+                    case 'distributor_client':
+                        $client = DistributorClient::find($request->client_id);
+                        $clientExists = $client !== null;
+                        $distributorClientId = $request->client_id;
+                        break;
+                    case 'client':
+                        $client = Client::find($request->client_id);
+                        $clientExists = $client !== null;
+                        break;
+                    case 'distributor_no_frecuente':
+                        $client = DistributorClienteNoFrecuente::find($request->client_id);
+                        $clientExists = $client !== null;
+                        break;
+                    case 'client_no_frecuente':
+                        $client = ClienteNoFrecuente::find($request->client_id);
+                        $clientExists = $client !== null;
+                        break;
+                }
+
+                if (!$clientExists) {
+                    return back()->withInput()
+                        ->with('error', 'El cliente seleccionado no existe');
+                }
             }
 
             // Crear factura
             $invoice = AfipInvoice::create([
-                'distributor_client_id' => $distributorClientId, // Solo para compatibilidad con distribuidora
+                'distributor_client_id' => $distributorClientId,
                 'client_type' => $request->client_type,
-                'client_id' => $request->client_id,
+                'client_id' => $request->client_type === 'consumidor_final' ? null : $request->client_id,
                 'technical_record_id' => $request->technical_record_id ?? null,
                 'invoice_type' => $request->invoice_type,
                 'point_of_sale' => AfipConfiguration::get('afip_point_of_sale', '5'),
@@ -353,20 +363,18 @@ class AfipInvoiceController extends Controller
                 $description = $itemData['product_name'] ?? 'Producto sin especificar';
                 
                 // Manejar productos según el tipo de cliente
-                if ($request->client_type === 'client') {
+                if ($request->client_type === 'consumidor_final') {
+                    // Consumidor Final - usar descripción proporcionada manualmente
+                    $productId = null;
+                } elseif ($request->client_type === 'client' || $request->client_type === 'client_no_frecuente') {
                     // Cliente de peluquería - productos de la tabla products
                     if ($productId) {
                         $product = Product::find($productId);
                         if ($product) {
                             $description = $product->name;
-                            // Para facturación AFIP, necesitamos un ID de producto válido
-                            // Como los productos de peluquería no están en supplier_inventories,
-                            // podemos usar null o crear un registro temporal
-                            $productId = null; // No hay correspondencia directa con supplier_inventories
+                            $productId = null;
                         }
                     }
-                    // Si no hay product_id, es un servicio sin producto específico
-                    // La descripción ya viene en product_name del itemData
                 } else {
                     // Cliente de distribuidora - productos de supplier_inventories
                     $supplierInventory = SupplierInventory::find($productId);
@@ -374,14 +382,13 @@ class AfipInvoiceController extends Controller
                         $description = $supplierInventory->product_name;
                         $productId = $supplierInventory->id;
                     } else {
-                        // Si no se encuentra, continuar con la descripción proporcionada
                         $productId = null;
                     }
                 }
                 
                 $item = AfipInvoiceItem::create([
                     'afip_invoice_id' => $invoice->id,
-                    'product_id' => $productId, // Puede ser null para productos de peluquería
+                    'product_id' => $productId,
                     'description' => $description,
                     'quantity' => $itemData['quantity'],
                     'unit_price' => $itemData['unit_price'],
@@ -396,8 +403,8 @@ class AfipInvoiceController extends Controller
             // El total es igual al subtotal porque el IVA ya está incluido en los precios
             $invoice->update([
                 'subtotal' => $subtotal,
-                'tax_amount' => $taxAmount, // IVA calculado internamente para AFIP
-                'total' => $subtotal // Total igual al subtotal (IVA incluido)
+                'tax_amount' => $taxAmount,
+                'total' => $subtotal
             ]);
 
             DB::commit();
@@ -422,6 +429,64 @@ class AfipInvoiceController extends Controller
         $facturacion->load(['distributorClient', 'items.product']);
         
         return view('facturacion.show', compact('facturacion'));
+    }
+
+    /**
+     * Mostrar formulario para editar descripciones de items de la factura
+     */
+    public function edit(AfipInvoice $facturacion)
+    {
+        if (!in_array($facturacion->status, ['draft', 'rejected'])) {
+            return back()->with('error', 'Solo se pueden editar facturas en estado borrador o rechazadas');
+        }
+
+        $facturacion->load(['distributorClient', 'items.product']);
+
+        return view('facturacion.edit', compact('facturacion'));
+    }
+
+    /**
+     * Actualizar descripciones de items de la factura
+     */
+    public function update(Request $request, AfipInvoice $facturacion)
+    {
+        if (!in_array($facturacion->status, ['draft', 'rejected'])) {
+            return back()->with('error', 'Solo se pueden editar facturas en estado borrador o rechazadas');
+        }
+
+        $request->validate([
+            'items' => 'required|array|min:1',
+            'items.*.id' => 'required|integer|exists:afip_invoice_items,id',
+            'items.*.description' => 'required|string|max:255',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            foreach ($request->items as $itemData) {
+                $item = AfipInvoiceItem::where('id', $itemData['id'])
+                    ->where('afip_invoice_id', $facturacion->id)
+                    ->first();
+
+                if ($item) {
+                    $item->update([
+                        'description' => $itemData['description'],
+                    ]);
+                }
+            }
+
+            DB::commit();
+
+            return redirect()->route('facturacion.show', $facturacion->id)
+                ->with('success', 'Descripciones actualizadas exitosamente');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error actualizando descripciones de factura: ' . $e->getMessage());
+
+            return back()->withInput()
+                ->with('error', 'Error al actualizar las descripciones: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -527,20 +592,23 @@ class AfipInvoiceController extends Controller
      */
     private function generateQrCode(AfipInvoice $invoice, array $config): string
     {
-        $client = $invoice->getClient();
         $dni = 0;
         $tipoDocRec = 99; // Sin documento por defecto
         
-        if ($client) {
-            if ($invoice->client_type === 'distributor_client' || $invoice->client_type === 'client' || !$invoice->client_type) {
-                $dni = $client->dni ?? 0;
-            } else {
-                // Clientes no frecuentes pueden no tener DNI
-                $dni = 0;
-            }
+        if (!$invoice->isConsumidorFinal()) {
+            $client = $invoice->getClient();
             
-            if ($dni) {
-                $tipoDocRec = 96; // DNI
+            if ($client) {
+                if ($invoice->client_type === 'distributor_client' || $invoice->client_type === 'client' || !$invoice->client_type) {
+                    $dni = $client->dni ?? 0;
+                } else {
+                    // Clientes no frecuentes pueden no tener DNI
+                    $dni = 0;
+                }
+                
+                if ($dni) {
+                    $tipoDocRec = 96; // DNI
+                }
             }
         }
         

@@ -179,7 +179,7 @@ class AfipService
      */
     private function prepareInvoiceData(AfipInvoice $invoice): array
     {
-        $client = $invoice->distributorClient;
+        $client = $invoice->getClient();
         
         // Determinar tipo de comprobante
         $voucherType = $this->getVoucherType($invoice->invoice_type);
@@ -192,14 +192,19 @@ class AfipService
         $docNro = 0;
         $condicionIva = 5; // Consumidor Final por defecto
         
-        if ($invoice->invoice_type === 'A') {
+        if ($invoice->isConsumidorFinal()) {
+            // Consumidor Final sin datos de cliente
+            $docTipo = 99; // Sin documento
+            $docNro = 0;
+            $condicionIva = 5; // Consumidor Final
+        } elseif ($invoice->invoice_type === 'A') {
             // Factura A: receptor debe ser Responsable Inscripto
             // Requiere CUIT del cliente
-            if (!empty($client->cuit)) {
+            if ($client && !empty($client->cuit)) {
                 $docTipo = $this->getDocumentType('CUIT');
                 $docNro = intval(str_replace(['-', ' '], '', $client->cuit));
                 $condicionIva = 1; // Responsable Inscripto
-            } elseif (!empty($client->dni)) {
+            } elseif ($client && !empty($client->dni)) {
                 // Si no tiene CUIT pero tiene DNI, usar DNI
                 $docTipo = $this->getDocumentType('DNI');
                 $docNro = intval($client->dni);
@@ -208,7 +213,7 @@ class AfipService
         } else {
             // Factura B: receptor es Consumidor Final, Monotributista, Exento, etc.
             $condicionIva = 5; // Consumidor Final
-            if (!empty($client->dni)) {
+            if ($client && !empty($client->dni)) {
                 $docTipo = $this->getDocumentType('DNI');
                 $docNro = intval($client->dni);
             }

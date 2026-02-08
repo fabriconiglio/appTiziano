@@ -89,6 +89,13 @@
                                                 <i class="fas fa-eye"></i>
                                             </a>
                                             
+                                            @if(in_array($invoice->status, ['draft', 'rejected']))
+                                                <a href="{{ route('facturacion.edit', $invoice->id) }}" 
+                                                   class="btn btn-warning btn-sm" title="Editar descripciones">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                            @endif
+                                            
                                             @if($invoice->status === 'draft')
                                                 <button type="button" class="btn btn-success btn-sm" 
                                                         title="Enviar a AFIP"

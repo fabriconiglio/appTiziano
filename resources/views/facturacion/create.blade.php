@@ -637,7 +637,12 @@ document.getElementById('consumidor_final').addEventListener('change', function(
         
         // Limpiar selección de cliente
         $('#client_search').val(null).trigger('change');
-        document.getElementById('technical_record_id').innerHTML = '<option value="">No aplica</option>';
+        const technicalRecordSelect = document.getElementById('technical_record_id');
+        technicalRecordSelect.innerHTML = '<option value="">No aplica</option>';
+        technicalRecordSelect.removeAttribute('required');
+        
+        // Quitar required del client_search
+        document.getElementById('client_search').removeAttribute('required');
         
         // Limpiar tabla de productos
         clearProductsTable();
@@ -652,6 +657,9 @@ document.getElementById('consumidor_final').addEventListener('change', function(
         // Resetear tipo de cliente
         document.getElementById('client_type').value = '';
         document.getElementById('client_id').value = '';
+        
+        // Restaurar required
+        document.getElementById('client_search').setAttribute('required', 'required');
         
         // Ocultar sección manual
         manualItemSection.style.display = 'none';

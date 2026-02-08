@@ -33,7 +33,6 @@ class AfipConfigurationController extends Controller
     {
         $request->validate([
             'afip_cuit' => 'required|string|size:11',
-            'afip_production' => 'boolean',
             'afip_certificate_path' => 'required|string',
             'afip_private_key_path' => 'required|string',
             'afip_point_of_sale' => 'required|string',
@@ -44,7 +43,7 @@ class AfipConfigurationController extends Controller
         try {
             // Actualizar configuraciones
             AfipConfiguration::set('afip_cuit', $request->afip_cuit, 'CUIT de la empresa', true);
-            AfipConfiguration::set('afip_production', $request->afip_production ? 'true' : 'false', 'Modo producción AFIP');
+            AfipConfiguration::set('afip_production', $request->has('afip_production') ? 'true' : 'false', 'Modo producción AFIP');
             AfipConfiguration::set('afip_certificate_path', $request->afip_certificate_path, 'Ruta del certificado AFIP', true);
             AfipConfiguration::set('afip_private_key_path', $request->afip_private_key_path, 'Ruta de la clave privada AFIP', true);
             AfipConfiguration::set('afip_point_of_sale', $request->afip_point_of_sale, 'Punto de venta AFIP');

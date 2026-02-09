@@ -51,26 +51,48 @@ class HairdressingSupplierCurrentAccount extends Model
     }
 
     /**
+     * Obtener el total de débitos (importes de facturas/compras) de un proveedor
+     */
+    public static function getTotalDebts($hairdressingSupplierId)
+    {
+        return self::where('hairdressing_supplier_id', $hairdressingSupplierId)
+            ->where('type', 'debt')
+            ->sum('amount');
+    }
+
+    /**
+     * Obtener el total de pagos realizados a un proveedor
+     */
+    public static function getTotalPayments($hairdressingSupplierId)
+    {
+        return self::where('hairdressing_supplier_id', $hairdressingSupplierId)
+            ->where('type', 'payment')
+            ->sum('amount');
+    }
+
+    /**
+     * Obtener el total de créditos/excedentes de un proveedor
+     */
+    public static function getTotalCredits($hairdressingSupplierId)
+    {
+        return self::where('hairdressing_supplier_id', $hairdressingSupplierId)
+            ->where('type', 'credit')
+            ->sum('amount');
+    }
+
+    /**
      * Obtener el saldo actual de un proveedor de peluquería
-     * Saldo = Deudas - Pagos - Créditos
-     * Si el resultado es negativo, hay saldo a favor
+     * Saldo = Importes Facturas - Pagos - Excedentes
+     * Si el resultado es negativo, hay saldo a favor (excedente)
      */
     public static function getCurrentBalance($hairdressingSupplierId)
     {
-        $debts = self::where('hairdressing_supplier_id', $hairdressingSupplierId)
-            ->where('type', 'debt')
-            ->sum('amount');
+        $debts = self::getTotalDebts($hairdressingSupplierId);
+        $payments = self::getTotalPayments($hairdressingSupplierId);
+        $credits = self::getTotalCredits($hairdressingSupplierId);
         
-        $payments = self::where('hairdressing_supplier_id', $hairdressingSupplierId)
-            ->where('type', 'payment')
-            ->sum('amount');
-        
-        $credits = self::where('hairdressing_supplier_id', $hairdressingSupplierId)
-            ->where('type', 'credit')
-            ->sum('amount');
-        
-        // El cálculo correcto es: Deudas - Pagos - Créditos
-        // Si el resultado es negativo, hay saldo a favor
+        // Importes Facturas - Pagos - Excedentes
+        // Si el resultado es negativo, hay excedente/saldo a favor
         $balance = $debts - $payments - $credits;
         
         return $balance;

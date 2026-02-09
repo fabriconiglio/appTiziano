@@ -57,7 +57,7 @@
                             </div>
 
                             <div class="col-md-6 mb-3">
-                                <label for="receipt_number" class="form-label">Número de Boleta *</label>
+                                <label for="receipt_number" class="form-label">Número de Factura *</label>
                                 <div class="input-group">
                                     <input type="text" class="form-control @error('receipt_number') is-invalid @enderror" 
                                            id="receipt_number" name="receipt_number" 
@@ -73,7 +73,7 @@
                             </div>
 
                             <div class="col-md-6 mb-3">
-                                <label for="total_amount" class="form-label">Total de la Boleta *</label>
+                                <label for="total_amount" class="form-label">Total de la Factura *</label>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
                                     <input type="number" step="0.01" class="form-control @error('total_amount') is-invalid @enderror" 
@@ -124,7 +124,7 @@
                             </div>
 
                             <div class="col-12 mb-3">
-                                <label for="receipt_file" class="form-label">Subir Boleta</label>
+                                <label for="receipt_file" class="form-label">Subir Factura</label>
                                 <input type="file" class="form-control @error('receipt_file') is-invalid @enderror" 
                                        id="receipt_file" name="receipt_file" 
                                        accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
@@ -171,7 +171,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const receiptSearchMessage = document.getElementById('receipt-search-message');
     const useCreditCheckbox = document.getElementById('use_available_credit');
     
-    // URL para buscar el total de la boleta
+    // URL para buscar el total de la factura
     const searchUrl = '{{ route("hairdressing-suppliers.get-receipt-total", $hairdressingSupplier) }}';
     
     // Timeout para evitar muchas consultas
@@ -208,7 +208,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Mostrar spinner
         receiptSearchSpinner.style.display = 'block';
-        receiptSearchMessage.textContent = 'Buscando boleta...';
+        receiptSearchMessage.textContent = 'Buscando factura...';
 
         fetch(`${searchUrl}?receipt_number=${encodeURIComponent(receiptNumberValue)}`)
             .then(response => response.json())
@@ -220,23 +220,23 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (data.balance_amount > 0) {
                         totalAmount.value = data.balance_amount;
                         paymentAmount.value = data.payment_amount;
-                        receiptSearchMessage.textContent = `✓ Boleta encontrada - Saldo pendiente: $${data.balance_amount} (${data.purchase_date})`;
+                        receiptSearchMessage.textContent = `✓ Factura encontrada - Saldo pendiente: $${data.balance_amount} (${data.purchase_date})`;
                     } else {
                         totalAmount.value = data.total_amount;
-                        receiptSearchMessage.textContent = `✓ Boleta encontrada - Total: $${data.total_amount} (${data.purchase_date})`;
+                        receiptSearchMessage.textContent = `✓ Factura encontrada - Total: $${data.total_amount} (${data.purchase_date})`;
                     }
                     receiptSearchMessage.className = 'text-success';
                     
                     // Recalcular el saldo
                     calculateBalance();
                 } else {
-                    receiptSearchMessage.textContent = data.message || 'Boleta no encontrada';
+                    receiptSearchMessage.textContent = data.message || 'Factura no encontrada';
                     receiptSearchMessage.className = 'text-muted';
                 }
             })
             .catch(error => {
                 receiptSearchSpinner.style.display = 'none';
-                receiptSearchMessage.textContent = 'Error al buscar la boleta';
+                receiptSearchMessage.textContent = 'Error al buscar la factura';
                 receiptSearchMessage.className = 'text-danger';
                 console.error('Error:', error);
             });
@@ -250,7 +250,7 @@ document.addEventListener('DOMContentLoaded', function() {
         useCreditCheckbox.addEventListener('change', calculateBalance);
     }
     
-    // Búsqueda de boleta con debounce
+    // Búsqueda de factura con debounce
     receiptNumber.addEventListener('input', function() {
         clearTimeout(searchTimeout);
         const value = this.value.trim();

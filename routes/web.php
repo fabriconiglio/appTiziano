@@ -233,6 +233,12 @@ Route::get('/api/supplier-inventories/get-product', [App\Http\Controllers\Suppli
     // Cuentas corrientes de proveedores peluquería
     Route::get('hairdressing-suppliers/{hairdressingSupplier}/current-account', [\App\Http\Controllers\HairdressingSupplierController::class, 'showCurrentAccount'])
         ->name('hairdressing-suppliers.current-account.show');
+
+    // Pagos independientes de proveedores peluquería
+    Route::get('hairdressing-suppliers/{hairdressingSupplier}/create-payment', [\App\Http\Controllers\HairdressingSupplierController::class, 'createPayment'])
+        ->name('hairdressing-suppliers.create-payment');
+    Route::post('hairdressing-suppliers/{hairdressingSupplier}/store-payment', [\App\Http\Controllers\HairdressingSupplierController::class, 'storePayment'])
+        ->name('hairdressing-suppliers.store-payment');
     
     // Clientes No Frecuentes
     Route::resource('cliente-no-frecuentes', \App\Http\Controllers\ClienteNoFrecuenteController::class);

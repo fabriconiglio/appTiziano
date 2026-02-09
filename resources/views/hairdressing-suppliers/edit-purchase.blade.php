@@ -50,7 +50,7 @@ use Illuminate\Support\Facades\Storage;
                             </div>
 
                             <div class="col-md-6 mb-3">
-                                <label for="receipt_number" class="form-label">Número de Boleta *</label>
+                                <label for="receipt_number" class="form-label">Número de Factura *</label>
                                 <input type="text" class="form-control @error('receipt_number') is-invalid @enderror" 
                                        id="receipt_number" name="receipt_number" 
                                        value="{{ old('receipt_number', $purchase->receipt_number) }}" required>
@@ -60,7 +60,7 @@ use Illuminate\Support\Facades\Storage;
                             </div>
 
                             <div class="col-md-6 mb-3">
-                                <label for="total_amount" class="form-label">Total de la Boleta *</label>
+                                <label for="total_amount" class="form-label">Total de la Factura *</label>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
                                     <input type="number" step="0.01" class="form-control @error('total_amount') is-invalid @enderror" 
@@ -96,21 +96,21 @@ use Illuminate\Support\Facades\Storage;
                             </div>
 
                             <div class="col-12 mb-3">
-                                <label for="receipt_file" class="form-label">Boleta Actual</label>
+                                <label for="receipt_file" class="form-label">Factura Actual</label>
                                 @if($purchase->receipt_file)
                                     <div class="mb-2">
                                         <a href="{{ Storage::url($purchase->receipt_file) }}" 
                                            target="_blank" 
                                            class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-download"></i> Ver Boleta Actual
+                                            <i class="fas fa-download"></i> Ver Factura Actual
                                         </a>
                                     </div>
                                 @endif
-                                <label for="receipt_file" class="form-label">Nueva Boleta (opcional)</label>
+                                <label for="receipt_file" class="form-label">Nueva Factura (opcional)</label>
                                 <input type="file" class="form-control @error('receipt_file') is-invalid @enderror" 
                                        id="receipt_file" name="receipt_file" 
                                        accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
-                                <small class="text-muted">Deja vacío para mantener la boleta actual. Formatos: PDF, JPG, PNG, DOC, DOCX</small>
+                                <small class="text-muted">Deja vacío para mantener la factura actual. Formatos: PDF, JPG, PNG, DOC, DOCX</small>
                                 @error('receipt_file')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror

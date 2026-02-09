@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\HairdressingSupplier;
+use App\Models\HairdressingSupplierCurrentAccount;
+use App\Models\HairdressingSupplierPurchase;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -222,7 +225,7 @@ class HairdressingSupplierController extends Controller
                 $newCredit = max(0, $paymentAmount - $remainingAmount);
             }
 
-            // Procesar el archivo de la boleta si se proporciona uno
+            // Procesar el archivo de la factura si se proporciona uno
             if ($request->hasFile('receipt_file')) {
                 $filePath = $request->file('receipt_file')->store('hairdressing-supplier-receipts', 'public');
                 $validated['receipt_file'] = $filePath;
@@ -252,7 +255,7 @@ class HairdressingSupplierController extends Controller
                     'hairdressing_supplier_purchase_id' => $purchase->id,
                     'type' => 'debt',
                     'amount' => $totalAmount,
-                    'description' => 'Deuda por compra - Boleta ' . $validated['receipt_number'],
+                    'description' => 'Deuda por compra - Factura ' . $validated['receipt_number'],
                     'date' => $validated['purchase_date'],
                     'reference' => 'COMP-' . $purchase->id,
                     'observations' => $validated['notes']
@@ -267,7 +270,7 @@ class HairdressingSupplierController extends Controller
                     'hairdressing_supplier_purchase_id' => $purchase->id,
                     'type' => 'payment',
                     'amount' => $finalPaymentAmount,
-                    'description' => 'Pago por compra - Boleta ' . $validated['receipt_number'],
+                    'description' => 'Pago por compra - Factura ' . $validated['receipt_number'],
                     'date' => $validated['purchase_date'],
                     'reference' => 'PAGO-' . $purchase->id,
                     'observations' => $validated['notes']
@@ -310,7 +313,7 @@ class HairdressingSupplierController extends Controller
                     'hairdressing_supplier_purchase_id' => $purchase->id,
                     'type' => 'payment',
                     'amount' => $creditToUse,
-                    'description' => 'Uso de crédito disponible - Boleta ' . $validated['receipt_number'],
+                    'description' => 'Uso de crédito disponible - Factura ' . $validated['receipt_number'],
                     'date' => $validated['purchase_date'],
                     'reference' => 'CREDIT-USE-' . $purchase->id,
                     'observations' => 'Crédito disponible aplicado a esta compra'
@@ -325,7 +328,7 @@ class HairdressingSupplierController extends Controller
                     'hairdressing_supplier_purchase_id' => $purchase->id,
                     'type' => 'credit',
                     'amount' => $newCredit,
-                    'description' => 'Saldo a favor - Boleta ' . $validated['receipt_number'],
+                    'description' => 'Excedente a favor - Factura ' . $validated['receipt_number'],
                     'date' => $validated['purchase_date'],
                     'reference' => 'CREDIT-' . $purchase->id,
                     'observations' => 'Pago excedente que genera saldo a favor'
@@ -405,7 +408,7 @@ class HairdressingSupplierController extends Controller
             $finalPaymentAmount = min($paymentAmount, $remainingAmount);
             $newCredit = max(0, $paymentAmount - $remainingAmount);
 
-            // Procesar el archivo de la boleta si se proporciona uno nuevo
+            // Procesar el archivo de la factura si se proporciona uno nuevo
             if ($request->hasFile('receipt_file')) {
                 // Eliminar archivo anterior si existe
                 if ($purchase->receipt_file && Storage::exists('public/' . $purchase->receipt_file)) {
@@ -442,7 +445,7 @@ class HairdressingSupplierController extends Controller
                     'hairdressing_supplier_purchase_id' => $purchase->id,
                     'type' => 'debt',
                     'amount' => $totalAmount,
-                    'description' => 'Deuda por compra - Boleta ' . $validated['receipt_number'],
+                    'description' => 'Deuda por compra - Factura ' . $validated['receipt_number'],
                     'date' => $validated['purchase_date'],
                     'reference' => 'COMP-' . $purchase->id,
                     'observations' => $validated['notes'] ?? null
@@ -457,7 +460,7 @@ class HairdressingSupplierController extends Controller
                     'hairdressing_supplier_purchase_id' => $purchase->id,
                     'type' => 'payment',
                     'amount' => $finalPaymentAmount,
-                    'description' => 'Pago por compra - Boleta ' . $validated['receipt_number'],
+                    'description' => 'Pago por compra - Factura ' . $validated['receipt_number'],
                     'date' => $validated['purchase_date'],
                     'reference' => 'PAGO-' . $purchase->id,
                     'observations' => $validated['notes'] ?? null
@@ -472,7 +475,7 @@ class HairdressingSupplierController extends Controller
                     'hairdressing_supplier_purchase_id' => $purchase->id,
                     'type' => 'credit',
                     'amount' => $newCredit,
-                    'description' => 'Saldo a favor - Boleta ' . $validated['receipt_number'],
+                    'description' => 'Excedente a favor - Factura ' . $validated['receipt_number'],
                     'date' => $validated['purchase_date'],
                     'reference' => 'CREDIT-' . $purchase->id,
                     'observations' => 'Pago excedente que genera saldo a favor'
@@ -513,7 +516,7 @@ class HairdressingSupplierController extends Controller
             // Eliminar los movimientos de cuenta corriente relacionados con esta compra
             \App\Models\HairdressingSupplierCurrentAccount::where('hairdressing_supplier_purchase_id', $purchase->id)->delete();
 
-            // Eliminar el archivo de la boleta si existe
+            // Eliminar el archivo de la factura si existe
             if ($purchase->receipt_file && Storage::exists('public/' . $purchase->receipt_file)) {
                 Storage::delete('public/' . $purchase->receipt_file);
             }
@@ -533,20 +536,20 @@ class HairdressingSupplierController extends Controller
     }
 
     /**
-     * Buscar el total de una boleta existente por número y proveedor
+     * Buscar el total de una factura existente por número y proveedor
      */
     public function getReceiptTotal(Request $request, HairdressingSupplier $hairdressingSupplier)
     {
         $receiptNumber = $request->input('receipt_number');
         
         if (!$receiptNumber) {
-            return response()->json(['error' => 'Número de boleta requerido'], 400);
+            return response()->json(['error' => 'Número de factura requerido'], 400);
         }
 
-        // Buscar la boleta más reciente que tenga saldo pendiente
-        $purchase = \App\Models\HairdressingSupplierPurchase::where('hairdressing_supplier_id', $hairdressingSupplier->id)
+        // Buscar la factura más reciente que tenga saldo pendiente
+        $purchase = HairdressingSupplierPurchase::where('hairdressing_supplier_id', $hairdressingSupplier->id)
             ->where('receipt_number', $receiptNumber)
-            ->where('balance_amount', '>', 0) // Solo boletas con saldo pendiente
+            ->where('balance_amount', '>', 0) // Solo facturas con saldo pendiente
             ->orderBy('created_at', 'desc') // La más reciente primero
             ->first();
 
@@ -557,30 +560,125 @@ class HairdressingSupplierController extends Controller
                 'balance_amount' => $purchase->balance_amount,
                 'payment_amount' => $purchase->payment_amount,
                 'purchase_date' => $purchase->purchase_date->format('d/m/Y'),
-                'message' => 'Boleta encontrada'
+                'message' => 'Factura encontrada'
             ]);
         }
 
         return response()->json([
             'success' => false,
-            'message' => 'No se encontró una boleta con ese número para este proveedor'
+            'message' => 'No se encontró una factura con ese número para este proveedor'
         ]);
     }
 
     /**
      * Mostrar historial de cuenta corriente del proveedor de peluquería
+     * Con saldo acumulado (running balance) por fila
      */
     public function showCurrentAccount(HairdressingSupplier $hairdressingSupplier)
     {
+        // Ordenar cronológicamente (ASC) para calcular saldo acumulado
         $currentAccounts = $hairdressingSupplier->currentAccounts()
             ->with(['user', 'hairdressingSupplierPurchase'])
-            ->orderBy('date', 'desc')
-            ->orderBy('created_at', 'desc')
+            ->orderBy('date', 'asc')
+            ->orderBy('created_at', 'asc')
             ->get();
+
+        // Calcular saldo acumulado por fila (running balance)
+        $runningBalance = 0;
+        foreach ($currentAccounts as $account) {
+            if ($account->type === 'debt') {
+                $runningBalance += $account->amount;
+            } else {
+                // payment o credit restan del saldo
+                $runningBalance -= $account->amount;
+            }
+            $account->running_balance = $runningBalance;
+        }
+
+        // Totales separados para el resumen
+        $totalDebts = HairdressingSupplierCurrentAccount::getTotalDebts($hairdressingSupplier->id);
+        $totalPayments = HairdressingSupplierCurrentAccount::getTotalPayments($hairdressingSupplier->id);
+        $totalCredits = HairdressingSupplierCurrentAccount::getTotalCredits($hairdressingSupplier->id);
 
         $currentBalance = $hairdressingSupplier->getCurrentBalance();
         $formattedBalance = $hairdressingSupplier->getFormattedBalance();
 
-        return view('hairdressing_supplier_current_accounts.show', compact('hairdressingSupplier', 'currentAccounts', 'currentBalance', 'formattedBalance'));
+        return view('hairdressing_supplier_current_accounts.show', compact(
+            'hairdressingSupplier',
+            'currentAccounts',
+            'currentBalance',
+            'formattedBalance',
+            'totalDebts',
+            'totalPayments',
+            'totalCredits'
+        ));
+    }
+
+    /**
+     * Mostrar formulario para registrar un pago independiente
+     */
+    public function createPayment(HairdressingSupplier $hairdressingSupplier)
+    {
+        $currentBalance = $hairdressingSupplier->getCurrentBalance();
+        $formattedBalance = $hairdressingSupplier->getFormattedBalance();
+
+        return view('hairdressing-suppliers.create-payment', compact(
+            'hairdressingSupplier',
+            'currentBalance',
+            'formattedBalance'
+        ));
+    }
+
+    /**
+     * Registrar un pago independiente al proveedor de peluquería
+     */
+    public function storePayment(Request $request, HairdressingSupplier $hairdressingSupplier)
+    {
+        $validated = $request->validate([
+            'payment_date' => 'required|date',
+            'amount' => 'required|numeric|min:0.01',
+            'reference' => 'nullable|string|max:255',
+            'observations' => 'nullable|string',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $currentBalance = $hairdressingSupplier->getCurrentBalance();
+
+            // Crear movimiento de pago en la cuenta corriente
+            HairdressingSupplierCurrentAccount::create([
+                'hairdressing_supplier_id' => $hairdressingSupplier->id,
+                'user_id' => Auth::id(),
+                'hairdressing_supplier_purchase_id' => null,
+                'type' => 'payment',
+                'amount' => $validated['amount'],
+                'description' => 'Pago a proveedor' . ($validated['reference'] ? ' - Ref: ' . $validated['reference'] : ''),
+                'date' => $validated['payment_date'],
+                'reference' => $validated['reference'] ?? 'PAGO-IND-' . time(),
+                'observations' => $validated['observations'],
+            ]);
+
+            DB::commit();
+
+            $newBalance = $hairdressingSupplier->getCurrentBalance();
+            $message = 'Pago registrado exitosamente.';
+
+            if ($newBalance < 0) {
+                $message .= ' Excedente a favor: $' . number_format(abs($newBalance), 2) . '.';
+            } elseif ($newBalance > 0) {
+                $message .= ' Deuda pendiente: $' . number_format($newBalance, 2) . '.';
+            } else {
+                $message .= ' Cuenta al día.';
+            }
+
+            return redirect()->route('hairdressing-suppliers.show', $hairdressingSupplier)
+                ->with('success', $message);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error al registrar pago a proveedor de peluquería: ' . $e->getMessage());
+            return back()->withInput()->with('error', 'Error al registrar el pago: ' . $e->getMessage());
+        }
     }
 }

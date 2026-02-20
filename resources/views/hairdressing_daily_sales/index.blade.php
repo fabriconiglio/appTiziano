@@ -392,6 +392,96 @@
         </div>
     </div>
 
+    <!-- Cuarta fila: Facturas AFIP (A y B) -->
+    @php
+        $startOfPeriod = $startDate->copy()->startOfDay();
+        $endOfPeriod = $endDate->copy()->endOfDay();
+
+        $facturasA = \App\Models\AfipInvoice::whereBetween('invoice_date', [$startOfPeriod, $endOfPeriod])
+            ->where('invoice_type', 'A')
+            ->where('status', 'authorized')
+            ->get();
+        $facturasB = \App\Models\AfipInvoice::whereBetween('invoice_date', [$startOfPeriod, $endOfPeriod])
+            ->where('invoice_type', 'B')
+            ->where('status', 'authorized')
+            ->get();
+        
+        $totalFacturasA = $facturasA->sum('total');
+        $totalFacturasB = $facturasB->sum('total');
+        $countFacturasA = $facturasA->count();
+        $countFacturasB = $facturasB->count();
+        $totalFacturas = $totalFacturasA + $totalFacturasB;
+    @endphp
+    
+    <div class="row mb-4">
+        <div class="col-12 mb-2">
+            <h5 class="text-muted">
+                <i class="fas fa-file-invoice me-2"></i>Facturas AFIP del Período
+            </h5>
+            <small class="text-muted">Solo facturas autorizadas</small>
+        </div>
+        
+        <!-- Factura A -->
+        <div class="col-md-4 mb-3">
+            <a href="{{ route('hairdressing-daily-sales.detail', ['category' => 'facturas_a', 'start_date' => $startDate->format('Y-m-d'), 'end_date' => $endDate->format('Y-m-d')]) }}" 
+               class="text-decoration-none">
+                <div class="card" style="border-color: #0d6efd; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title" style="color: #0d6efd;">Factura A</h6>
+                                <h4 class="card-text" style="color: #0d6efd;">${{ number_format($totalFacturasA, 2) }}</h4>
+                                <small class="text-muted">{{ $countFacturasA }} factura(s)</small>
+                            </div>
+                            <div>
+                                <i class="fas fa-file-invoice fa-2x" style="color: #0d6efd;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Factura B -->
+        <div class="col-md-4 mb-3">
+            <a href="{{ route('hairdressing-daily-sales.detail', ['category' => 'facturas_b', 'start_date' => $startDate->format('Y-m-d'), 'end_date' => $endDate->format('Y-m-d')]) }}" 
+               class="text-decoration-none">
+                <div class="card" style="border-color: #198754; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title" style="color: #198754;">Factura B</h6>
+                                <h4 class="card-text" style="color: #198754;">${{ number_format($totalFacturasB, 2) }}</h4>
+                                <small class="text-muted">{{ $countFacturasB }} factura(s)</small>
+                            </div>
+                            <div>
+                                <i class="fas fa-file-invoice fa-2x" style="color: #198754;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Total Facturas -->
+        <div class="col-md-4 mb-3">
+            <div class="card" style="border-color: #6c757d;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-secondary">Total Facturado</h6>
+                            <h4 class="card-text text-secondary">${{ number_format($totalFacturas, 2) }}</h4>
+                            <small class="text-muted">{{ $countFacturasA + $countFacturasB }} factura(s)</small>
+                        </div>
+                        <div>
+                            <i class="fas fa-file-invoice-dollar fa-2x text-secondary"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Comparación con ayer -->
     <div class="row mb-4">
         <!-- Comparación del día -->

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Supplier;
+use App\Models\SupplierCurrentAccount;
+use App\Models\SupplierPurchase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -225,7 +227,7 @@ class SupplierController extends Controller
                 $newCredit = max(0, $paymentAmount - $remainingAmount);
             }
 
-            // Procesar el archivo de la boleta si se proporciona uno
+            // Procesar el archivo de la factura si se proporciona uno
             if ($request->hasFile('receipt_file')) {
                 $filePath = $request->file('receipt_file')->store('supplier-receipts', 'public');
                 $validated['receipt_file'] = $filePath;
@@ -244,18 +246,17 @@ class SupplierController extends Controller
             $validated['balance_amount'] = $finalBalanceAmount;
 
             // Crear la compra en la base de datos
-            $purchase = \App\Models\SupplierPurchase::create($validated);
+            $purchase = SupplierPurchase::create($validated);
 
             // Crear movimientos en cuenta corriente
             if ($totalAmount > 0) {
-                // Crear movimiento de deuda por el total de la compra
-                \App\Models\SupplierCurrentAccount::create([
+                SupplierCurrentAccount::create([
                     'supplier_id' => $supplier->id,
                     'user_id' => Auth::id(),
                     'supplier_purchase_id' => $purchase->id,
                     'type' => 'debt',
                     'amount' => $totalAmount,
-                    'description' => 'Deuda por compra - Boleta ' . $validated['receipt_number'],
+                    'description' => 'Deuda por compra - Factura ' . $validated['receipt_number'],
                     'date' => $validated['purchase_date'],
                     'reference' => 'COMP-' . $purchase->id,
                     'observations' => $validated['notes']
@@ -263,24 +264,21 @@ class SupplierController extends Controller
             }
 
             if ($finalPaymentAmount > 0) {
-                // Crear movimiento de pago
-                \App\Models\SupplierCurrentAccount::create([
+                SupplierCurrentAccount::create([
                     'supplier_id' => $supplier->id,
                     'user_id' => Auth::id(),
                     'supplier_purchase_id' => $purchase->id,
                     'type' => 'payment',
                     'amount' => $finalPaymentAmount,
-                    'description' => 'Pago por compra - Boleta ' . $validated['receipt_number'],
+                    'description' => 'Pago por compra - Factura ' . $validated['receipt_number'],
                     'date' => $validated['purchase_date'],
                     'reference' => 'PAGO-' . $purchase->id,
                     'observations' => $validated['notes']
                 ]);
             }
 
-            // Si se usó crédito disponible, eliminar los movimientos de crédito más antiguos para reflejar el uso
             if ($useCredit && $creditToUse > 0) {
-                // Obtener los movimientos de crédito ordenados por fecha (más antiguos primero)
-                $creditMovements = \App\Models\SupplierCurrentAccount::where('supplier_id', $supplier->id)
+                $creditMovements = SupplierCurrentAccount::where('supplier_id', $supplier->id)
                     ->where('type', 'credit')
                     ->orderBy('date', 'asc')
                     ->orderBy('created_at', 'asc')
@@ -288,32 +286,28 @@ class SupplierController extends Controller
                 
                 $remainingCreditToUse = $creditToUse;
                 
-                // Eliminar los créditos más antiguos hasta cubrir el monto usado
                 foreach ($creditMovements as $creditMovement) {
                     if ($remainingCreditToUse <= 0) {
                         break;
                     }
                     
                     if ($creditMovement->amount <= $remainingCreditToUse) {
-                        // El crédito completo se usa, eliminarlo
                         $remainingCreditToUse -= $creditMovement->amount;
                         $creditMovement->delete();
                     } else {
-                        // Solo se usa parte del crédito, reducir su monto
                         $creditMovement->amount -= $remainingCreditToUse;
                         $creditMovement->save();
                         $remainingCreditToUse = 0;
                     }
                 }
                 
-                // Crear movimiento de pago para reflejar el uso del crédito
-                \App\Models\SupplierCurrentAccount::create([
+                SupplierCurrentAccount::create([
                     'supplier_id' => $supplier->id,
                     'user_id' => Auth::id(),
                     'supplier_purchase_id' => $purchase->id,
                     'type' => 'payment',
                     'amount' => $creditToUse,
-                    'description' => 'Uso de crédito disponible - Boleta ' . $validated['receipt_number'],
+                    'description' => 'Uso de crédito disponible - Factura ' . $validated['receipt_number'],
                     'date' => $validated['purchase_date'],
                     'reference' => 'CREDIT-USE-' . $purchase->id,
                     'observations' => 'Crédito disponible aplicado a esta compra'
@@ -321,14 +315,13 @@ class SupplierController extends Controller
             }
 
             if ($newCredit > 0) {
-                // Crear movimiento de crédito (saldo a favor)
-                \App\Models\SupplierCurrentAccount::create([
+                SupplierCurrentAccount::create([
                     'supplier_id' => $supplier->id,
                     'user_id' => Auth::id(),
                     'supplier_purchase_id' => $purchase->id,
                     'type' => 'credit',
                     'amount' => $newCredit,
-                    'description' => 'Saldo a favor - Boleta ' . $validated['receipt_number'],
+                    'description' => 'Excedente a favor - Factura ' . $validated['receipt_number'],
                     'date' => $validated['purchase_date'],
                     'reference' => 'CREDIT-' . $purchase->id,
                     'observations' => 'Pago excedente que genera saldo a favor'
@@ -360,7 +353,7 @@ class SupplierController extends Controller
      */
     public function editPurchase(Supplier $supplier, $purchase)
     {
-        $purchase = \App\Models\SupplierPurchase::findOrFail($purchase);
+        $purchase = SupplierPurchase::findOrFail($purchase);
         
         // Verificar que la compra pertenece al proveedor
         if ($purchase->supplier_id !== $supplier->id) {
@@ -375,7 +368,7 @@ class SupplierController extends Controller
      */
     public function updatePurchase(Request $request, Supplier $supplier, $purchase)
     {
-        $purchase = \App\Models\SupplierPurchase::findOrFail($purchase);
+        $purchase = SupplierPurchase::findOrFail($purchase);
         
         // Verificar que la compra pertenece al proveedor
         if ($purchase->supplier_id !== $supplier->id) {
@@ -408,7 +401,7 @@ class SupplierController extends Controller
             $finalPaymentAmount = min($paymentAmount, $remainingAmount);
             $newCredit = max(0, $paymentAmount - $remainingAmount);
 
-            // Procesar el archivo de la boleta si se proporciona uno nuevo
+            // Procesar el archivo de la factura si se proporciona uno nuevo
             if ($request->hasFile('receipt_file')) {
                 // Eliminar archivo anterior si existe
                 if ($purchase->receipt_file && Storage::exists('public/' . $purchase->receipt_file)) {
@@ -433,19 +426,16 @@ class SupplierController extends Controller
             // Actualizar la compra
             $purchase->update($validated);
 
-            // Eliminar los movimientos de cuenta corriente antiguos relacionados con esta compra
-            \App\Models\SupplierCurrentAccount::where('supplier_purchase_id', $purchase->id)->delete();
+            SupplierCurrentAccount::where('supplier_purchase_id', $purchase->id)->delete();
 
-            // Recrear los movimientos de cuenta corriente con los nuevos valores
             if ($totalAmount > 0) {
-                // Crear movimiento de deuda por el total de la compra
-                \App\Models\SupplierCurrentAccount::create([
+                SupplierCurrentAccount::create([
                     'supplier_id' => $supplier->id,
                     'user_id' => Auth::id(),
                     'supplier_purchase_id' => $purchase->id,
                     'type' => 'debt',
                     'amount' => $totalAmount,
-                    'description' => 'Deuda por compra - Boleta ' . $validated['receipt_number'],
+                    'description' => 'Deuda por compra - Factura ' . $validated['receipt_number'],
                     'date' => $validated['purchase_date'],
                     'reference' => 'COMP-' . $purchase->id,
                     'observations' => $validated['notes'] ?? null
@@ -453,14 +443,13 @@ class SupplierController extends Controller
             }
 
             if ($finalPaymentAmount > 0) {
-                // Crear movimiento de pago
-                \App\Models\SupplierCurrentAccount::create([
+                SupplierCurrentAccount::create([
                     'supplier_id' => $supplier->id,
                     'user_id' => Auth::id(),
                     'supplier_purchase_id' => $purchase->id,
                     'type' => 'payment',
                     'amount' => $finalPaymentAmount,
-                    'description' => 'Pago por compra - Boleta ' . $validated['receipt_number'],
+                    'description' => 'Pago por compra - Factura ' . $validated['receipt_number'],
                     'date' => $validated['purchase_date'],
                     'reference' => 'PAGO-' . $purchase->id,
                     'observations' => $validated['notes'] ?? null
@@ -468,14 +457,13 @@ class SupplierController extends Controller
             }
 
             if ($newCredit > 0) {
-                // Crear movimiento de crédito (saldo a favor)
-                \App\Models\SupplierCurrentAccount::create([
+                SupplierCurrentAccount::create([
                     'supplier_id' => $supplier->id,
                     'user_id' => Auth::id(),
                     'supplier_purchase_id' => $purchase->id,
                     'type' => 'credit',
                     'amount' => $newCredit,
-                    'description' => 'Saldo a favor - Boleta ' . $validated['receipt_number'],
+                    'description' => 'Excedente a favor - Factura ' . $validated['receipt_number'],
                     'date' => $validated['purchase_date'],
                     'reference' => 'CREDIT-' . $purchase->id,
                     'observations' => 'Pago excedente que genera saldo a favor'
@@ -503,9 +491,8 @@ class SupplierController extends Controller
      */
     public function destroyPurchase(Supplier $supplier, $purchase)
     {
-        $purchase = \App\Models\SupplierPurchase::findOrFail($purchase);
+        $purchase = SupplierPurchase::findOrFail($purchase);
         
-        // Verificar que la compra pertenece al proveedor
         if ($purchase->supplier_id !== $supplier->id) {
             abort(404);
         }
@@ -513,10 +500,9 @@ class SupplierController extends Controller
         DB::beginTransaction();
         
         try {
-            // Eliminar los movimientos de cuenta corriente relacionados con esta compra
-            \App\Models\SupplierCurrentAccount::where('supplier_purchase_id', $purchase->id)->delete();
+            SupplierCurrentAccount::where('supplier_purchase_id', $purchase->id)->delete();
 
-            // Eliminar el archivo de la boleta si existe
+            // Eliminar el archivo de la factura si existe
             if ($purchase->receipt_file && Storage::exists('public/' . $purchase->receipt_file)) {
                 Storage::delete('public/' . $purchase->receipt_file);
             }
@@ -536,22 +522,20 @@ class SupplierController extends Controller
     }
 
     /**
-     * Obtener información de una boleta por número
-     * MOD-026 (master): Agregada funcionalidad de búsqueda de boletas para proveedores distribuidora
+     * Buscar el total de una factura existente por número y proveedor
      */
     public function getReceiptTotal(Request $request, Supplier $supplier)
     {
         $receiptNumber = $request->input('receipt_number');
         
         if (!$receiptNumber) {
-            return response()->json(['error' => 'Número de boleta requerido'], 400);
+            return response()->json(['error' => 'Número de factura requerido'], 400);
         }
 
-        // Buscar la boleta más reciente que tenga saldo pendiente
-        $purchase = \App\Models\SupplierPurchase::where('supplier_id', $supplier->id)
+        $purchase = SupplierPurchase::where('supplier_id', $supplier->id)
             ->where('receipt_number', $receiptNumber)
-            ->where('balance_amount', '>', 0) // Solo boletas con saldo pendiente
-            ->orderBy('created_at', 'desc') // La más reciente primero
+            ->where('balance_amount', '>', 0)
+            ->orderBy('created_at', 'desc')
             ->first();
 
         if ($purchase) {
@@ -561,30 +545,119 @@ class SupplierController extends Controller
                 'balance_amount' => $purchase->balance_amount,
                 'payment_amount' => $purchase->payment_amount,
                 'purchase_date' => $purchase->purchase_date->format('d/m/Y'),
-                'message' => 'Boleta encontrada'
+                'message' => 'Factura encontrada'
             ]);
         }
 
         return response()->json([
             'success' => false,
-            'message' => 'No se encontró una boleta con ese número para este proveedor'
+            'message' => 'No se encontró una factura con ese número para este proveedor'
         ]);
     }
 
     /**
      * Mostrar historial de cuenta corriente del proveedor
+     * Con saldo acumulado (running balance) por fila
      */
     public function showCurrentAccount(Supplier $supplier)
     {
         $currentAccounts = $supplier->currentAccounts()
             ->with(['user', 'supplierPurchase'])
-            ->orderBy('date', 'desc')
-            ->orderBy('created_at', 'desc')
+            ->orderBy('date', 'asc')
+            ->orderBy('created_at', 'asc')
             ->get();
+
+        // Calcular saldo acumulado por fila (running balance)
+        $runningBalance = 0;
+        foreach ($currentAccounts as $account) {
+            if ($account->type === 'debt') {
+                $runningBalance += $account->amount;
+            } else {
+                $runningBalance -= $account->amount;
+            }
+            $account->running_balance = $runningBalance;
+        }
+
+        $totalDebts = SupplierCurrentAccount::getTotalDebts($supplier->id);
+        $totalPayments = SupplierCurrentAccount::getTotalPayments($supplier->id);
+        $totalCredits = SupplierCurrentAccount::getTotalCredits($supplier->id);
 
         $currentBalance = $supplier->getCurrentBalance();
         $formattedBalance = $supplier->getFormattedBalance();
 
-        return view('supplier_current_accounts.show', compact('supplier', 'currentAccounts', 'currentBalance', 'formattedBalance'));
+        return view('supplier_current_accounts.show', compact(
+            'supplier',
+            'currentAccounts',
+            'currentBalance',
+            'formattedBalance',
+            'totalDebts',
+            'totalPayments',
+            'totalCredits'
+        ));
+    }
+
+    /**
+     * Mostrar formulario para registrar un pago independiente
+     */
+    public function createPayment(Supplier $supplier)
+    {
+        $currentBalance = $supplier->getCurrentBalance();
+        $formattedBalance = $supplier->getFormattedBalance();
+
+        return view('suppliers.create-payment', compact(
+            'supplier',
+            'currentBalance',
+            'formattedBalance'
+        ));
+    }
+
+    /**
+     * Registrar un pago independiente al proveedor
+     */
+    public function storePayment(Request $request, Supplier $supplier)
+    {
+        $validated = $request->validate([
+            'payment_date' => 'required|date',
+            'amount' => 'required|numeric|min:0.01',
+            'reference' => 'nullable|string|max:255',
+            'observations' => 'nullable|string',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            SupplierCurrentAccount::create([
+                'supplier_id' => $supplier->id,
+                'user_id' => Auth::id(),
+                'supplier_purchase_id' => null,
+                'type' => 'payment',
+                'amount' => $validated['amount'],
+                'description' => 'Pago a proveedor' . ($validated['reference'] ? ' - Ref: ' . $validated['reference'] : ''),
+                'date' => $validated['payment_date'],
+                'reference' => $validated['reference'] ?? 'PAGO-IND-' . time(),
+                'observations' => $validated['observations'],
+            ]);
+
+            DB::commit();
+
+            $newBalance = $supplier->getCurrentBalance();
+            $message = 'Pago registrado exitosamente.';
+
+            if ($newBalance < 0) {
+                $message .= ' Excedente a favor: $' . number_format(abs($newBalance), 2) . '.';
+            } elseif ($newBalance > 0) {
+                $message .= ' Deuda pendiente: $' . number_format($newBalance, 2) . '.';
+            } else {
+                $message .= ' Cuenta al día.';
+            }
+
+            return redirect()->route('suppliers.show', $supplier)
+                ->with('success', $message);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error al registrar pago a proveedor: ' . $e->getMessage());
+            return back()->withInput()->with('error', 'Error al registrar el pago: ' . $e->getMessage());
+        }
     }
 }

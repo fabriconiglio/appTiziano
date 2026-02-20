@@ -51,26 +51,47 @@ class SupplierCurrentAccount extends Model
     }
 
     /**
+     * Obtener el total de débitos (importes de facturas/compras) de un proveedor
+     */
+    public static function getTotalDebts($supplierId)
+    {
+        return self::where('supplier_id', $supplierId)
+            ->where('type', 'debt')
+            ->sum('amount');
+    }
+
+    /**
+     * Obtener el total de pagos realizados a un proveedor
+     */
+    public static function getTotalPayments($supplierId)
+    {
+        return self::where('supplier_id', $supplierId)
+            ->where('type', 'payment')
+            ->sum('amount');
+    }
+
+    /**
+     * Obtener el total de créditos/excedentes de un proveedor
+     */
+    public static function getTotalCredits($supplierId)
+    {
+        return self::where('supplier_id', $supplierId)
+            ->where('type', 'credit')
+            ->sum('amount');
+    }
+
+    /**
      * Obtener el saldo actual de un proveedor
-     * Saldo = Deudas - Pagos - Créditos
-     * Si el resultado es negativo, hay saldo a favor
+     * Saldo = Importes Facturas - Pagos - Excedentes
+     * Si el resultado es negativo, hay excedente/saldo a favor
      */
     public static function getCurrentBalance($supplierId)
     {
-        $debts = self::where('supplier_id', $supplierId)
-            ->where('type', 'debt')
-            ->sum('amount');
+        $debts = self::getTotalDebts($supplierId);
+        $payments = self::getTotalPayments($supplierId);
+        $credits = self::getTotalCredits($supplierId);
         
-        $payments = self::where('supplier_id', $supplierId)
-            ->where('type', 'payment')
-            ->sum('amount');
-        
-        $credits = self::where('supplier_id', $supplierId)
-            ->where('type', 'credit')
-            ->sum('amount');
-        
-        // El cálculo correcto es: Deudas - Pagos - Créditos
-        // Si el resultado es negativo, hay saldo a favor
+        // Importes Facturas - Pagos - Excedentes
         $balance = $debts - $payments - $credits;
         
         return $balance;

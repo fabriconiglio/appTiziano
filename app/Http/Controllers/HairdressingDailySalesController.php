@@ -7,6 +7,7 @@ use App\Models\TechnicalRecord;
 use App\Models\Product;
 use App\Models\StockMovement;
 use App\Models\ClienteNoFrecuente;
+use App\Models\AfipInvoice;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -342,7 +343,7 @@ class HairdressingDailySalesController extends Controller
         $request->validate([
             'start_date' => 'nullable|date|before_or_equal:today',
             'end_date' => 'nullable|date|before_or_equal:today|after_or_equal:start_date',
-            'category' => 'required|string|in:total,client_accounts,client_accounts_payments,technical_records,product_sales,cliente_no_frecuente,forma_pago_efectivo,forma_pago_tarjeta,forma_pago_transferencia,forma_pago_deudor'
+            'category' => 'required|string|in:total,client_accounts,client_accounts_payments,technical_records,product_sales,cliente_no_frecuente,forma_pago_efectivo,forma_pago_tarjeta,forma_pago_transferencia,forma_pago_deudor,facturas_a,facturas_b'
         ], [
             'start_date.before_or_equal' => 'La fecha de inicio no puede ser futura',
             'end_date.before_or_equal' => 'La fecha de fin no puede ser futura',
@@ -488,6 +489,20 @@ class HairdressingDailySalesController extends Controller
                     'cliente_no_frecuente' => $clientesNoFrecuentes
                 ]);
                     
+            case 'facturas_a':
+                return AfipInvoice::whereBetween('invoice_date', [$startOfPeriod, $endOfPeriod])
+                    ->where('invoice_type', 'A')
+                    ->where('status', 'authorized')
+                    ->orderBy('invoice_date', 'desc')
+                    ->get();
+
+            case 'facturas_b':
+                return AfipInvoice::whereBetween('invoice_date', [$startOfPeriod, $endOfPeriod])
+                    ->where('invoice_type', 'B')
+                    ->where('status', 'authorized')
+                    ->orderBy('invoice_date', 'desc')
+                    ->get();
+
             default:
                 return collect();
         }

@@ -209,6 +209,12 @@ Route::get('/api/supplier-inventories/get-product', [App\Http\Controllers\Suppli
     Route::get('suppliers/{supplier}/current-account', [\App\Http\Controllers\SupplierController::class, 'showCurrentAccount'])
         ->name('suppliers.current-account.show');
 
+    // Pagos independientes de proveedores distribuidora
+    Route::get('suppliers/{supplier}/create-payment', [\App\Http\Controllers\SupplierController::class, 'createPayment'])
+        ->name('suppliers.create-payment');
+    Route::post('suppliers/{supplier}/store-payment', [\App\Http\Controllers\SupplierController::class, 'storePayment'])
+        ->name('suppliers.store-payment');
+
     // CRUD de proveedores de peluquería
     Route::resource('hairdressing-suppliers', \App\Http\Controllers\HairdressingSupplierController::class);
     Route::patch('hairdressing-suppliers/{hairdressingSupplier}/toggle-status', [\App\Http\Controllers\HairdressingSupplierController::class, 'toggleStatus'])

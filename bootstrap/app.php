@@ -14,6 +14,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             \App\Http\Middleware\SetLocale::class,
         ]);
+
+        $middleware->alias([
+            'restrict.inventory' => \App\Http\Middleware\RestrictToInventory::class,
+        ]);
         
         // Excluir webhook de Tienda Nube de la verificación CSRF
         $middleware->validateCsrfTokens(except: [

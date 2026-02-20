@@ -52,6 +52,7 @@
                                 </div>
                             </div>
                         @else
+                            @if(auth()->user()->isAdmin())
                             <!-- Botón para mostrar/ocultar inversión (siempre visible) -->
                             <div class="mb-2 d-flex justify-content-end">
                                 <button type="button" class="btn btn-outline-primary btn-sm" id="toggleInversion" title="Ocultar/Mostrar inversión">
@@ -75,6 +76,7 @@
                                     </div>
                                 </div>
                             </div>
+                            @endif
 
                             <div class="table-responsive">
                                 <table class="table table-striped">
@@ -223,6 +225,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            @if(auth()->user()->isAdmin())
             const inversionCard = document.getElementById('inversionCard');
             const toggleButton = document.getElementById('toggleInversion');
             const eyeIcon = document.getElementById('eyeIcon');
@@ -255,6 +258,7 @@
                     localStorage.setItem('inversionHidden', 'true');
                 }
             });
+            @endif
 
             // Toggle Tienda Nube
             document.querySelectorAll('.toggle-tiendanube-btn').forEach(function(btn) {

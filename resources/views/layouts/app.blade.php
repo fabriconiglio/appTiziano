@@ -49,6 +49,7 @@
                 <!-- Left Side Of Navbar -->
                 <ul class="navbar-nav me-auto">
                     @auth
+                        @if(auth()->user()->isAdmin())
                         <!-- Módulo de Peluquería -->
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="peluqueriaDropdown" role="button"
@@ -297,6 +298,15 @@
                                 </li>
                             </ul>
                         </li>
+                        @else
+                        <!-- Navegación para usuario con rol inventory_viewer -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('supplier-inventories.index') }}">
+                                <i class="fas fa-box-open me-1"></i>
+                                {{ __('Inventario Proveedor') }}
+                            </a>
+                        </li>
+                        @endif
                     @endauth
                 </ul>
 
@@ -362,6 +372,7 @@
 @stack('scripts')
 
 @auth
+@if(auth()->user()->isAdmin())
 <script>
 // Actualizar contador de alertas de peluquería
 function updatePeluqueriaAlertCount() {
@@ -408,6 +419,7 @@ updateAllAlertCounts();
 // Actualizar cada 30 segundos
 setInterval(updateAllAlertCounts, 30000);
 </script>
+@endif
 @endauth
 
 </body>

@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\StockAlert;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class HomeController extends Controller
 {
@@ -24,6 +26,12 @@ class HomeController extends Controller
      */
     public function index()
     {
+        /** @var User $user */
+        $user = Auth::user();
+        if ($user->isInventoryViewer()) {
+            return redirect()->route('supplier-inventories.index');
+        }
+
         // Obtener alertas de stock no leídas para peluquería
         $peluqueriaAlerts = StockAlert::where('is_read', false)
             ->where('inventory_type', 'peluqueria')

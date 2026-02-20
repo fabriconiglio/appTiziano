@@ -43,7 +43,7 @@ Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])
     ->middleware('verified');
 
 // Rutas protegidas: Solo accesibles si el usuario está logeado
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'restrict.inventory'])->group(function () {
     // CRUD de productos
     Route::resource('products', ProductController::class);
 

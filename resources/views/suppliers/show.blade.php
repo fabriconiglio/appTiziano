@@ -183,11 +183,11 @@ use Illuminate\Support\Facades\Storage;
                                 <thead>
                                     <tr>
                                         <th>Fecha</th>
-                                        <th>N° Boleta</th>
+                                        <th>N° Factura</th>
                                         <th>Total</th>
                                         <th>Pago</th>
                                         <th>Saldo</th>
-                                        <th>Boleta</th>
+                                        <th>Archivo</th>
                                         <th>Observaciones</th>
                                         <th>Acciones</th>
                                     </tr>
@@ -358,6 +358,9 @@ use Illuminate\Support\Facades\Storage;
                     <div class="d-grid gap-2">
                         <a href="{{ route('suppliers.create-purchase', $supplier) }}" class="btn btn-primary btn-sm">
                             <i class="fas fa-plus"></i> Agregar Compra
+                        </a>
+                        <a href="{{ route('suppliers.create-payment', $supplier) }}" class="btn btn-success btn-sm">
+                            <i class="fas fa-money-bill-wave"></i> Registrar Pago
                         </a>
                         <form action="{{ route('suppliers.toggle-status', $supplier) }}" method="POST">
                             @csrf

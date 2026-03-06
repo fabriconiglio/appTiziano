@@ -64,10 +64,12 @@
                                         <p>{{ $supplierInventory->precio_menor ? '$' . number_format($supplierInventory->precio_menor, 2) : 'No disponible' }}</p>
                                     </div>
 
+                                    @if(auth()->user()->isAdmin())
                                     <div class="col-md-4 mb-3">
                                         <strong>Costo:</strong>
                                         <p>{{ $supplierInventory->costo ? '$' . number_format($supplierInventory->costo, 2) : 'No disponible' }}</p>
                                     </div>
+                                    @endif
 
                                     <div class="col-md-4 mb-3">
                                         <strong>Cantidad en Inventario:</strong>

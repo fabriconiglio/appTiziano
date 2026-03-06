@@ -758,17 +758,21 @@ class SupplierInventoryController extends Controller
             ->orderBy('product_name')
             ->get();
 
+        $showCosts = auth()->user()->isAdmin();
+
         // Crear el archivo Excel
         $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
         
-        // Hoja 1: Nombre, Descripción - Marca, Precio Mayor y Menor, Costo
+        // Hoja 1: Nombre, Descripción - Marca, Precio Mayor y Menor (Costo solo para admin)
         $sheet1 = $spreadsheet->getActiveSheet();
         $sheet1->setTitle('Inventario Completo');
         $sheet1->setCellValue('A1', 'Nombre del Producto');
         $sheet1->setCellValue('B1', 'Descripción - Marca');
         $sheet1->setCellValue('C1', 'Precio por Mayor');
         $sheet1->setCellValue('D1', 'Precio por Menor');
-        $sheet1->setCellValue('E1', 'Costo');
+        if ($showCosts) {
+            $sheet1->setCellValue('E1', 'Costo');
+        }
         
         $row = 2;
         foreach ($products as $product) {
@@ -780,7 +784,9 @@ class SupplierInventoryController extends Controller
             $sheet1->setCellValue('B' . $row, $displayText);
             $sheet1->setCellValue('C' . $row, $product->precio_mayor ? '$' . number_format($product->precio_mayor, 2) : 'N/A');
             $sheet1->setCellValue('D' . $row, $product->precio_menor ? '$' . number_format($product->precio_menor, 2) : 'N/A');
-            $sheet1->setCellValue('E' . $row, $product->costo ? '$' . number_format($product->costo, 2) : 'N/A');
+            if ($showCosts) {
+                $sheet1->setCellValue('E' . $row, $product->costo ? '$' . number_format($product->costo, 2) : 'N/A');
+            }
             $row++;
         }
         
@@ -824,7 +830,7 @@ class SupplierInventoryController extends Controller
         
         // Ajustar ancho de columnas automáticamente
         foreach ([$sheet1, $sheet2, $sheet3] as $sheet) {
-            $maxColumn = $sheet === $sheet1 ? 'E' : 'C';
+            $maxColumn = $sheet === $sheet1 ? ($showCosts ? 'E' : 'D') : 'C';
             foreach (range('A', $maxColumn) as $column) {
                 $sheet->getColumnDimension($column)->setAutoSize(true);
             }

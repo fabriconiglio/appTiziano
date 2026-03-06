@@ -90,7 +90,9 @@
                                         <th>Stock</th>
                                         <th>Precio al Mayor</th>
                                         <th>Precio al Menor</th>
+                                        @if(auth()->user()->isAdmin())
                                         <th>Costo</th>
+                                        @endif
                                         <th>Estado</th>
                                         <th style="width: 80px;" class="text-center" title="Tienda Nube"><i class="fas fa-cloud"></i></th>
                                         <th>Acciones</th>
@@ -115,7 +117,9 @@
                                         <td>{{ $item->stock_quantity }}</td>
                                         <td>${{ number_format($item->precio_mayor, 2) }}</td>
                                         <td>${{ number_format($item->precio_menor, 2) }}</td>
+                                        @if(auth()->user()->isAdmin())
                                         <td>${{ number_format($item->costo, 2) }}</td>
+                                        @endif
                                         <td>
                                             <span class="badge {{ $item->status_badge_class }}">{{ $item->status_text }}</span>
                                         </td>

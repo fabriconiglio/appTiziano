@@ -108,6 +108,7 @@
                                         @enderror
                                     </div>
                                 </div>
+                                @if(auth()->user()->isAdmin())
                                 <div class="col-md-6 mb-3">
                                     <label for="costo" class="form-label">Costo</label>
                                     <div class="input-group">
@@ -118,6 +119,7 @@
                                         @enderror
                                     </div>
                                 </div>
+                                @endif
 
                                 <div class="col-md-6 mb-3">
                                     <label for="stock_quantity" class="form-label">Cantidad en Inventario *</label>

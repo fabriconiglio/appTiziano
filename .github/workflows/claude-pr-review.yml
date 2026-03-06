@@ -1,0 +1,33 @@
+name: Claude PR Review
+
+on:
+  pull_request:
+    branches: [master]
+    types: [opened, synchronize]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  id-token: write
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'pull_request' ||
+      (github.event_name == 'issue_comment' &&
+       github.event.issue.pull_request &&
+       contains(github.event.comment.body, '@claude') &&
+       github.event.comment.user.type != 'Bot')
+    steps:
+      - uses: drillan/claude-pr-reviewer@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          review_language: Spanish
+          custom_prompt: |
+            Este es un proyecto Laravel 11 en español.
+            Revisa siguiendo las convenciones del proyecto: PSR-12, mensajes en español,
+            validación de input, manejo de errores con try-catch y Log::error().

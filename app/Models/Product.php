@@ -15,9 +15,14 @@ class Product extends Model
         'current_stock',
         'minimum_stock',
         'price',
+        'is_featured',
         'category_id',
-        'brand_id', // Agregamos el brand_id a los campos fillable
+        'brand_id',
         'supplier_name',
+    ];
+
+    protected $casts = [
+        'is_featured' => 'boolean',
     ];
 
     public function stockMovements()

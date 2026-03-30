@@ -1,0 +1,54 @@
+import { Brand, Category, PaginatedResponse, Product, Slider } from './types'
+
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
+
+async function apiFetch<T>(path: string): Promise<T> {
+  const res = await fetch(`${BASE_URL}/api${path}`, {
+    headers: { Accept: 'application/json' },
+    next: { revalidate: 60 },
+  })
+  if (!res.ok) throw new Error(`API error ${res.status}: ${path}`)
+  return res.json()
+}
+
+export async function getProducts(params?: {
+  category_id?: number
+  brand_id?: number
+  search?: string
+  page?: number
+  featured?: boolean
+}): Promise<PaginatedResponse<Product>> {
+  const qs = new URLSearchParams()
+  if (params?.category_id) qs.set('category_id', String(params.category_id))
+  if (params?.brand_id) qs.set('brand_id', String(params.brand_id))
+  if (params?.search) qs.set('search', params.search)
+  if (params?.page) qs.set('page', String(params.page))
+  if (params?.featured) qs.set('featured', '1')
+  const query = qs.toString() ? `?${qs}` : ''
+  return apiFetch<PaginatedResponse<Product>>(`/products${query}`)
+}
+
+export async function getProduct(id: number): Promise<Product> {
+  return apiFetch<Product>(`/products/${id}`)
+}
+
+export async function getCategories(): Promise<Category[]> {
+  return apiFetch<Category[]>('/categories')
+}
+
+export async function getBrands(): Promise<Brand[]> {
+  return apiFetch<Brand[]>('/brands')
+}
+
+export async function getSliders(): Promise<Slider[]> {
+  return apiFetch<Slider[]>('/sliders')
+}
+
+export function formatPrice(price: string | number): string {
+  const num = typeof price === 'string' ? parseFloat(price) : price
+  return new Intl.NumberFormat('es-AR', {
+    style: 'currency',
+    currency: 'ARS',
+    minimumFractionDigits: 0,
+  }).format(num)
+}

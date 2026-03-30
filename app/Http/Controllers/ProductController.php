@@ -40,12 +40,15 @@ class ProductController extends Controller
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
             'category_id' => 'required|exists:categories,id',
-            'brand_id' => 'nullable|exists:brands,id', // Agregamos validación para brand_id
+            'brand_id' => 'nullable|exists:brands,id',
             'supplier_name' => 'nullable|string|max:255',
             'sku' => 'nullable|string|max:50|unique:products',
             'current_stock' => 'nullable|integer|min:0',
             'minimum_stock' => 'nullable|integer|min:0',
+            'is_featured' => 'nullable|boolean',
         ]);
+
+        $validated['is_featured'] = $request->boolean('is_featured');
 
         Product::create($validated);
 
@@ -78,12 +81,15 @@ class ProductController extends Controller
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
             'category_id' => 'required|exists:categories,id',
-            'brand_id' => 'nullable|exists:brands,id', // Agregamos validación para brand_id
+            'brand_id' => 'nullable|exists:brands,id',
             'supplier_name' => 'nullable|string|max:255',
             'sku' => 'nullable|string|max:50|unique:products,sku,' . $product->id,
             'current_stock' => 'nullable|integer|min:0',
             'minimum_stock' => 'nullable|integer|min:0',
+            'is_featured' => 'nullable|boolean',
         ]);
+
+        $validated['is_featured'] = $request->boolean('is_featured');
 
         $product->update($validated);
 

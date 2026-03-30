@@ -28,10 +28,7 @@ class SupplierInventory extends Model
         'precio_menor',
         'costo',
         'images',
-        'publicar_tiendanube',
-        'tiendanube_product_id',
-        'tiendanube_variant_id',
-        'tiendanube_synced_at'
+        'is_featured',
     ];
 
     protected $dates = [
@@ -47,8 +44,7 @@ class SupplierInventory extends Model
         'stock_quantity' => 'integer',
         'last_restock_date' => 'date',
         'images' => 'array',
-        'publicar_tiendanube' => 'boolean',
-        'tiendanube_synced_at' => 'datetime'
+        'is_featured' => 'boolean',
     ];
 
     // Puedes añadir métodos personalizados según necesites
@@ -138,49 +134,4 @@ class SupplierInventory extends Model
         }, $this->images);
     }
 
-    /**
-     * Verificar si el producto está sincronizado con Tienda Nube
-     */
-    public function isSyncedWithTiendaNube(): bool
-    {
-        return !empty($this->tiendanube_product_id);
-    }
-
-    /**
-     * Verificar si el producto necesita sincronización
-     */
-    public function needsTiendaNubeSync(): bool
-    {
-        if (!$this->publicar_tiendanube) {
-            return false;
-        }
-
-        if (!$this->isSyncedWithTiendaNube()) {
-            return true;
-        }
-
-        // Si fue modificado después de la última sincronización
-        return $this->updated_at > $this->tiendanube_synced_at;
-    }
-
-    /**
-     * Scope para productos que deben publicarse en Tienda Nube
-     */
-    public function scopeForTiendaNube($query)
-    {
-        return $query->where('publicar_tiendanube', true);
-    }
-
-    /**
-     * Scope para productos pendientes de sincronización
-     */
-    public function scopePendingTiendaNubeSync($query)
-    {
-        return $query->where('publicar_tiendanube', true)
-            ->where(function ($q) {
-                $q->whereNull('tiendanube_product_id')
-                    ->orWhereColumn('updated_at', '>', 'tiendanube_synced_at')
-                    ->orWhereNull('tiendanube_synced_at');
-            });
-    }
 }

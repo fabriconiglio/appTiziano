@@ -256,12 +256,21 @@
                                         {{ __('Ventas por Día') }}
                                     </a>
                                 </li>
-                                <li><hr class="dropdown-divider"></li>
-                                <!-- Submenú Tienda Nube -->
+                            </ul>
+                        </li>
+
+                        <!-- Módulo E-Commerce -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="ecommerceDropdown" role="button"
+                               data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-store me-1"></i>
+                                {{ __('E-Commerce') }}
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="ecommerceDropdown">
                                 <li class="dropdown-submenu">
-                                    <a class="dropdown-item" href="{{ route('tiendanube.index') }}">
-                                        <i class="fas fa-cloud text-info me-2"></i>
-                                        {{ __('Tienda Nube') }}
+                                    <a class="dropdown-item" href="{{ route('sliders.index') }}">
+                                        <i class="fas fa-images me-2"></i>
+                                        {{ __('Sliders') }}
                                     </a>
                                 </li>
                             </ul>

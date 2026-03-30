@@ -157,11 +157,6 @@
                                             Ventas por Día
                                         </a>
 
-                                        <a href="{{ route('tiendanube.index') }}"
-                                           class="btn btn-info">
-                                            <i class="fas fa-cloud me-2"></i>
-                                            Tienda Nube
-                                        </a>
                                     </div>
                                 </div>
                             </div>

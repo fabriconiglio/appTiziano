@@ -197,25 +197,18 @@
                                 </div>
                             </div>
 
-                            <div class="row mb-4">
-                                <h5>Tienda Nube</h5>
+                            <div class="row mb-3">
+                                <h5>E-Commerce</h5>
                                 <hr>
                                 <div class="col-md-12 mb-3">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="publicar_tiendanube" name="publicar_tiendanube" value="1" {{ old('publicar_tiendanube', $supplierInventory->publicar_tiendanube) ? 'checked' : '' }}>
-                                        <label class="form-check-label" for="publicar_tiendanube">
-                                            <i class="fas fa-cloud-upload-alt me-1"></i> Publicar en Tienda Nube
+                                    <input type="hidden" name="is_featured" value="0">
+                                    <div class="form-check form-switch">
+                                        <input type="checkbox" class="form-check-input" id="is_featured" name="is_featured" value="1" {{ old('is_featured', $supplierInventory->is_featured) ? 'checked' : '' }}>
+                                        <label class="form-check-label fw-semibold" for="is_featured">
+                                            <i class="fas fa-star text-warning me-1"></i> Producto destacado en el E-Commerce
                                         </label>
-                                        <small class="d-block text-muted">Marcar para sincronizar este producto con tu tienda online.</small>
                                     </div>
-                                    @if($supplierInventory->tiendanube_product_id)
-                                    <div class="mt-2">
-                                        <span class="badge bg-success"><i class="fas fa-check me-1"></i> Sincronizado con Tienda Nube</span>
-                                        @if($supplierInventory->tiendanube_synced_at)
-                                        <small class="text-muted ms-2">Última sincronización: {{ $supplierInventory->tiendanube_synced_at->format('d/m/Y H:i') }}</small>
-                                        @endif
-                                    </div>
-                                    @endif
+                                    <div class="form-text">Si está activo, puede aparecer en la sección de destacados de la tienda online (con stock disponible).</div>
                                 </div>
                             </div>
 

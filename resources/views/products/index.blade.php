@@ -32,7 +32,12 @@
                 <tbody>
                 @foreach ($products as $product)
                     <tr>
-                        <td>{{ $product->name }}</td>
+                        <td>
+                            {{ $product->name }}
+                            @if($product->is_featured)
+                                <span class="badge bg-warning text-dark ms-1" title="Destacado en E-Commerce"><i class="fas fa-star"></i></span>
+                            @endif
+                        </td>
                         <td>
                             @if($product->category)
                                 <span class="badge bg-primary">{{ $product->category->name }}</span>

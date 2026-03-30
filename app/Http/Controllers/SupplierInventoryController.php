@@ -475,8 +475,10 @@ class SupplierInventoryController extends Controller
             'precio_menor' => 'nullable|numeric|min:0',
             'costo' => 'nullable|numeric|min:0',
             'images.*' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'publicar_tiendanube' => 'nullable|boolean',
+            'is_featured' => 'nullable|boolean',
         ]);
+
+        $validated['is_featured'] = $request->boolean('is_featured');
 
         // Establecer el estado basado en el stock
         if (!isset($validated['status'])) {
@@ -498,9 +500,6 @@ class SupplierInventoryController extends Controller
             }
         }
         $validated['images'] = !empty($imagePaths) ? $imagePaths : null;
-        
-        // Procesar checkbox de Tienda Nube
-        $validated['publicar_tiendanube'] = $request->has('publicar_tiendanube');
 
         SupplierInventory::create($validated);
 
@@ -555,8 +554,10 @@ class SupplierInventoryController extends Controller
             'delete_images' => 'nullable|array',
             'delete_images.*' => 'string',
             'image_order' => 'nullable|string',
-            'publicar_tiendanube' => 'nullable|boolean',
+            'is_featured' => 'nullable|boolean',
         ]);
+
+        $validated['is_featured'] = $request->boolean('is_featured');
 
         // Actualizar el estado basado en el stock
         if (!isset($validated['status'])) {
@@ -595,7 +596,7 @@ class SupplierInventoryController extends Controller
         
         // Agregar nuevas imágenes
         if ($request->hasFile('images')) {
-            $maxImages = config('tiendanube.images.max_per_product', 5);
+            $maxImages = 5;
             foreach ($request->file('images') as $image) {
                 if (count($currentImages) >= $maxImages) {
                     break; // No agregar más si ya alcanzó el límite
@@ -606,9 +607,6 @@ class SupplierInventoryController extends Controller
         }
         
         $validated['images'] = !empty($currentImages) ? $currentImages : null;
-        
-        // Procesar checkbox de Tienda Nube
-        $validated['publicar_tiendanube'] = $request->has('publicar_tiendanube');
         
         // Remover campos que no son del modelo
         unset($validated['delete_images'], $validated['image_order']);
@@ -661,24 +659,6 @@ class SupplierInventoryController extends Controller
         }
         
         return response()->json(['success' => false, 'message' => 'Imagen no encontrada'], 404);
-    }
-
-    /**
-     * Toggle publicar en Tienda Nube
-     */
-    public function toggleTiendaNube(SupplierInventory $supplierInventory)
-    {
-        $supplierInventory->update([
-            'publicar_tiendanube' => !$supplierInventory->publicar_tiendanube
-        ]);
-        
-        $status = $supplierInventory->publicar_tiendanube ? 'activada' : 'desactivada';
-        
-        return response()->json([
-            'success' => true,
-            'publicar_tiendanube' => $supplierInventory->publicar_tiendanube,
-            'message' => "Publicación en Tienda Nube {$status}"
-        ]);
     }
 
     /**

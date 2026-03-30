@@ -94,7 +94,6 @@
                                         <th>Costo</th>
                                         @endif
                                         <th>Estado</th>
-                                        <th style="width: 80px;" class="text-center" title="Tienda Nube"><i class="fas fa-cloud"></i></th>
                                         <th>Acciones</th>
                                     </tr>
                                     </thead>
@@ -110,7 +109,12 @@
                                                 </div>
                                             @endif
                                         </td>
-                                        <td>{{ $item->product_name }}</td>
+                                        <td>
+                                            {{ $item->product_name }}
+                                            @if($item->is_featured)
+                                                <span class="badge bg-warning text-dark ms-1" title="Destacado en E-Commerce"><i class="fas fa-star"></i></span>
+                                            @endif
+                                        </td>
                                         <td>{{ $item->distributorCategory ? $item->distributorCategory->name : '-' }}</td>
                                         <td>{{ $item->distributorBrand ? $item->distributorBrand->name : '-' }}</td>
                                         <td>{{ $item->description }}</td>
@@ -122,20 +126,6 @@
                                         @endif
                                         <td>
                                             <span class="badge {{ $item->status_badge_class }}">{{ $item->status_text }}</span>
-                                        </td>
-                                        <td class="text-center">
-                                            <button type="button" 
-                                                    class="btn btn-sm toggle-tiendanube-btn {{ $item->publicar_tiendanube ? 'btn-success' : 'btn-outline-secondary' }}" 
-                                                    data-id="{{ $item->id }}"
-                                                    title="{{ $item->publicar_tiendanube ? 'Publicado en Tienda Nube' : 'No publicado en Tienda Nube' }}">
-                                                @if($item->tiendanube_product_id)
-                                                    <i class="fas fa-check-circle"></i>
-                                                @elseif($item->publicar_tiendanube)
-                                                    <i class="fas fa-clock"></i>
-                                                @else
-                                                    <i class="fas fa-cloud"></i>
-                                                @endif
-                                            </button>
                                         </td>
                                         <td>
                                             <div class="btn-group" role="group">
@@ -264,50 +254,6 @@
             });
             @endif
 
-            // Toggle Tienda Nube
-            document.querySelectorAll('.toggle-tiendanube-btn').forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                    const productId = this.dataset.id;
-                    const button = this;
-                    
-                    button.disabled = true;
-                    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-                    
-                    fetch('/supplier-inventories/' + productId + '/toggle-tiendanube', {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json'
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            if (data.publicar_tiendanube) {
-                                button.classList.remove('btn-outline-secondary');
-                                button.classList.add('btn-success');
-                                button.innerHTML = '<i class="fas fa-clock"></i>';
-                                button.title = 'Publicado en Tienda Nube (pendiente sincronización)';
-                            } else {
-                                button.classList.remove('btn-success');
-                                button.classList.add('btn-outline-secondary');
-                                button.innerHTML = '<i class="fas fa-cloud"></i>';
-                                button.title = 'No publicado en Tienda Nube';
-                            }
-                        } else {
-                            alert('Error: ' + (data.error || 'Error desconocido'));
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        alert('Error al actualizar el estado');
-                    })
-                    .finally(() => {
-                        button.disabled = false;
-                    });
-                });
-            });
         });
     </script>
 @endsection

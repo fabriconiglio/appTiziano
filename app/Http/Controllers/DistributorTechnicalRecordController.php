@@ -330,13 +330,23 @@ class DistributorTechnicalRecordController extends Controller
                     $supplierInventory = SupplierInventory::find($productData['product_id']);
                     
                     if ($supplierInventory) {
-                        // Verificar stock disponible
                         if ($supplierInventory->stock_quantity < $productData['quantity']) {
                             throw new \Exception("Stock insuficiente para el producto: {$supplierInventory->product_name}. Stock disponible: {$supplierInventory->stock_quantity}");
                         }
                         
-                        // Descontar stock
                         $supplierInventory->decrement('stock_quantity', $productData['quantity']);
+                        $supplierInventory->updateStatus();
+                        Log::info('Stock descontado (store ficha técnica)', [
+                            'technical_record_id' => $technicalRecord->id,
+                            'product_id' => $productData['product_id'],
+                            'quantity' => $productData['quantity'],
+                            'new_stock' => $supplierInventory->fresh()->stock_quantity,
+                        ]);
+                    } else {
+                        Log::warning('Producto no encontrado al descontar stock (store ficha técnica)', [
+                            'product_id' => $productData['product_id'],
+                            'quantity' => $productData['quantity'],
+                        ]);
                     }
                 }
             }
@@ -724,6 +734,19 @@ class DistributorTechnicalRecordController extends Controller
                     $supplierInventory = SupplierInventory::find($productData['product_id']);
                     if ($supplierInventory) {
                         $supplierInventory->increment('stock_quantity', $productData['quantity']);
+                        $supplierInventory->updateStatus();
+                        Log::info('Stock restaurado (update ficha técnica - paso 1)', [
+                            'technical_record_id' => $distributorTechnicalRecord->id,
+                            'product_id' => $productData['product_id'],
+                            'quantity' => $productData['quantity'],
+                            'new_stock' => $supplierInventory->fresh()->stock_quantity,
+                        ]);
+                    } else {
+                        Log::warning('Producto no encontrado al restaurar stock (update ficha técnica)', [
+                            'technical_record_id' => $distributorTechnicalRecord->id,
+                            'product_id' => $productData['product_id'],
+                            'quantity' => $productData['quantity'],
+                        ]);
                     }
                 }
             }
@@ -737,13 +760,24 @@ class DistributorTechnicalRecordController extends Controller
                     $supplierInventory = SupplierInventory::find($productData['product_id']);
                     
                     if ($supplierInventory) {
-                        // Verificar stock disponible
                         if ($supplierInventory->stock_quantity < $productData['quantity']) {
                             throw new \Exception("Stock insuficiente para el producto: {$supplierInventory->product_name}. Stock disponible: {$supplierInventory->stock_quantity}");
                         }
                         
-                        // Descontar stock
                         $supplierInventory->decrement('stock_quantity', $productData['quantity']);
+                        $supplierInventory->updateStatus();
+                        Log::info('Stock descontado (update ficha técnica - paso 2)', [
+                            'technical_record_id' => $distributorTechnicalRecord->id,
+                            'product_id' => $productData['product_id'],
+                            'quantity' => $productData['quantity'],
+                            'new_stock' => $supplierInventory->fresh()->stock_quantity,
+                        ]);
+                    } else {
+                        Log::warning('Producto no encontrado al descontar stock (update ficha técnica)', [
+                            'technical_record_id' => $distributorTechnicalRecord->id,
+                            'product_id' => $productData['product_id'],
+                            'quantity' => $productData['quantity'],
+                        ]);
                     }
                 }
             }
@@ -832,27 +866,56 @@ class DistributorTechnicalRecordController extends Controller
     {
         $distributorTechnicalRecord = DistributorTechnicalRecord::findOrFail($technical_record);
         
-        // Restaurar stock al eliminar
         DB::beginTransaction();
         
         try {
+            $stockWarnings = [];
+
+            // Restaurar stock al eliminar
             if (!empty($distributorTechnicalRecord->products_purchased)) {
                 foreach ($distributorTechnicalRecord->products_purchased as $productData) {
                     $supplierInventory = SupplierInventory::find($productData['product_id']);
                     if ($supplierInventory) {
                         $supplierInventory->increment('stock_quantity', $productData['quantity']);
+                        $supplierInventory->updateStatus();
+                        Log::info('Stock restaurado (destroy ficha técnica)', [
+                            'technical_record_id' => $distributorTechnicalRecord->id,
+                            'product_id' => $productData['product_id'],
+                            'product_name' => $supplierInventory->product_name,
+                            'quantity_restored' => $productData['quantity'],
+                            'new_stock' => $supplierInventory->fresh()->stock_quantity,
+                        ]);
+                    } else {
+                        Log::warning('No se pudo restaurar stock: producto no encontrado (destroy ficha técnica)', [
+                            'technical_record_id' => $distributorTechnicalRecord->id,
+                            'product_id' => $productData['product_id'],
+                            'quantity' => $productData['quantity'],
+                        ]);
+                        $stockWarnings[] = "Producto ID {$productData['product_id']} (cant: {$productData['quantity']}) ya no existe en inventario, su stock no fue restaurado.";
                     }
                 }
             }
 
+            // Limpiar movimientos de cuenta corriente vinculados
+            DistributorCurrentAccount::where('distributor_technical_record_id', $distributorTechnicalRecord->id)->delete();
+
             $distributorTechnicalRecord->delete();
             DB::commit();
 
+            $message = 'Ficha técnica de compra eliminada exitosamente. Stock restaurado.';
+            if (!empty($stockWarnings)) {
+                $message .= ' Advertencias: ' . implode(' ', $stockWarnings);
+            }
+
             return redirect()->route('distributor-clients.show', $distributorClient)
-                ->with('success', 'Ficha técnica de compra eliminada exitosamente.');
+                ->with('success', $message);
 
         } catch (\Exception $e) {
             DB::rollback();
+            Log::error('Error al eliminar ficha técnica', [
+                'technical_record_id' => $distributorTechnicalRecord->id,
+                'error' => $e->getMessage(),
+            ]);
             return back()->withErrors(['error' => 'Error al eliminar la ficha técnica: ' . $e->getMessage()]);
         }
     }

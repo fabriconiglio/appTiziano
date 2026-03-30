@@ -8,6 +8,7 @@ use App\Models\SupplierInventory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class DistributorClienteNoFrecuenteController extends Controller
@@ -104,13 +105,23 @@ class DistributorClienteNoFrecuenteController extends Controller
                     $supplierInventory = SupplierInventory::find($productData['product_id']);
                     
                     if ($supplierInventory) {
-                        // Verificar stock disponible
                         if ($supplierInventory->stock_quantity < $productData['quantity']) {
                             throw new \Exception("Stock insuficiente para el producto: {$supplierInventory->product_name}. Stock disponible: {$supplierInventory->stock_quantity}");
                         }
                         
-                        // Descontar stock
                         $supplierInventory->decrement('stock_quantity', $productData['quantity']);
+                        $supplierInventory->updateStatus();
+                        Log::info('Stock descontado (store cliente no frecuente)', [
+                            'cliente_no_frecuente_id' => $clienteNoFrecuente->id,
+                            'product_id' => $productData['product_id'],
+                            'quantity' => $productData['quantity'],
+                            'new_stock' => $supplierInventory->fresh()->stock_quantity,
+                        ]);
+                    } else {
+                        Log::warning('Producto no encontrado al descontar stock (store cliente no frecuente)', [
+                            'product_id' => $productData['product_id'],
+                            'quantity' => $productData['quantity'],
+                        ]);
                     }
                 }
             }
@@ -199,6 +210,19 @@ class DistributorClienteNoFrecuenteController extends Controller
                     $supplierInventory = SupplierInventory::find($productData['product_id']);
                     if ($supplierInventory) {
                         $supplierInventory->increment('stock_quantity', $productData['quantity']);
+                        $supplierInventory->updateStatus();
+                        Log::info('Stock restaurado (update cliente no frecuente - paso 1)', [
+                            'cliente_no_frecuente_id' => $distributorClienteNoFrecuente->id,
+                            'product_id' => $productData['product_id'],
+                            'quantity' => $productData['quantity'],
+                            'new_stock' => $supplierInventory->fresh()->stock_quantity,
+                        ]);
+                    } else {
+                        Log::warning('Producto no encontrado al restaurar stock (update cliente no frecuente)', [
+                            'cliente_no_frecuente_id' => $distributorClienteNoFrecuente->id,
+                            'product_id' => $productData['product_id'],
+                            'quantity' => $productData['quantity'],
+                        ]);
                     }
                 }
             }
@@ -212,13 +236,23 @@ class DistributorClienteNoFrecuenteController extends Controller
                     $supplierInventory = SupplierInventory::find($productData['product_id']);
                     
                     if ($supplierInventory) {
-                        // Verificar stock disponible
                         if ($supplierInventory->stock_quantity < $productData['quantity']) {
                             throw new \Exception("Stock insuficiente para el producto: {$supplierInventory->product_name}. Stock disponible: {$supplierInventory->stock_quantity}");
                         }
                         
-                        // Descontar stock
                         $supplierInventory->decrement('stock_quantity', $productData['quantity']);
+                        $supplierInventory->updateStatus();
+                        Log::info('Stock descontado (update cliente no frecuente - paso 2)', [
+                            'cliente_no_frecuente_id' => $distributorClienteNoFrecuente->id,
+                            'product_id' => $productData['product_id'],
+                            'quantity' => $productData['quantity'],
+                            'new_stock' => $supplierInventory->fresh()->stock_quantity,
+                        ]);
+                    } else {
+                        Log::warning('Producto no encontrado al descontar stock (update cliente no frecuente)', [
+                            'product_id' => $productData['product_id'],
+                            'quantity' => $productData['quantity'],
+                        ]);
                     }
                 }
             }
@@ -238,15 +272,32 @@ class DistributorClienteNoFrecuenteController extends Controller
      */
     public function destroy(DistributorClienteNoFrecuente $distributorClienteNoFrecuente)
     {
-        // Restaurar stock al eliminar
         DB::beginTransaction();
         
         try {
+            $stockWarnings = [];
+
+            // Restaurar stock al eliminar
             if (!empty($distributorClienteNoFrecuente->products_purchased)) {
                 foreach ($distributorClienteNoFrecuente->products_purchased as $productData) {
                     $supplierInventory = SupplierInventory::find($productData['product_id']);
                     if ($supplierInventory) {
                         $supplierInventory->increment('stock_quantity', $productData['quantity']);
+                        $supplierInventory->updateStatus();
+                        Log::info('Stock restaurado (destroy cliente no frecuente)', [
+                            'cliente_no_frecuente_id' => $distributorClienteNoFrecuente->id,
+                            'product_id' => $productData['product_id'],
+                            'product_name' => $supplierInventory->product_name,
+                            'quantity_restored' => $productData['quantity'],
+                            'new_stock' => $supplierInventory->fresh()->stock_quantity,
+                        ]);
+                    } else {
+                        Log::warning('No se pudo restaurar stock: producto no encontrado (destroy cliente no frecuente)', [
+                            'cliente_no_frecuente_id' => $distributorClienteNoFrecuente->id,
+                            'product_id' => $productData['product_id'],
+                            'quantity' => $productData['quantity'],
+                        ]);
+                        $stockWarnings[] = "Producto ID {$productData['product_id']} (cant: {$productData['quantity']}) ya no existe en inventario, su stock no fue restaurado.";
                     }
                 }
             }
@@ -254,10 +305,19 @@ class DistributorClienteNoFrecuenteController extends Controller
             $distributorClienteNoFrecuente->delete();
             DB::commit();
 
+            $message = 'Cliente no frecuente eliminado exitosamente. Stock restaurado.';
+            if (!empty($stockWarnings)) {
+                $message .= ' Advertencias: ' . implode(' ', $stockWarnings);
+            }
+
             return redirect()->route('distributor-cliente-no-frecuentes.index')
-                ->with('success', 'Cliente no frecuente eliminado exitosamente.');
+                ->with('success', $message);
         } catch (\Exception $e) {
             DB::rollback();
+            Log::error('Error al eliminar cliente no frecuente', [
+                'cliente_no_frecuente_id' => $distributorClienteNoFrecuente->id,
+                'error' => $e->getMessage(),
+            ]);
             return back()->withErrors(['error' => 'Error al eliminar el cliente no frecuente: ' . $e->getMessage()]);
         }
     }

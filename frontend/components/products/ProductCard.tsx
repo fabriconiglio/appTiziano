@@ -35,24 +35,32 @@ export default function ProductCard({ product }: ProductCardProps) {
     >
       {/* Image area */}
       <Link href={`/productos/${product.id}`} className="block relative overflow-hidden" style={{ aspectRatio: '1 / 1' }}>
-        <div
-          className="w-full h-full flex items-center justify-center"
-          style={{ background: 'linear-gradient(135deg, var(--color-cream) 0%, var(--color-primary-light) 100%)' }}
-        >
-          {/* Placeholder visual */}
-          <div className="text-center px-4">
-            <div
-              className="w-20 h-20 rounded-full mx-auto mb-3 flex items-center justify-center"
-              style={{ background: 'var(--color-primary)', opacity: 0.4 }}
-            />
-            <span
-              className="text-xs uppercase tracking-wider font-semibold"
-              style={{ color: 'var(--color-primary-dark)' }}
-            >
-              {product.brand?.name ?? 'Tiziano'}
-            </span>
+        {product.image_url ? (
+          <img
+            src={product.image_url}
+            alt={product.name}
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            loading="lazy"
+          />
+        ) : (
+          <div
+            className="w-full h-full flex items-center justify-center"
+            style={{ background: 'linear-gradient(135deg, var(--color-cream) 0%, var(--color-primary-light) 100%)' }}
+          >
+            <div className="text-center px-4">
+              <div
+                className="w-20 h-20 rounded-full mx-auto mb-3 flex items-center justify-center"
+                style={{ background: 'var(--color-primary)', opacity: 0.4 }}
+              />
+              <span
+                className="text-xs uppercase tracking-wider font-semibold"
+                style={{ color: 'var(--color-primary-dark)' }}
+              >
+                {product.brand?.name ?? 'Tiziano'}
+              </span>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Stock badge */}
         {product.current_stock <= product.minimum_stock && product.current_stock > 0 && (

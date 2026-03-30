@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useState, useEffect } from 'react'
 import { Menu, X, ChevronDown, Search, ShoppingBag } from 'lucide-react'
 import { Category } from '@/lib/types'
@@ -51,17 +52,27 @@ export default function Header() {
       >
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-20">
           {/* Logo */}
-          <Link href="/" className="flex flex-col leading-none">
-            <span
-              style={{ fontFamily: 'var(--font-display)', color: 'var(--color-dark)', fontSize: '1.5rem', fontWeight: 700, fontStyle: 'italic' }}
-            >
-              Tiziano
-            </span>
-            <span
-              style={{ color: 'var(--color-primary)', fontSize: '0.65rem', letterSpacing: '0.25em', textTransform: 'uppercase', fontWeight: 600 }}
-            >
-              Peluquería Profesional
-            </span>
+          <Link href="/" className="flex items-center gap-3">
+            <Image
+              src="/images/tiziano-logo-final.jpeg"
+              alt="Tiziano Peluquería & Spa"
+              width={48}
+              height={48}
+              className="rounded-full object-cover"
+              priority
+            />
+            <div className="flex flex-col leading-none">
+              <span
+                style={{ fontFamily: 'var(--font-display)', color: 'var(--color-dark)', fontSize: '1.5rem', fontWeight: 700, fontStyle: 'italic' }}
+              >
+                Tiziano
+              </span>
+              <span
+                style={{ color: 'var(--color-primary)', fontSize: '0.65rem', letterSpacing: '0.25em', textTransform: 'uppercase', fontWeight: 600 }}
+              >
+                Peluquería Profesional
+              </span>
+            </div>
           </Link>
 
           {/* Desktop nav */}
@@ -75,7 +86,7 @@ export default function Header() {
                   onMouseLeave={() => setDropdownOpen(false)}
                 >
                   <button
-                    className="flex items-center gap-1 font-semibold text-sm uppercase tracking-wider"
+                    className="flex items-center gap-1 font-semibold text-sm uppercase tracking-wider py-2"
                     style={{ color: 'var(--color-dark)', letterSpacing: '0.1em' }}
                   >
                     {link.label}
@@ -88,32 +99,48 @@ export default function Header() {
                     />
                   </button>
 
+                  {/* Invisible bridge so hover isn't lost crossing the gap */}
+                  {dropdownOpen && <div className="absolute left-0 top-full h-2 w-full" />}
+
                   {dropdownOpen && (
                     <div
-                      className="absolute top-full left-0 mt-2 min-w-56 py-2 z-50"
+                      className="absolute top-[calc(100%+8px)] left-1/2 -translate-x-1/2 z-50 p-5"
                       style={{
                         background: 'var(--color-white)',
-                        border: `1px solid var(--color-border)`,
-                        boxShadow: '0 8px 30px rgba(51,51,51,0.12)',
+                        border: '1px solid var(--color-border)',
+                        boxShadow: '0 12px 40px rgba(51,51,51,0.14)',
+                        width: 'max-content',
+                        maxWidth: '680px',
                       }}
                     >
                       <Link
                         href="/productos"
-                        className="block px-5 py-2.5 text-sm font-semibold uppercase tracking-wider"
-                        style={{ color: 'var(--color-primary)', borderBottom: `1px solid var(--color-border)` }}
+                        className="block px-4 py-2.5 mb-3 text-sm font-semibold uppercase tracking-wider text-center"
+                        style={{
+                          color: 'var(--color-white)',
+                          background: 'var(--color-dark)',
+                        }}
                       >
-                        Ver todos
+                        Ver todo el catálogo
                       </Link>
-                      {categories.map((cat) => (
-                        <Link
-                          key={cat.id}
-                          href={`/categorias/${cat.slug || cat.id}`}
-                          className="block px-5 py-2 text-sm hover:bg-[var(--color-cream)]"
-                          style={{ color: 'var(--color-dark-soft)' }}
-                        >
-                          {cat.name}
-                        </Link>
-                      ))}
+
+                      <div
+                        className="grid gap-x-6 gap-y-1"
+                        style={{
+                          gridTemplateColumns: `repeat(${Math.min(3, Math.ceil(categories.length / 8) || 1)}, minmax(160px, 1fr))`,
+                        }}
+                      >
+                        {categories.map((cat) => (
+                          <Link
+                            key={cat.id}
+                            href={`/categorias/${cat.slug || cat.id}`}
+                            className="block px-3 py-1.5 text-sm rounded transition-colors hover:bg-[var(--color-cream)]"
+                            style={{ color: 'var(--color-dark-soft)', whiteSpace: 'nowrap' }}
+                          >
+                            {cat.name}
+                          </Link>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>

@@ -148,6 +148,8 @@ Route::get('/api/supplier-inventories/get-product', [App\Http\Controllers\Suppli
     Route::resource('supplier-inventories', SupplierInventoryController::class);
     Route::post('supplier-inventories/{supplierInventory}/adjust-stock', [SupplierInventoryController::class, 'adjustStock'])
         ->name('supplier-inventories.adjust-stock');
+    Route::post('supplier-inventories/{supplierInventory}/toggle-featured', [SupplierInventoryController::class, 'toggleFeatured'])
+        ->name('supplier-inventories.toggle-featured');
     Route::get('supplier-inventories/export/excel', [SupplierInventoryController::class, 'exportToExcel'])
         ->name('supplier-inventories.export-excel');
     Route::get('supplier-inventories/export/lista-mayorista', [SupplierInventoryController::class, 'exportListaMayorista'])

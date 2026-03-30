@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import { getProducts } from '@/lib/api'
@@ -6,11 +7,58 @@ import ProductCard from '@/components/products/ProductCard'
 
 export default async function FeaturedProducts() {
   let products: Product[] = []
+  let status: 'ok' | 'empty' | 'error' = 'ok'
+
   try {
     const data = await getProducts({ featured: true })
-    products = data.data.slice(0, 8)
+    products = (data.data ?? []).slice(0, 8)
+    if (products.length === 0) status = 'empty'
   } catch {
-    // Muestra placeholder si no hay API disponible
+    status = 'error'
+  }
+
+  let featuredBody: ReactNode
+  if (status === 'ok' && products.length > 0) {
+    featuredBody = (
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+        {products.map((product) => (
+          <ProductCard key={product.id} product={product} />
+        ))}
+      </div>
+    )
+  } else if (status === 'error') {
+    featuredBody = (
+      <div
+        className="rounded-lg p-8 text-center text-sm leading-relaxed"
+        style={{ background: 'var(--color-cream)', color: 'var(--color-dark-soft)', border: '1px solid var(--color-border)' }}
+      >
+        <p className="font-semibold mb-2" style={{ color: 'var(--color-dark)' }}>
+          No se pudieron cargar los productos destacados
+        </p>
+        <p className="mb-0 max-w-2xl mx-auto">
+          Comprobá que la API de Laravel esté en marcha y que en el archivo{' '}
+          <code className="text-xs">frontend/.env.local</code> la variable{' '}
+          <code className="text-xs">NEXT_PUBLIC_API_URL</code> apunte al mismo origen que usa el panel (por
+          ejemplo <code className="text-xs">http://localhost:8000</code> en desarrollo).
+        </p>
+      </div>
+    )
+  } else {
+    featuredBody = (
+      <div
+        className="rounded-lg p-8 text-center text-sm leading-relaxed"
+        style={{ background: 'var(--color-cream)', color: 'var(--color-dark-soft)', border: '1px solid var(--color-border)' }}
+      >
+        <p className="font-semibold mb-2" style={{ color: 'var(--color-dark)' }}>
+          Todavía no hay destacados para mostrar
+        </p>
+        <p className="mb-0 max-w-2xl mx-auto">
+          Activá «Producto destacado en el E-Commerce» en <strong>Distribuidora → Inventario Proveedor</strong>{' '}
+          (al editar el ítem o con el atajo de la estrella en el listado). Los destacados pueden tener stock
+          cero y siguen apareciendo aquí.
+        </p>
+      </div>
+    )
   }
 
   return (
@@ -49,21 +97,7 @@ export default async function FeaturedProducts() {
           </Link>
         </div>
 
-        {/* Grid */}
-        {products.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-            {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-        ) : (
-          /* Placeholder cards cuando no hay API */
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <PlaceholderCard key={i} index={i} />
-            ))}
-          </div>
-        )}
+        {featuredBody}
 
         <div className="text-center mt-10 md:hidden">
           <Link href="/productos" className="btn-primary">
@@ -72,78 +106,5 @@ export default async function FeaturedProducts() {
         </div>
       </div>
     </section>
-  )
-}
-
-function PlaceholderCard({ index }: { index: number }) {
-  const names = [
-    'Shampoo Hidratante Premium',
-    'Máscara Reparadora Intensiva',
-    'Acondicionador Nutritivo',
-    'Sérum Brillo Extremo',
-    'Crema de Peinado Control',
-    'Protector Térmico Argan',
-    'Ampolla Capilar Restauradora',
-    'Gel Fijador Ultra Fuerte',
-  ]
-  const categories = ['Shampoo', 'Máscaras', 'Acondicionador', 'Tratamientos', 'Styling', 'Protección', 'Ampollas', 'Styling']
-  const prices = ['$2.800', '$4.200', '$3.100', '$5.500', '$2.400', '$3.800', '$6.200', '$1.900']
-
-  return (
-    <div
-      style={{
-        background: 'var(--color-white)',
-        border: '1px solid var(--color-border)',
-      }}
-    >
-      <div
-        className="flex items-center justify-center"
-        style={{
-          aspectRatio: '1/1',
-          background: 'linear-gradient(135deg, var(--color-cream) 0%, var(--color-primary-light) 100%)',
-        }}
-      >
-        <div className="text-center px-4">
-          <div
-            className="w-16 h-16 rounded-full mx-auto mb-2"
-            style={{ background: 'var(--color-primary)', opacity: 0.3 }}
-          />
-          <span
-            className="text-xs uppercase tracking-wider"
-            style={{ color: 'var(--color-primary-dark)', fontWeight: 600 }}
-          >
-            Tiziano
-          </span>
-        </div>
-      </div>
-      <div className="p-4">
-        <div
-          className="text-xs px-2 py-0.5 inline-block mb-2 font-semibold uppercase tracking-wide"
-          style={{ background: 'var(--color-cream)', color: 'var(--color-dark-soft)' }}
-        >
-          {categories[index]}
-        </div>
-        <h3
-          className="font-semibold text-sm mb-3 leading-snug"
-          style={{ color: 'var(--color-dark)' }}
-        >
-          {names[index]}
-        </h3>
-        <div className="flex items-center justify-between">
-          <span
-            className="font-bold"
-            style={{ color: 'var(--color-dark)', fontFamily: 'var(--font-display)' }}
-          >
-            {prices[index]}
-          </span>
-          <button
-            className="text-xs font-semibold uppercase tracking-wider px-3 py-2"
-            style={{ background: 'var(--color-dark)', color: 'var(--color-white)' }}
-          >
-            Agregar
-          </button>
-        </div>
-      </div>
-    </div>
   )
 }

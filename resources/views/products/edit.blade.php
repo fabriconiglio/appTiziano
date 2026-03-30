@@ -168,22 +168,6 @@
                                 @enderror
                             </div>
 
-                            <div class="mb-3">
-                                <input type="hidden" name="is_featured" value="0">
-                                <div class="form-check form-switch">
-                                    <input type="checkbox"
-                                           class="form-check-input"
-                                           id="is_featured"
-                                           name="is_featured"
-                                           value="1"
-                                           {{ old('is_featured', $product->is_featured) ? 'checked' : '' }}>
-                                    <label class="form-check-label fw-semibold" for="is_featured">
-                                        <i class="fas fa-star text-warning me-1"></i> Producto destacado en el E-Commerce
-                                    </label>
-                                </div>
-                                <div class="form-text">Los productos destacados aparecen en la página principal de la tienda online.</div>
-                            </div>
-
                             <div class="d-flex justify-content-end gap-2">
                                 <a href="{{ route('products.index') }}" class="btn btn-secondary">Cancelar</a>
                                 <button type="submit" class="btn btn-primary">

@@ -662,6 +662,21 @@ class SupplierInventoryController extends Controller
     }
 
     /**
+     * Alternar producto destacado en e-commerce desde el listado.
+     */
+    public function toggleFeatured(SupplierInventory $supplierInventory)
+    {
+        $supplierInventory->is_featured = ! $supplierInventory->is_featured;
+        $supplierInventory->save();
+
+        $message = $supplierInventory->is_featured
+            ? '"'.$supplierInventory->product_name.'" quedó destacado en el E-Commerce.'
+            : 'Se quitó el destacado de "'.$supplierInventory->product_name.'".';
+
+        return back()->with('success', $message);
+    }
+
+    /**
      * Adjust stock quantity.
      */
     public function adjustStock(Request $request, SupplierInventory $supplierInventory)

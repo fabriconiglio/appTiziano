@@ -27,6 +27,9 @@ export interface Product {
   brand_id: number | null
   category: Category | null
   brand: Brand | null
+  /** Primera imagen pública (inventario distribuidora); URL absoluta desde Laravel */
+  image_url?: string | null
+  image_urls?: string[]
   created_at: string
   updated_at: string
 }

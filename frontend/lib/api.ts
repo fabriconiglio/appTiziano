@@ -2,10 +2,12 @@ import { Brand, Category, PaginatedResponse, Product, Slider } from './types'
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
 
-async function apiFetch<T>(path: string): Promise<T> {
+async function apiFetch<T>(path: string, cacheMode: 'isr' | 'no-store' = 'isr'): Promise<T> {
   const res = await fetch(`${BASE_URL}/api${path}`, {
     headers: { Accept: 'application/json' },
-    next: { revalidate: 60 },
+    ...(cacheMode === 'no-store'
+      ? { cache: 'no-store' as RequestCache }
+      : { next: { revalidate: 60 } }),
   })
   if (!res.ok) throw new Error(`API error ${res.status}: ${path}`)
   return res.json()
@@ -25,7 +27,8 @@ export async function getProducts(params?: {
   if (params?.page) qs.set('page', String(params.page))
   if (params?.featured) qs.set('featured', '1')
   const query = qs.toString() ? `?${qs}` : ''
-  return apiFetch<PaginatedResponse<Product>>(`/products${query}`)
+  const cacheMode = params?.featured ? 'no-store' : 'isr'
+  return apiFetch<PaginatedResponse<Product>>(`/products${query}`, cacheMode)
 }
 
 export async function getProduct(id: number): Promise<Product> {

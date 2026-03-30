@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Search, SlidersHorizontal, X } from 'lucide-react'
+import { Search, SlidersHorizontal, X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { getProducts } from '@/lib/api'
 import { Product, Category, Brand, PaginatedResponse } from '@/lib/types'
 import ProductCard from '@/components/products/ProductCard'
@@ -11,6 +11,28 @@ interface ProductsClientProps {
   initialData: PaginatedResponse<Product>
   categories: Category[]
   brands: Brand[]
+}
+
+/** Páginas a mostrar: [1, '…', 5, 6, 7, '…', 28] */
+function paginationItems(current: number, lastPage: number, delta = 2): (number | 'ellipsis')[] {
+  if (lastPage <= 1) return [1]
+
+  const pages = new Set<number>()
+  pages.add(1)
+  pages.add(lastPage)
+  for (let i = current - delta; i <= current + delta; i++) {
+    if (i >= 1 && i <= lastPage) pages.add(i)
+  }
+
+  const sorted = [...pages].sort((a, b) => a - b)
+  const out: (number | 'ellipsis')[] = []
+  let prev = 0
+  for (const p of sorted) {
+    if (p - prev > 1) out.push('ellipsis')
+    out.push(p)
+    prev = p
+  }
+  return out
 }
 
 export default function ProductsClient({ initialData, categories, brands }: ProductsClientProps) {
@@ -168,24 +190,99 @@ export default function ProductsClient({ initialData, categories, brands }: Prod
 
               {/* Pagination */}
               {data.last_page > 1 && (
-                <div className="flex justify-center gap-2 mt-12">
-                  {Array.from({ length: data.last_page }, (_, i) => i + 1).map((p) => (
+                <nav
+                  className="mt-12 flex flex-col items-center gap-4"
+                  aria-label="Paginación de productos"
+                >
+                  <p className="text-sm" style={{ color: 'var(--color-dark-soft)' }}>
+                    Mostrando{' '}
+                    <span className="font-semibold" style={{ color: 'var(--color-dark)' }}>
+                      {data.from ?? 0}
+                    </span>
+                    –
+                    <span className="font-semibold" style={{ color: 'var(--color-dark)' }}>
+                      {data.to ?? 0}
+                    </span>{' '}
+                    de{' '}
+                    <span className="font-semibold" style={{ color: 'var(--color-dark)' }}>{data.total}</span>
+                  </p>
+                  <div className="flex flex-wrap items-center justify-center gap-1 sm:gap-2">
                     <button
-                      key={p}
-                      onClick={() => setPage(p)}
-                      className="w-9 h-9 text-sm font-semibold transition-all"
-                      style={{
-                        background: p === page ? 'var(--color-dark)' : 'transparent',
-                        color: p === page ? 'var(--color-white)' : 'var(--color-dark)',
-                        border: `1px solid ${p === page ? 'var(--color-dark)' : 'var(--color-border)'}`,
+                      type="button"
+                      onClick={() => {
+                        if (page <= 1) return
+                        setPage(page - 1)
+                        window.scrollTo({ top: 0, behavior: 'smooth' })
                       }}
+                      disabled={page <= 1}
+                      className="flex h-10 items-center gap-1 rounded px-2 text-sm font-semibold transition-opacity disabled:pointer-events-none disabled:opacity-35"
+                      style={{
+                        color: 'var(--color-dark)',
+                        border: '1px solid var(--color-border)',
+                        background: 'var(--color-white)',
+                      }}
+                      aria-label="Página anterior"
                     >
-                      {p}
+                      <ChevronLeft size={18} />
+                      <span className="hidden sm:inline">Anterior</span>
                     </button>
-                  ))}
-                </div>
+
+                    <div className="flex flex-wrap items-center justify-center gap-1">
+                      {paginationItems(page, data.last_page).map((item, idx) =>
+                        item === 'ellipsis' ? (
+                          <span
+                            key={`e-${idx}`}
+                            className="flex h-10 min-w-10 items-center justify-center px-1 text-sm font-semibold"
+                            style={{ color: 'var(--color-dark-soft)' }}
+                            aria-hidden
+                          >
+                            …
+                          </span>
+                        ) : (
+                          <button
+                            key={item}
+                            type="button"
+                            onClick={() => {
+                              setPage(item)
+                              window.scrollTo({ top: 0, behavior: 'smooth' })
+                            }}
+                            className="h-10 min-w-10 rounded px-2 text-sm font-semibold transition-all"
+                            style={{
+                              background: item === page ? 'var(--color-dark)' : 'transparent',
+                              color: item === page ? 'var(--color-white)' : 'var(--color-dark)',
+                              border: `1px solid ${item === page ? 'var(--color-dark)' : 'var(--color-border)'}`,
+                            }}
+                            aria-current={item === page ? 'page' : undefined}
+                          >
+                            {item}
+                          </button>
+                        )
+                      )}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (page >= data.last_page) return
+                        setPage(page + 1)
+                        window.scrollTo({ top: 0, behavior: 'smooth' })
+                      }}
+                      disabled={page >= data.last_page}
+                      className="flex h-10 items-center gap-1 rounded px-2 text-sm font-semibold transition-opacity disabled:pointer-events-none disabled:opacity-35"
+                      style={{
+                        color: 'var(--color-dark)',
+                        border: '1px solid var(--color-border)',
+                        background: 'var(--color-white)',
+                      }}
+                      aria-label="Página siguiente"
+                    >
+                      <span className="hidden sm:inline">Siguiente</span>
+                      <ChevronRight size={18} />
+                    </button>
+                  </div>
+                </nav>
               )}
-            </>
+        </>
           )}
         </div>
       </div>

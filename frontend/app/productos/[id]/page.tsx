@@ -56,25 +56,34 @@ export default async function ProductDetailPage({ params }: PageProps) {
           <div className="grid lg:grid-cols-2 gap-12 items-start">
             {/* Image */}
             <div
-              className="flex items-center justify-center"
+              className="flex items-center justify-center overflow-hidden"
               style={{
                 aspectRatio: '1/1',
                 background: 'linear-gradient(135deg, var(--color-cream) 0%, var(--color-primary-light) 100%)',
                 border: '1px solid var(--color-border)',
               }}
             >
-              <div className="text-center">
-                <div
-                  className="w-32 h-32 rounded-full mx-auto mb-4"
-                  style={{ background: 'var(--color-primary)', opacity: 0.3 }}
+              {product.image_url ? (
+                <img
+                  src={product.image_url}
+                  alt={product.name}
+                  className="w-full h-full object-cover"
+                  loading="eager"
                 />
-                <p
-                  className="text-sm uppercase tracking-widest font-semibold"
-                  style={{ color: 'var(--color-primary-dark)' }}
-                >
-                  {product.brand?.name ?? 'Tiziano'}
-                </p>
-              </div>
+              ) : (
+                <div className="text-center p-8">
+                  <div
+                    className="w-32 h-32 rounded-full mx-auto mb-4"
+                    style={{ background: 'var(--color-primary)', opacity: 0.3 }}
+                  />
+                  <p
+                    className="text-sm uppercase tracking-widest font-semibold"
+                    style={{ color: 'var(--color-primary-dark)' }}
+                  >
+                    {product.brand?.name ?? 'Tiziano'}
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Info */}

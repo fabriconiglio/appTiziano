@@ -128,19 +128,29 @@
                                             <span class="badge {{ $item->status_badge_class }}">{{ $item->status_text }}</span>
                                         </td>
                                         <td>
-                                            <div class="btn-group" role="group">
-                                                <a href="{{ route('supplier-inventories.show', $item) }}" class="btn btn-info btn-sm">
-                                                    <i class="fas fa-eye"></i>
-                                                </a>
-                                                <a href="{{ route('supplier-inventories.edit', $item) }}" class="btn btn-primary btn-sm">
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
-                                                <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#adjustModal{{ $item->id }}">
-                                                    <i class="fas fa-layer-group"></i>
-                                                </button>
-                                                <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal{{ $item->id }}">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
+                                            <div class="d-flex flex-wrap gap-1 align-items-center">
+                                                <form action="{{ route('supplier-inventories.toggle-featured', $item) }}" method="POST" class="d-inline">
+                                                    @csrf
+                                                    <button type="submit"
+                                                            class="btn btn-sm {{ $item->is_featured ? 'btn-warning' : 'btn-outline-warning' }}"
+                                                            title="{{ $item->is_featured ? 'Quitar destacado del E-Commerce' : 'Destacar en el E-Commerce' }}">
+                                                        <i class="fas fa-star"></i>
+                                                    </button>
+                                                </form>
+                                                <div class="btn-group" role="group">
+                                                    <a href="{{ route('supplier-inventories.show', $item) }}" class="btn btn-info btn-sm">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    <a href="{{ route('supplier-inventories.edit', $item) }}" class="btn btn-primary btn-sm">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#adjustModal{{ $item->id }}">
+                                                        <i class="fas fa-layer-group"></i>
+                                                    </button>
+                                                    <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal{{ $item->id }}">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
                                             </div>
 
                                             <!-- Modal para ajustar stock -->

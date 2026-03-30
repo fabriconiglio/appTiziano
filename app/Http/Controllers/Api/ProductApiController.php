@@ -17,46 +17,46 @@ class ProductApiController extends Controller
             return $this->featuredIndex($request);
         }
 
-        $query = Product::with(['category', 'brand'])
-            ->where('current_stock', '>', 0);
+        $query = SupplierInventory::with(['distributorCategory', 'distributorBrand'])
+            ->where('stock_quantity', '>', 0);
 
         if ($request->filled('category_id')) {
-            $query->where('category_id', $request->category_id);
+            $query->where('distributor_category_id', $request->category_id);
         }
 
         if ($request->filled('brand_id')) {
-            $query->where('brand_id', $request->brand_id);
+            $query->where('distributor_brand_id', $request->brand_id);
         }
 
         if ($request->filled('search')) {
-            $query->where('name', 'like', '%' . $request->search . '%');
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('product_name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  ->orWhere('sku', 'like', "%{$search}%");
+            });
         }
 
-        $products = $query->orderBy('name')->paginate(24);
+        $paginated = $query->orderBy('product_name')->paginate(24);
 
-        return response()->json($products);
+        $mapped = $paginated->through(fn (SupplierInventory $item) => $this->mapSupplierInventoryToApiProduct($item));
+
+        return response()->json($mapped);
     }
 
     /**
-     * Listado destacados: productos de peluquería + inventario proveedor/distribuidora.
+     * Listado destacados: solo inventario proveedor/distribuidora (no productos de peluquería).
      */
     private function featuredIndex(Request $request): JsonResponse
     {
-        $fromInventory = SupplierInventory::with(['distributorCategory', 'distributorBrand'])
+        $merged = SupplierInventory::with(['distributorCategory', 'distributorBrand'])
             ->where('is_featured', true)
-            ->where('stock_quantity', '>', 0)
+            ->orderByRaw('CASE WHEN stock_quantity > 0 THEN 0 ELSE 1 END')
             ->orderBy('product_name')
             ->get()
-            ->map(fn (SupplierInventory $item) => $this->mapSupplierInventoryToApiProduct($item));
-
-        $fromProducts = Product::with(['category', 'brand'])
-            ->where('is_featured', true)
-            ->where('current_stock', '>', 0)
-            ->orderBy('name')
-            ->get()
-            ->map(fn (Product $p) => $this->mapProductToApiArray($p));
-
-        $merged = $fromInventory->concat($fromProducts)->sortBy('name')->values();
+            ->map(fn (SupplierInventory $item) => $this->mapSupplierInventoryToApiProduct($item))
+            ->sortBy('name')
+            ->values();
 
         $page = max(1, (int) $request->input('page', 1));
         $perPage = 24;
@@ -79,14 +79,14 @@ class ProductApiController extends Controller
 
     public function show(int $id): JsonResponse
     {
-        $product = Product::with(['category', 'brand'])->find($id);
-        if ($product) {
-            return response()->json($product);
-        }
-
         $inventory = SupplierInventory::with(['distributorCategory', 'distributorBrand'])->find($id);
         if ($inventory) {
             return response()->json($this->mapSupplierInventoryToApiProduct($inventory));
+        }
+
+        $product = Product::with(['category', 'brand'])->find($id);
+        if ($product) {
+            return response()->json($product);
         }
 
         abort(404);
@@ -100,6 +100,8 @@ class ProductApiController extends Controller
         $cat = $item->distributorCategory;
         $brand = $item->distributorBrand;
         $price = $item->precio_menor ?? $item->price ?? 0;
+        $imageUrls = $item->image_urls;
+        $imageUrl = $imageUrls[0] ?? null;
 
         return [
             'id' => $item->id,
@@ -126,46 +128,10 @@ class ProductApiController extends Controller
                 'description' => $brand->description,
                 'logo_url' => $brand->logo_url,
             ] : null,
+            'image_url' => $imageUrl,
+            'image_urls' => $imageUrls,
             'created_at' => $item->created_at?->toIso8601String(),
             'updated_at' => $item->updated_at?->toIso8601String(),
-        ];
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function mapProductToApiArray(Product $p): array
-    {
-        $cat = $p->category;
-        $brand = $p->brand;
-
-        return [
-            'id' => $p->id,
-            'name' => $p->name,
-            'description' => $p->description,
-            'sku' => $p->sku,
-            'price' => $p->price,
-            'is_featured' => (bool) $p->is_featured,
-            'current_stock' => $p->current_stock,
-            'minimum_stock' => $p->minimum_stock,
-            'supplier_name' => $p->supplier_name,
-            'category_id' => $p->category_id,
-            'brand_id' => $p->brand_id,
-            'category' => $cat ? [
-                'id' => $cat->id,
-                'name' => $cat->name,
-                'slug' => $cat->slug,
-                'description' => $cat->description,
-            ] : null,
-            'brand' => $brand ? [
-                'id' => $brand->id,
-                'name' => $brand->name,
-                'slug' => $brand->slug,
-                'description' => $brand->description,
-                'logo_url' => $brand->logo_url,
-            ] : null,
-            'created_at' => $p->created_at?->toIso8601String(),
-            'updated_at' => $p->updated_at?->toIso8601String(),
         ];
     }
 }

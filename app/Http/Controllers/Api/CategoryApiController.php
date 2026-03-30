@@ -3,15 +3,14 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Category;
+use App\Models\DistributorCategory;
 use Illuminate\Http\JsonResponse;
 
 class CategoryApiController extends Controller
 {
     public function index(): JsonResponse
     {
-        $categories = Category::where('is_active', true)
-            ->where('module_type', 'peluqueria')
+        $categories = DistributorCategory::where('is_active', true)
             ->orderBy('name')
             ->get(['id', 'name', 'slug', 'description']);
 

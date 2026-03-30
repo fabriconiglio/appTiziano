@@ -45,10 +45,9 @@ class ProductController extends Controller
             'sku' => 'nullable|string|max:50|unique:products',
             'current_stock' => 'nullable|integer|min:0',
             'minimum_stock' => 'nullable|integer|min:0',
-            'is_featured' => 'nullable|boolean',
         ]);
 
-        $validated['is_featured'] = $request->boolean('is_featured');
+        $validated['is_featured'] = false;
 
         Product::create($validated);
 
@@ -86,10 +85,9 @@ class ProductController extends Controller
             'sku' => 'nullable|string|max:50|unique:products,sku,' . $product->id,
             'current_stock' => 'nullable|integer|min:0',
             'minimum_stock' => 'nullable|integer|min:0',
-            'is_featured' => 'nullable|boolean',
         ]);
 
-        $validated['is_featured'] = $request->boolean('is_featured');
+        $validated['is_featured'] = false;
 
         $product->update($validated);
 

@@ -419,7 +419,7 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    let productIndex = 0;
+    let productIndex = {{ count(old('products_purchased', $distributorClienteNoFrecuente->products_purchased ?? [])) }};
     let currentDiscountProductIndex = null;
     
     // Inicializar productos existentes

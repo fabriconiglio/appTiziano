@@ -1,8 +1,9 @@
 import { getProduct, getProducts, formatPrice } from '@/lib/api'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ShoppingBag, ChevronRight, Package, Tag, Star, ArrowLeft } from 'lucide-react'
+import { ChevronRight, Package, Tag, Star, ArrowLeft } from 'lucide-react'
 import ProductCard from '@/components/products/ProductCard'
+import AddToCartButton from '@/components/products/AddToCartButton'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -183,18 +184,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
               </div>
 
               <div className="flex gap-3">
-                <button
-                  className="flex-1 flex items-center justify-center gap-2 py-4 text-sm font-bold uppercase tracking-widest transition-all"
-                  style={{
-                    background: inStock ? 'var(--color-dark)' : '#ccc',
-                    color: 'var(--color-white)',
-                    cursor: inStock ? 'pointer' : 'not-allowed',
-                  }}
-                  disabled={!inStock}
-                >
-                  <ShoppingBag size={16} />
-                  {inStock ? 'Agregar al carrito' : 'Sin stock'}
-                </button>
+                <AddToCartButton product={product} />
                 <Link
                   href="/productos"
                   className="flex items-center gap-2 px-5 py-4 text-sm font-semibold uppercase tracking-wider"

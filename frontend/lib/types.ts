@@ -64,3 +64,46 @@ export interface Slider {
   bg_color: string
   order: number
 }
+
+export interface User {
+  id: number
+  name: string
+  email: string
+  role: string
+}
+
+export interface AuthResponse {
+  user: User
+  token: string
+}
+
+export interface CartItem {
+  product: Product
+  quantity: number
+}
+
+export interface OrderRequest {
+  payment_method: 'taca_taca' | 'transfer'
+  items: { product_id: number; quantity: number; unit_price: number }[]
+  notes?: string
+}
+
+export interface Order {
+  id: number
+  order_number: string
+  status: string
+  payment_method: string
+  payment_status: string
+  total: number
+  items: OrderItemData[]
+  created_at: string
+}
+
+export interface OrderItemData {
+  id: number
+  product_id: number
+  product_name: string
+  quantity: number
+  unit_price: number
+  subtotal: number
+}

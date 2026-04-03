@@ -1,9 +1,11 @@
 'use client'
 
 import Link from 'next/link'
-import { ShoppingBag, Star } from 'lucide-react'
+import { ShoppingBag, Star, Check } from 'lucide-react'
+import { useState } from 'react'
 import { Product } from '@/lib/types'
 import { formatPrice } from '@/lib/api'
+import { useCart } from '@/lib/CartContext'
 
 interface ProductCardProps {
   product: Product
@@ -11,6 +13,16 @@ interface ProductCardProps {
 
 export default function ProductCard({ product }: ProductCardProps) {
   const price = formatPrice(product.price)
+  const { addItem } = useCart()
+  const [added, setAdded] = useState(false)
+  const inStock = product.current_stock > 0
+
+  const handleAdd = () => {
+    if (!inStock) return
+    addItem(product)
+    setAdded(true)
+    setTimeout(() => setAdded(false), 1500)
+  }
 
   return (
     <div
@@ -121,27 +133,32 @@ export default function ProductCard({ product }: ProductCardProps) {
           </span>
 
           <button
+            onClick={handleAdd}
+            disabled={!inStock}
             className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold uppercase tracking-wider transition-all"
             style={{
-              background: 'var(--color-dark)',
+              background: added ? '#2E7D52' : inStock ? 'var(--color-dark)' : '#ccc',
               color: 'var(--color-white)',
-              border: '1px solid var(--color-dark)',
+              border: `1px solid ${added ? '#2E7D52' : inStock ? 'var(--color-dark)' : '#ccc'}`,
+              cursor: inStock ? 'pointer' : 'not-allowed',
             }}
             onMouseEnter={(e) => {
+              if (!inStock || added) return
               const el = e.currentTarget
               el.style.background = 'var(--color-primary)'
               el.style.borderColor = 'var(--color-primary)'
               el.style.color = 'var(--color-dark)'
             }}
             onMouseLeave={(e) => {
+              if (!inStock || added) return
               const el = e.currentTarget
               el.style.background = 'var(--color-dark)'
               el.style.borderColor = 'var(--color-dark)'
               el.style.color = 'var(--color-white)'
             }}
           >
-            <ShoppingBag size={13} />
-            Agregar
+            {added ? <Check size={13} /> : <ShoppingBag size={13} />}
+            {added ? 'Agregado' : inStock ? 'Agregar' : 'Sin stock'}
           </button>
         </div>
       </div>

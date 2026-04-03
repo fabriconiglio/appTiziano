@@ -273,6 +273,18 @@
                                         {{ __('Sliders') }}
                                     </a>
                                 </li>
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item" href="{{ route('ecommerce-users.index') }}">
+                                        <i class="fas fa-users me-2"></i>
+                                        {{ __('Usuarios') }}
+                                    </a>
+                                </li>
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item" href="{{ route('orders.index') }}">
+                                        <i class="fas fa-shopping-cart me-2"></i>
+                                        {{ __('Pedidos') }}
+                                    </a>
+                                </li>
                             </ul>
                         </li>
 

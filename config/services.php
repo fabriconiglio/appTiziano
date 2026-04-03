@@ -35,4 +35,15 @@ return [
         ],
     ],
 
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+    ],
+
+    'tacataca' => [
+        'client_id' => env('TACATACA_CLIENT_ID'),
+        'client_secret' => env('TACATACA_CLIENT_SECRET'),
+        'auth_url' => env('TACATACA_AUTH_URL', 'https://auth.preprod.geopagos.com'),
+        'checkout_url' => env('TACATACA_CHECKOUT_URL', 'https://api-taca-taca.preprod.geopagos.com'),
+    ],
+
 ];

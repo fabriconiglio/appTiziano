@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { getProducts, getCategories, getBrands } from '@/lib/api'
 import ProductsClient from './ProductsClient'
 import { PaginatedResponse, Product } from '@/lib/types'
@@ -57,11 +58,13 @@ export default async function ProductosPage() {
 
       {/* Products + filters */}
       <div style={{ background: 'var(--color-bg)' }}>
-        <ProductsClient
-          initialData={initialData}
-          categories={categories}
-          brands={brands}
-        />
+        <Suspense>
+          <ProductsClient
+            initialData={initialData}
+            categories={categories}
+            brands={brands}
+          />
+        </Suspense>
       </div>
     </>
   )

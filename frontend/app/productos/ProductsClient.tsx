@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Search, SlidersHorizontal, X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { getProducts } from '@/lib/api'
 import { Product, Category, Brand, PaginatedResponse } from '@/lib/types'
@@ -36,13 +37,24 @@ function paginationItems(current: number, lastPage: number, delta = 2): (number 
 }
 
 export default function ProductsClient({ initialData, categories, brands }: ProductsClientProps) {
+  const searchParams = useSearchParams()
+  const initialSearch = searchParams.get('search') ?? ''
+
   const [data, setData] = useState(initialData)
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null)
   const [selectedBrand, setSelectedBrand] = useState<number | null>(null)
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useState(initialSearch)
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(false)
   const [mobileFilters, setMobileFilters] = useState(false)
+
+  useEffect(() => {
+    const q = searchParams.get('search') ?? ''
+    if (q !== search) {
+      setSearch(q)
+      setPage(1)
+    }
+  }, [searchParams])
 
   const fetchProducts = useCallback(async () => {
     setLoading(true)

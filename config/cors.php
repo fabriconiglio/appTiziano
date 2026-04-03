@@ -3,7 +3,7 @@
 return [
     'paths' => ['api/*'],
 
-    'allowed_methods' => ['GET'],
+    'allowed_methods' => ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
 
     'allowed_origins' => [
         'http://localhost:3000',
@@ -13,11 +13,11 @@ return [
 
     'allowed_origins_patterns' => [],
 
-    'allowed_headers' => ['Content-Type', 'Accept'],
+    'allowed_headers' => ['Content-Type', 'Accept', 'Authorization'],
 
     'exposed_headers' => [],
 
     'max_age' => 0,
 
-    'supports_credentials' => false,
+    'supports_credentials' => true,
 ];

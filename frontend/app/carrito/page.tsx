@@ -257,6 +257,10 @@ export default function CarritoPage() {
                   </span>
                 </div>
 
+                <p className="text-xs text-right mb-3" style={{ color: '#999' }}>
+                  * Precios sin impuestos. Ley N° 27.743, Art. 39.
+                </p>
+
                 <button
                   onClick={handleCheckout}
                   className="w-full py-4 text-sm font-bold uppercase tracking-widest transition-all hover:opacity-90"

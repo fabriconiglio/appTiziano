@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Menu, X, ChevronDown, Search, ShoppingBag, User, Loader2 } from 'lucide-react'
 import { Category, Product } from '@/lib/types'
-import { getCategories, searchProducts, formatPrice } from '@/lib/api'
+import { getCategories, searchProducts, formatPrice, priceSinIVA } from '@/lib/api'
 import { useAuth } from '@/lib/AuthContext'
 import { useCart } from '@/lib/CartContext'
 
@@ -315,12 +315,17 @@ export default function Header() {
                                   {product.brand?.name}
                                 </p>
                               </div>
-                              <span
-                                className="text-sm font-semibold flex-shrink-0"
-                                style={{ color: 'var(--color-primary)' }}
-                              >
-                                {formatPrice(product.price)}
-                              </span>
+                              <div className="text-right flex-shrink-0">
+                                <span
+                                  className="text-sm font-semibold block"
+                                  style={{ color: 'var(--color-primary)' }}
+                                >
+                                  {formatPrice(product.price)}
+                                </span>
+                                <span className="text-[10px] block" style={{ color: '#999' }}>
+                                  Sin imp. {priceSinIVA(product.price)}
+                                </span>
+                              </div>
                             </Link>
                           ))}
                           <button
@@ -527,12 +532,17 @@ export default function Header() {
                               {product.brand?.name}
                             </p>
                           </div>
-                          <span
-                            className="text-sm font-semibold flex-shrink-0"
-                            style={{ color: 'var(--color-primary)' }}
-                          >
-                            {formatPrice(product.price)}
-                          </span>
+                          <div className="text-right flex-shrink-0">
+                            <span
+                              className="text-sm font-semibold block"
+                              style={{ color: 'var(--color-primary)' }}
+                            >
+                              {formatPrice(product.price)}
+                            </span>
+                            <span className="text-[10px] block" style={{ color: '#999' }}>
+                              Sin imp. {priceSinIVA(product.price)}
+                            </span>
+                          </div>
                         </Link>
                       ))}
                       <button

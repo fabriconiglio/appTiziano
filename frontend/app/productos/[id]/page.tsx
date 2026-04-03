@@ -1,4 +1,4 @@
-import { getProduct, getProducts, formatPrice } from '@/lib/api'
+import { getProduct, getProducts, formatPrice, priceSinIVA } from '@/lib/api'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronRight, Package, Tag, Star, ArrowLeft } from 'lucide-react'
@@ -170,7 +170,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
               </div>
 
               {/* Price + CTA */}
-              <div className="flex items-center gap-5 mb-8">
+              <div className="mb-8">
                 <span
                   style={{
                     fontFamily: 'var(--font-display)',
@@ -181,6 +181,15 @@ export default async function ProductDetailPage({ params }: PageProps) {
                 >
                   {price}
                 </span>
+                <span
+                  className="block text-sm mt-1"
+                  style={{ color: 'var(--color-dark-soft)' }}
+                >
+                  Precio sin imp. {priceSinIVA(product.price)}
+                </span>
+                <p className="mt-1 text-xs" style={{ color: '#999' }}>
+                  * Precio sin impuestos. Ley N° 27.743, Art. 39.
+                </p>
               </div>
 
               <div className="flex gap-3">

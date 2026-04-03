@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
-use App\Models\Product;
+use App\Models\SupplierInventory;
 use App\Models\User;
 use App\Notifications\NewOrderAdminNotification;
 use App\Notifications\NewOrderNotification;
@@ -21,7 +21,7 @@ class OrderApiController extends Controller
         $validated = $request->validate([
             'payment_method' => ['required', 'in:taca_taca,transfer'],
             'items' => ['required', 'array', 'min:1'],
-            'items.*.product_id' => ['required', 'integer', 'exists:products,id'],
+            'items.*.product_id' => ['required', 'integer', 'exists:supplier_inventories,id'],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
             'items.*.unit_price' => ['required', 'numeric', 'min:0'],
             'notes' => ['nullable', 'string', 'max:500'],
@@ -32,11 +32,11 @@ class OrderApiController extends Controller
             $orderItems = [];
 
             foreach ($validated['items'] as $item) {
-                $product = Product::lockForUpdate()->findOrFail($item['product_id']);
+                $product = SupplierInventory::lockForUpdate()->findOrFail($item['product_id']);
 
-                if ($product->current_stock < $item['quantity']) {
+                if ($product->stock_quantity < $item['quantity']) {
                     return response()->json([
-                        'message' => "Stock insuficiente para \"{$product->name}\". Disponible: {$product->current_stock}",
+                        'message' => "Stock insuficiente para \"{$product->product_name}\". Disponible: {$product->stock_quantity}",
                     ], 422);
                 }
 
@@ -45,13 +45,13 @@ class OrderApiController extends Controller
 
                 $orderItems[] = [
                     'product_id' => $product->id,
-                    'product_name' => $product->name,
+                    'product_name' => $product->product_name,
                     'quantity' => $item['quantity'],
                     'unit_price' => $item['unit_price'],
                     'subtotal' => $subtotal,
                 ];
 
-                $product->decrement('current_stock', $item['quantity']);
+                $product->decrement('stock_quantity', $item['quantity']);
             }
 
             $order = Order::create([

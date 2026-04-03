@@ -200,6 +200,10 @@ export default function ProductsClient({ initialData, categories, brands }: Prod
                 ))}
               </div>
 
+              <p className="mt-4 text-xs text-center" style={{ color: '#999' }}>
+                * Los precios publicados no incluyen impuestos. Ley N° 27.743, Art. 39.
+              </p>
+
               {/* Pagination */}
               {data.last_page > 1 && (
                 <nav

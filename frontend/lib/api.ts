@@ -54,12 +54,17 @@ export async function getSliders(): Promise<Slider[]> {
 }
 
 export function formatPrice(price: string | number): string {
-  const num = typeof price === 'string' ? parseFloat(price) : price
+  const num = typeof price === 'string' ? Number.parseFloat(price) : price
   return new Intl.NumberFormat('es-AR', {
     style: 'currency',
     currency: 'ARS',
     minimumFractionDigits: 0,
   }).format(num)
+}
+
+export function priceSinIVA(price: string | number): string {
+  const num = typeof price === 'string' ? Number.parseFloat(price) : price
+  return formatPrice(Math.round(num / 1.21))
 }
 
 async function authFetch<T>(path: string, options: RequestInit = {}, token?: string): Promise<T> {

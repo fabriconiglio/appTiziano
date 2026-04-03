@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { ShoppingBag, Star, Check } from 'lucide-react'
 import { useState } from 'react'
 import { Product } from '@/lib/types'
-import { formatPrice } from '@/lib/api'
+import { formatPrice, priceSinIVA } from '@/lib/api'
 import { useCart } from '@/lib/CartContext'
 
 interface ProductCardProps {
@@ -125,12 +125,17 @@ export default function ProductCard({ product }: ProductCardProps) {
         )}
 
         <div className="mt-auto flex items-center justify-between gap-2">
-          <span
-            className="font-bold text-base"
-            style={{ color: 'var(--color-dark)', fontFamily: 'var(--font-display)' }}
-          >
-            {price}
-          </span>
+          <div>
+            <span
+              className="font-bold text-base block"
+              style={{ color: 'var(--color-dark)', fontFamily: 'var(--font-display)' }}
+            >
+              {price}
+            </span>
+            <span className="text-[10px] block" style={{ color: '#999' }}>
+              Precio sin imp. {priceSinIVA(product.price)}
+            </span>
+          </div>
 
           <button
             onClick={handleAdd}

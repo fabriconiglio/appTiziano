@@ -82,10 +82,30 @@ export interface CartItem {
   quantity: number
 }
 
+export type ShippingMethod = 'local_pickup' | 'cordoba' | 'national'
+
+export interface ShippingData {
+  shipping_name: string
+  shipping_phone: string
+  shipping_province: string
+  shipping_city: string
+  shipping_zip: string
+  shipping_address: string
+  shipping_address_2?: string
+}
+
 export interface OrderRequest {
   payment_method: 'taca_taca' | 'transfer'
   items: { product_id: number; quantity: number; unit_price: number }[]
   notes?: string
+  shipping_name: string
+  shipping_phone: string
+  shipping_province: string
+  shipping_city: string
+  shipping_zip: string
+  shipping_address: string
+  shipping_address_2?: string
+  shipping_method: ShippingMethod
 }
 
 export interface Order {
@@ -95,6 +115,15 @@ export interface Order {
   payment_method: string
   payment_status: string
   total: number
+  notes?: string
+  shipping_name?: string
+  shipping_phone?: string
+  shipping_province?: string
+  shipping_city?: string
+  shipping_zip?: string
+  shipping_address?: string
+  shipping_address_2?: string
+  shipping_method?: string
   items: OrderItemData[]
   created_at: string
 }

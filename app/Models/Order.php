@@ -17,6 +17,14 @@ class Order extends Model
         'total',
         'notes',
         'taca_taca_order_id',
+        'shipping_name',
+        'shipping_phone',
+        'shipping_province',
+        'shipping_city',
+        'shipping_zip',
+        'shipping_address',
+        'shipping_address_2',
+        'shipping_method',
     ];
 
     protected $casts = [

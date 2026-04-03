@@ -87,6 +87,45 @@
                     </div>
                 </div>
 
+                {{-- Shipping info --}}
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-truck me-2"></i>Datos de envío</h5>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <small class="text-muted d-block">Método de envío</small>
+                            @php
+                                $shippingLabels = [
+                                    'local_pickup' => 'Retiro en local',
+                                    'cordoba' => 'Envío a Córdoba Capital',
+                                    'national' => 'Envío al interior',
+                                ];
+                            @endphp
+                            <strong>{{ $shippingLabels[$order->shipping_method] ?? $order->shipping_method ?? '—' }}</strong>
+                        </li>
+                        <li class="list-group-item">
+                            <small class="text-muted d-block">Destinatario</small>
+                            <strong>{{ $order->shipping_name ?? '—' }}</strong>
+                        </li>
+                        <li class="list-group-item">
+                            <small class="text-muted d-block">Teléfono</small>
+                            {{ $order->shipping_phone ?? '—' }}
+                        </li>
+                        <li class="list-group-item">
+                            <small class="text-muted d-block">Dirección</small>
+                            {{ $order->shipping_address ?? '—' }}
+                            @if($order->shipping_address_2)
+                                <br>{{ $order->shipping_address_2 }}
+                            @endif
+                        </li>
+                        <li class="list-group-item">
+                            <small class="text-muted d-block">Localidad</small>
+                            {{ $order->shipping_city ?? '—' }}, {{ $order->shipping_province ?? '—' }} ({{ $order->shipping_zip ?? '—' }})
+                        </li>
+                    </ul>
+                </div>
+
                 {{-- Status management --}}
                 <div class="card shadow-sm mb-4">
                     <div class="card-header">

@@ -143,6 +143,62 @@ function ConfirmacionContent() {
             </div>
           </div>
 
+          {/* Shipping info */}
+          {order.shipping_name && (
+            <div
+              className="p-6 mb-6"
+              style={{ background: 'var(--color-white)', border: '1px solid var(--color-border)' }}
+            >
+              <h2
+                className="text-lg font-semibold mb-4"
+                style={{ color: 'var(--color-dark)', fontFamily: 'var(--font-display)', fontStyle: 'italic' }}
+              >
+                Datos de envío
+              </h2>
+              <div className="grid sm:grid-cols-2 gap-3">
+                <div>
+                  <p className="text-xs uppercase tracking-wider font-semibold" style={{ color: 'var(--color-dark-soft)' }}>
+                    Destinatario
+                  </p>
+                  <p className="text-sm mt-0.5" style={{ color: 'var(--color-dark)' }}>{order.shipping_name}</p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-wider font-semibold" style={{ color: 'var(--color-dark-soft)' }}>
+                    Teléfono
+                  </p>
+                  <p className="text-sm mt-0.5" style={{ color: 'var(--color-dark)' }}>{order.shipping_phone}</p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-wider font-semibold" style={{ color: 'var(--color-dark-soft)' }}>
+                    Dirección
+                  </p>
+                  <p className="text-sm mt-0.5" style={{ color: 'var(--color-dark)' }}>
+                    {order.shipping_address}
+                    {order.shipping_address_2 ? `, ${order.shipping_address_2}` : ''}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-wider font-semibold" style={{ color: 'var(--color-dark-soft)' }}>
+                    Localidad
+                  </p>
+                  <p className="text-sm mt-0.5" style={{ color: 'var(--color-dark)' }}>
+                    {order.shipping_city}, {order.shipping_province} ({order.shipping_zip})
+                  </p>
+                </div>
+                <div className="sm:col-span-2">
+                  <p className="text-xs uppercase tracking-wider font-semibold" style={{ color: 'var(--color-dark-soft)' }}>
+                    Método de envío
+                  </p>
+                  <p className="text-sm mt-0.5" style={{ color: 'var(--color-dark)' }}>
+                    {order.shipping_method === 'local_pickup' && 'Retiro en local'}
+                    {order.shipping_method === 'cordoba' && 'Envío a Córdoba Capital'}
+                    {order.shipping_method === 'national' && 'Envío al interior del país'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Transfer info */}
           {isTransfer && (
             <div

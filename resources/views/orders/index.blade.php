@@ -67,9 +67,10 @@
                                 <th>N° Pedido</th>
                                 <th>Cliente</th>
                                 <th>Total</th>
-                                <th>Método</th>
-                                <th>Estado</th>
                                 <th>Pago</th>
+                                <th>Envío</th>
+                                <th>Estado</th>
+                                <th>Est. Pago</th>
                                 <th>Fecha</th>
                                 <th style="width: 80px;"></th>
                             </tr>
@@ -94,6 +95,16 @@
                                         @else
                                             <span class="badge bg-dark">Taca Taca</span>
                                         @endif
+                                    </td>
+                                    <td>
+                                        @php
+                                            $shippingLabels = [
+                                                'local_pickup' => 'Retiro en local',
+                                                'cordoba' => 'Córdoba',
+                                                'national' => 'Interior',
+                                            ];
+                                        @endphp
+                                        <span class="badge bg-secondary">{{ $shippingLabels[$order->shipping_method] ?? '—' }}</span>
                                     </td>
                                     <td>
                                         @php
@@ -140,7 +151,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="8" class="text-center py-4">
+                                    <td colspan="9" class="text-center py-4">
                                         <i class="fas fa-shopping-cart fa-2x text-muted mb-2 d-block"></i>
                                         @if(request()->hasAny(['search', 'status', 'payment_method', 'payment_status']))
                                             No se encontraron pedidos con los filtros aplicados.

@@ -25,6 +25,14 @@ class OrderApiController extends Controller
             'items.*.quantity' => ['required', 'integer', 'min:1'],
             'items.*.unit_price' => ['required', 'numeric', 'min:0'],
             'notes' => ['nullable', 'string', 'max:500'],
+            'shipping_name' => ['required', 'string', 'max:255'],
+            'shipping_phone' => ['required', 'string', 'max:50'],
+            'shipping_province' => ['required', 'string', 'max:100'],
+            'shipping_city' => ['required', 'string', 'max:100'],
+            'shipping_zip' => ['required', 'string', 'max:10'],
+            'shipping_address' => ['required', 'string', 'max:255'],
+            'shipping_address_2' => ['nullable', 'string', 'max:100'],
+            'shipping_method' => ['required', 'in:local_pickup,cordoba,national'],
         ]);
 
         return DB::transaction(function () use ($request, $validated) {
@@ -62,6 +70,14 @@ class OrderApiController extends Controller
                 'payment_status' => 'pending',
                 'total' => $total,
                 'notes' => $validated['notes'] ?? null,
+                'shipping_name' => $validated['shipping_name'],
+                'shipping_phone' => $validated['shipping_phone'],
+                'shipping_province' => $validated['shipping_province'],
+                'shipping_city' => $validated['shipping_city'],
+                'shipping_zip' => $validated['shipping_zip'],
+                'shipping_address' => $validated['shipping_address'],
+                'shipping_address_2' => $validated['shipping_address_2'] ?? null,
+                'shipping_method' => $validated['shipping_method'],
             ]);
 
             $order->items()->createMany($orderItems);
@@ -122,6 +138,14 @@ class OrderApiController extends Controller
             'payment_status' => $order->payment_status,
             'total' => (float) $order->total,
             'notes' => $order->notes,
+            'shipping_name' => $order->shipping_name,
+            'shipping_phone' => $order->shipping_phone,
+            'shipping_province' => $order->shipping_province,
+            'shipping_city' => $order->shipping_city,
+            'shipping_zip' => $order->shipping_zip,
+            'shipping_address' => $order->shipping_address,
+            'shipping_address_2' => $order->shipping_address_2,
+            'shipping_method' => $order->shipping_method,
             'items' => $order->items->map(fn ($item) => [
                 'id' => $item->id,
                 'product_id' => $item->product_id,

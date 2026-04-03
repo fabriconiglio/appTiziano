@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { CreditCard, Building2, ShoppingBag, Loader2 } from 'lucide-react'
@@ -19,6 +19,7 @@ export default function CheckoutPage() {
   const [notes, setNotes] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const orderCompletedRef = useRef(false)
 
   if (authLoading) {
     return (
@@ -33,7 +34,7 @@ export default function CheckoutPage() {
     return null
   }
 
-  if (items.length === 0) {
+  if (items.length === 0 && !orderCompletedRef.current) {
     router.push('/carrito')
     return null
   }
@@ -56,6 +57,7 @@ export default function CheckoutPage() {
 
       const result = await createOrder(orderData, token)
 
+      orderCompletedRef.current = true
       clearCart()
 
       if (result.checkout_url) {

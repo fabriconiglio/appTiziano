@@ -354,41 +354,28 @@ class DistributorTechnicalRecordController extends Controller
             // Crear movimientos en cuenta corriente solo si está marcado el checkbox
             if ($validated['use_current_account']) {
                 if ($balanceAdjustment != 0) {
-                    // Si hay ajuste de cuenta corriente (cliente con crédito o deuda existente)
-                    if ($balanceAdjustment < 0) {
-                        // Si el cliente tiene crédito, usar el crédito y crear deuda solo por la diferencia
-                        $creditUsed = abs($balanceAdjustment);
-                        $remainingDebt = max(0, $totalAfterDiscounts - $creditUsed);
-                        
-                        if ($remainingDebt > 0) {
-                            // Crear deuda solo por el monto que no se cubrió con el crédito
-                            \App\Models\DistributorCurrentAccount::create([
-                                'distributor_client_id' => $distributorClient->getKey(),
-                                'user_id' => auth()->id(),
-                                'distributor_technical_record_id' => $technicalRecord->id,
-                                'type' => 'debt',
-                                'amount' => $remainingDebt,
-                                'description' => 'Deuda por ficha técnica de compra (después de aplicar crédito)',
-                                'date' => now(),
-                                'reference' => 'FT-' . $technicalRecord->id,
-                                'observations' => "Ficha técnica #{$technicalRecord->id} - " . ($validated['purchase_type'] ?: 'Compra') . " - Crédito aplicado: $" . number_format($creditUsed, 2) . " - Deuda restante: $" . number_format($remainingDebt, 2)
-                            ]);
+                    if ($totalAfterDiscounts > 0) {
+                        $description = 'Deuda por ficha técnica de compra';
+                        $observations = "Ficha técnica #{$technicalRecord->id} - " . ($validated['purchase_type'] ?: 'Compra');
+
+                        if ($balanceAdjustment < 0) {
+                            $description = 'Deuda por ficha técnica de compra (cliente con crédito previo)';
+                            $observations .= " - Crédito previo en CC: $" . number_format(abs($balanceAdjustment), 2) . " - Monto compra: $" . number_format($totalAfterDiscounts, 2);
+                        } else {
+                            $observations .= " - Deuda existente: $" . number_format($balanceAdjustment, 2) . " - Nueva compra: $" . number_format($totalAfterDiscounts, 2);
                         }
-                    } else {
-                        // Si el cliente tiene deuda existente, solo agregar la nueva compra como deuda si el monto es mayor que 0
-                        if ($totalAfterDiscounts > 0) {
-                            \App\Models\DistributorCurrentAccount::create([
-                                'distributor_client_id' => $distributorClient->getKey(),
-                                'user_id' => auth()->id(),
-                                'distributor_technical_record_id' => $technicalRecord->id,
-                                'type' => 'debt',
-                                'amount' => $totalAfterDiscounts,
-                                'description' => 'Deuda por ficha técnica de compra',
-                                'date' => now(),
-                                'reference' => 'FT-' . $technicalRecord->id,
-                                'observations' => "Ficha técnica #{$technicalRecord->id} - " . ($validated['purchase_type'] ?: 'Compra') . " - Deuda existente: $" . number_format($balanceAdjustment, 2) . " - Nueva compra: $" . number_format($totalAfterDiscounts, 2)
-                            ]);
-                        }
+
+                        \App\Models\DistributorCurrentAccount::create([
+                            'distributor_client_id' => $distributorClient->getKey(),
+                            'user_id' => auth()->id(),
+                            'distributor_technical_record_id' => $technicalRecord->id,
+                            'type' => 'debt',
+                            'amount' => $totalAfterDiscounts,
+                            'description' => $description,
+                            'date' => now(),
+                            'reference' => 'FT-' . $technicalRecord->id,
+                            'observations' => $observations
+                        ]);
                     }
                 } else {
                     // No hay ajuste de cuenta corriente, crear deuda normal
@@ -793,41 +780,28 @@ class DistributorTechnicalRecordController extends Controller
             // Crear movimientos en cuenta corriente solo si está marcado el checkbox
             if ($validated['use_current_account']) {
                 if ($balanceAdjustment != 0) {
-                    // Si hay ajuste de cuenta corriente (cliente con crédito o deuda existente)
-                    if ($balanceAdjustment < 0) {
-                        // Si el cliente tiene crédito, usar el crédito y crear deuda solo por la diferencia
-                        $creditUsed = abs($balanceAdjustment);
-                        $remainingDebt = max(0, $totalAfterDiscounts - $creditUsed);
-                        
-                        if ($remainingDebt > 0) {
-                            // Crear deuda solo por el monto que no se cubrió con el crédito
-                            DistributorCurrentAccount::create([
-                                'distributor_client_id' => $distributorClient->getKey(),
-                                'user_id' => auth()->id(),
-                                'distributor_technical_record_id' => $distributorTechnicalRecord->id,
-                                'type' => 'debt',
-                                'amount' => $remainingDebt,
-                                'description' => 'Deuda por ficha técnica de compra (después de aplicar crédito)',
-                                'date' => now(),
-                                'reference' => 'FT-' . $distributorTechnicalRecord->id,
-                                'observations' => "Ficha técnica #{$distributorTechnicalRecord->id} - " . ($validated['purchase_type'] ?: 'Compra') . " - Crédito aplicado: $" . number_format($creditUsed, 2) . " - Deuda restante: $" . number_format($remainingDebt, 2)
-                            ]);
+                    if ($totalAfterDiscounts > 0) {
+                        $description = 'Deuda por ficha técnica de compra';
+                        $observations = "Ficha técnica #{$distributorTechnicalRecord->id} - " . ($validated['purchase_type'] ?: 'Compra');
+
+                        if ($balanceAdjustment < 0) {
+                            $description = 'Deuda por ficha técnica de compra (cliente con crédito previo)';
+                            $observations .= " - Crédito previo en CC: $" . number_format(abs($balanceAdjustment), 2) . " - Monto compra: $" . number_format($totalAfterDiscounts, 2);
+                        } else {
+                            $observations .= " - Deuda existente: $" . number_format($balanceAdjustment, 2) . " - Nueva compra: $" . number_format($totalAfterDiscounts, 2);
                         }
-                    } else {
-                        // Si el cliente tiene deuda existente, solo agregar la nueva compra como deuda si el monto es mayor que 0
-                        if ($totalAfterDiscounts > 0) {
-                            DistributorCurrentAccount::create([
-                                'distributor_client_id' => $distributorClient->getKey(),
-                                'user_id' => auth()->id(),
-                                'distributor_technical_record_id' => $distributorTechnicalRecord->id,
-                                'type' => 'debt',
-                                'amount' => $totalAfterDiscounts,
-                                'description' => 'Deuda por ficha técnica de compra',
-                                'date' => now(),
-                                'reference' => 'FT-' . $distributorTechnicalRecord->id,
-                                'observations' => "Ficha técnica #{$distributorTechnicalRecord->id} - " . ($validated['purchase_type'] ?: 'Compra') . " - Deuda existente: $" . number_format($balanceAdjustment, 2) . " - Nueva compra: $" . number_format($totalAfterDiscounts, 2)
-                            ]);
-                        }
+
+                        DistributorCurrentAccount::create([
+                            'distributor_client_id' => $distributorClient->getKey(),
+                            'user_id' => auth()->id(),
+                            'distributor_technical_record_id' => $distributorTechnicalRecord->id,
+                            'type' => 'debt',
+                            'amount' => $totalAfterDiscounts,
+                            'description' => $description,
+                            'date' => now(),
+                            'reference' => 'FT-' . $distributorTechnicalRecord->id,
+                            'observations' => $observations
+                        ]);
                     }
                 } else {
                     // No hay ajuste de cuenta corriente, crear deuda normal

@@ -130,23 +130,55 @@
                                             <tr>
                                                 <th>Producto</th>
                                                 <th>Cantidad</th>
-                                                <th>Precio al Mayor</th>
-                                                <th>Precio al Menor</th>
+                                                <th>Precio Unitario</th>
                                                 <th>Subtotal</th>
+                                                <th>Descuento</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             @foreach($productsPurchased as $item)
+                                                @php
+                                                    if ($item['unit_price'] !== null) {
+                                                        $displayUnitPrice = $item['unit_price'];
+                                                        $displayOriginalPrice = $item['original_price'];
+                                                    } elseif ($distributorTechnicalRecord->purchase_type == 'al_por_mayor') {
+                                                        $displayUnitPrice = $item['product']->precio_mayor;
+                                                        $displayOriginalPrice = $displayUnitPrice;
+                                                    } else {
+                                                        $displayUnitPrice = $item['product']->precio_menor;
+                                                        $displayOriginalPrice = $displayUnitPrice;
+                                                    }
+                                                    $subtotal = $displayUnitPrice * $item['quantity'];
+                                                @endphp
                                                 <tr>
                                                     <td>{{ $item['product']->product_name }}</td>
                                                     <td>{{ $item['quantity'] }}</td>
-                                                    <td>${{ number_format($item['product']->precio_mayor, 2) }}</td>
-                                                    <td>${{ number_format($item['product']->precio_menor, 2) }}</td>
                                                     <td>
-                                                        @if($distributorTechnicalRecord->purchase_type == 'al_por_mayor')
-                                                            ${{ number_format($item['product']->precio_mayor * $item['quantity'], 2) }}
+                                                        @if($item['has_discount'])
+                                                            <span class="text-decoration-line-through text-muted">${{ number_format($displayOriginalPrice, 2) }}</span>
+                                                            <br><strong class="text-success">${{ number_format($displayUnitPrice, 2) }}</strong>
                                                         @else
-                                                            ${{ number_format($item['product']->precio_menor * $item['quantity'], 2) }}
+                                                            ${{ number_format($displayUnitPrice, 2) }}
+                                                        @endif
+                                                    </td>
+                                                    <td>
+                                                        @if($item['has_discount'])
+                                                            <span class="text-decoration-line-through text-muted">${{ number_format($displayOriginalPrice * $item['quantity'], 2) }}</span>
+                                                            <br><strong class="text-success">${{ number_format($subtotal, 2) }}</strong>
+                                                        @else
+                                                            ${{ number_format($subtotal, 2) }}
+                                                        @endif
+                                                    </td>
+                                                    <td>
+                                                        @if($item['has_discount'])
+                                                            <span class="badge bg-warning text-dark">
+                                                                {{ $item['discount_value'] }}{{ $item['discount_type'] === 'percentage' ? '%' : '$' }}
+                                                            </span>
+                                                            @if($item['discount_reason'])
+                                                                <br><small class="text-muted">{{ $item['discount_reason'] }}</small>
+                                                            @endif
+                                                        @else
+                                                            <span class="text-muted">-</span>
                                                         @endif
                                                     </td>
                                                 </tr>

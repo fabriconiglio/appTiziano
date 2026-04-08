@@ -425,9 +425,25 @@ class DistributorTechnicalRecordController extends Controller
             foreach ($distributorTechnicalRecord->products_purchased as $productData) {
                 $supplierInventory = SupplierInventory::find($productData['product_id']);
                 if ($supplierInventory) {
+                    $unitPrice = null;
+                    $originalPrice = null;
+                    $hasDiscount = false;
+
+                    if (isset($productData['price']) && isset($productData['original_price'])) {
+                        $unitPrice = floatval($productData['price']);
+                        $originalPrice = floatval($productData['original_price']);
+                        $hasDiscount = !empty($productData['discount_type']) && !empty($productData['discount_value']);
+                    }
+
                     $productsPurchased[] = [
                         'product' => $supplierInventory,
-                        'quantity' => $productData['quantity']
+                        'quantity' => $productData['quantity'],
+                        'unit_price' => $unitPrice,
+                        'original_price' => $originalPrice,
+                        'has_discount' => $hasDiscount,
+                        'discount_type' => $productData['discount_type'] ?? null,
+                        'discount_value' => $productData['discount_value'] ?? null,
+                        'discount_reason' => $productData['discount_reason'] ?? null,
                     ];
                 }
             }

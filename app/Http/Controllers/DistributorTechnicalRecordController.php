@@ -230,6 +230,11 @@ class DistributorTechnicalRecordController extends Controller
         $totalAfterDiscounts = $calculatedTotal - $totalDiscountAmount - $totalManualDiscountAmount;
         $validated['total_amount'] = max(0, $totalAfterDiscounts);
         
+        if (isset($validated['observations'])) {
+            $validated['observations'] = preg_replace('/\s*--- DESCUENTOS.*$/s', '', $validated['observations']);
+            $validated['observations'] = rtrim($validated['observations']);
+        }
+
         // Agregar información de descuentos y regalos a las observaciones
         if (!empty($discountDetails) || !empty($giftProducts)) {
             $discountInfo = "\n\n--- DESCUENTOS Y REGALOS APLICADOS ---\n";
@@ -637,6 +642,11 @@ class DistributorTechnicalRecordController extends Controller
         $totalAfterDiscounts = $calculatedTotal - $totalDiscountAmount - $totalManualDiscountAmount;
         $validated['total_amount'] = max(0, $totalAfterDiscounts);
         
+        if (isset($validated['observations'])) {
+            $validated['observations'] = preg_replace('/\s*--- DESCUENTOS.*$/s', '', $validated['observations']);
+            $validated['observations'] = rtrim($validated['observations']);
+        }
+
         // Agregar información de descuentos y regalos a las observaciones
         if (!empty($discountDetails) || !empty($giftProducts)) {
             $discountInfo = "\n\n--- DESCUENTOS Y REGALOS APLICADOS ---\n";
@@ -954,10 +964,9 @@ class DistributorTechnicalRecordController extends Controller
                     $originalPrice = 0;
                     $hasDiscount = false;
                     
-                    if (!empty($productData['price']) && $productData['price'] > 0) {
-                        // Usar precio con descuento aplicado
-                        $unitPrice = $productData['price'];
-                        $originalPrice = $productData['original_price'] ?? $unitPrice;
+                    if (isset($productData['price']) && isset($productData['original_price'])) {
+                        $unitPrice = floatval($productData['price']);
+                        $originalPrice = floatval($productData['original_price']);
                         $hasDiscount = !empty($productData['discount_type']) && !empty($productData['discount_value']);
                     } else {
                         // Determinar el precio según el tipo de compra

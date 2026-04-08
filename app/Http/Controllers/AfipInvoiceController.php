@@ -219,9 +219,8 @@ class AfipInvoiceController extends Controller
                             // Usar precio con descuento si está disponible, sino calcular según tipo de compra
                             $unitPrice = 0;
                             
-                            if (!empty($productData['price']) && $productData['price'] > 0) {
-                                // Usar precio con descuento ya aplicado que se guardó en la ficha técnica
-                                $unitPrice = $productData['price'];
+                            if (isset($productData['price']) && isset($productData['original_price'])) {
+                                $unitPrice = floatval($productData['price']);
                             } else {
                                 // Si no hay precio guardado, usar el precio base según tipo de compra
                                 if ($technicalRecord->purchase_type == 'al_por_mayor') {

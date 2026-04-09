@@ -148,12 +148,31 @@
                             </div>
                         </div>
 
+                        <!-- Alerta de factura duplicada -->
+                        <div class="col-12 mb-3" id="duplicate-receipt-alert" style="display: none;">
+                            <div class="alert alert-danger">
+                                <h6 class="alert-heading">
+                                    <i class="fas fa-exclamation-triangle"></i> Factura existente con saldo pendiente
+                                </h6>
+                                <p class="mb-2">Ya existe una compra registrada con este numero de factura. No se puede crear una compra duplicada.</p>
+                                <p class="mb-2">Si queres registrar un pago para esta factura, usa una de estas opciones:</p>
+                                <div class="d-flex gap-2">
+                                    <a href="#" id="duplicate-edit-link" class="btn btn-warning btn-sm">
+                                        <i class="fas fa-edit"></i> Editar Compra Existente
+                                    </a>
+                                    <a href="#" id="duplicate-payment-link" class="btn btn-success btn-sm">
+                                        <i class="fas fa-money-bill-wave"></i> Registrar Pago
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Botones -->
                         <div class="d-flex justify-content-end gap-2">
                             <a href="{{ route('suppliers.show', $supplier) }}" class="btn btn-secondary">
                                 <i class="fas fa-times"></i> Cancelar
                             </a>
-                            <button type="submit" class="btn btn-primary">
+                            <button type="submit" class="btn btn-primary" id="submit-btn">
                                 <i class="fas fa-save"></i> Guardar Compra
                             </button>
                         </div>
@@ -224,13 +243,19 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    const duplicateAlert = document.getElementById('duplicate-receipt-alert');
+    const duplicateEditLink = document.getElementById('duplicate-edit-link');
+    const duplicatePaymentLink = document.getElementById('duplicate-payment-link');
+    const submitBtn = document.getElementById('submit-btn');
+
     function searchReceiptTotal(receiptNumberValue) {
         if (!receiptNumberValue || receiptNumberValue.length < 3) {
             receiptSearchMessage.textContent = '';
+            duplicateAlert.style.display = 'none';
+            submitBtn.disabled = false;
             return;
         }
 
-        // Mostrar spinner
         receiptSearchSpinner.style.display = 'block';
         receiptSearchMessage.textContent = 'Buscando factura...';
 
@@ -240,26 +265,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 receiptSearchSpinner.style.display = 'none';
                 
                 if (data.success) {
-                    if (data.balance_amount > 0) {
-                        totalAmount.value = data.balance_amount;
-                        paymentAmount.value = data.payment_amount;
-                        receiptSearchMessage.textContent = `✓ Factura encontrada - Saldo pendiente: $${data.balance_amount} (${data.purchase_date})`;
-                    } else {
-                        totalAmount.value = data.total_amount;
-                        receiptSearchMessage.textContent = `✓ Factura encontrada - Total: $${data.total_amount} (${data.purchase_date})`;
-                    }
-                    receiptSearchMessage.className = 'text-success';
-                    
-                    calculateBalance();
+                    receiptSearchMessage.textContent = `⚠ Factura existente - Saldo pendiente: $${data.balance_amount} (${data.purchase_date})`;
+                    receiptSearchMessage.className = 'text-danger fw-bold';
+
+                    duplicateEditLink.href = data.edit_url;
+                    duplicatePaymentLink.href = data.payment_url;
+                    duplicateAlert.style.display = 'block';
+                    submitBtn.disabled = true;
                 } else {
-                    receiptSearchMessage.textContent = data.message || 'Factura no encontrada';
+                    receiptSearchMessage.textContent = data.message || 'Factura no encontrada - podes crear una nueva compra';
                     receiptSearchMessage.className = 'text-muted';
+                    duplicateAlert.style.display = 'none';
+                    submitBtn.disabled = false;
                 }
             })
             .catch(error => {
                 receiptSearchSpinner.style.display = 'none';
                 receiptSearchMessage.textContent = 'Error al buscar la factura';
                 receiptSearchMessage.className = 'text-danger';
+                duplicateAlert.style.display = 'none';
+                submitBtn.disabled = false;
                 console.error('Error:', error);
             });
     }

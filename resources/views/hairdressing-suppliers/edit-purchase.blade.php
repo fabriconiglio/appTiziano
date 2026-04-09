@@ -21,6 +21,14 @@ use Illuminate\Support\Facades\Storage;
                 </div>
 
                 <div class="card-body">
+                    @if(session('warning'))
+                        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            {{ session('warning') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    @endif
+
                     <form action="{{ route('hairdressing-suppliers.update-purchase', ['hairdressingSupplier' => $hairdressingSupplier, 'purchase' => $purchase]) }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         @method('PUT')

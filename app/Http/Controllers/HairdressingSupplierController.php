@@ -192,6 +192,18 @@ class HairdressingSupplierController extends Controller
             'use_available_credit' => 'nullable|boolean'
         ]);
 
+        $existingPurchase = HairdressingSupplierPurchase::where('hairdressing_supplier_id', $hairdressingSupplier->id)
+            ->where('receipt_number', $validated['receipt_number'])
+            ->where('balance_amount', '>', 0)
+            ->first();
+
+        if ($existingPurchase) {
+            return redirect()->route('hairdressing-suppliers.edit-purchase', [
+                'hairdressingSupplier' => $hairdressingSupplier,
+                'purchase' => $existingPurchase,
+            ])->with('warning', 'Ya existe una compra con la factura ' . $validated['receipt_number'] . ' que tiene saldo pendiente. Editá esta compra para registrar un pago, o usá "Registrar Pago" desde la vista del proveedor.');
+        }
+
         try {
             DB::beginTransaction();
 
@@ -560,7 +572,13 @@ class HairdressingSupplierController extends Controller
                 'balance_amount' => $purchase->balance_amount,
                 'payment_amount' => $purchase->payment_amount,
                 'purchase_date' => $purchase->purchase_date->format('d/m/Y'),
-                'message' => 'Factura encontrada'
+                'purchase_id' => $purchase->id,
+                'edit_url' => route('hairdressing-suppliers.edit-purchase', [
+                    'hairdressingSupplier' => $hairdressingSupplier,
+                    'purchase' => $purchase,
+                ]),
+                'payment_url' => route('hairdressing-suppliers.create-payment', $hairdressingSupplier),
+                'message' => 'Factura encontrada con saldo pendiente'
             ]);
         }
 

@@ -194,6 +194,18 @@ class SupplierController extends Controller
             'use_available_credit' => 'nullable|boolean'
         ]);
 
+        $existingPurchase = SupplierPurchase::where('supplier_id', $supplier->id)
+            ->where('receipt_number', $validated['receipt_number'])
+            ->where('balance_amount', '>', 0)
+            ->first();
+
+        if ($existingPurchase) {
+            return redirect()->route('suppliers.edit-purchase', [
+                'supplier' => $supplier,
+                'purchase' => $existingPurchase,
+            ])->with('warning', 'Ya existe una compra con la factura ' . $validated['receipt_number'] . ' que tiene saldo pendiente. Editá esta compra para registrar un pago, o usá "Registrar Pago" desde la vista del proveedor.');
+        }
+
         try {
             DB::beginTransaction();
 
@@ -545,7 +557,13 @@ class SupplierController extends Controller
                 'balance_amount' => $purchase->balance_amount,
                 'payment_amount' => $purchase->payment_amount,
                 'purchase_date' => $purchase->purchase_date->format('d/m/Y'),
-                'message' => 'Factura encontrada'
+                'purchase_id' => $purchase->id,
+                'edit_url' => route('suppliers.edit-purchase', [
+                    'supplier' => $supplier,
+                    'purchase' => $purchase,
+                ]),
+                'payment_url' => route('suppliers.create-payment', $supplier),
+                'message' => 'Factura encontrada con saldo pendiente'
             ]);
         }
 

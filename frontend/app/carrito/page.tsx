@@ -151,43 +151,51 @@ export default function CarritoPage() {
                         {formatPrice(item.product.price)}
                       </p>
 
-                      <div className="mt-auto flex items-center justify-between">
-                        {/* Quantity */}
-                        <div className="flex items-center" style={{ border: '1px solid var(--color-border)' }}>
-                          <button
-                            onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                            className="px-2.5 py-1.5 hover:opacity-60"
-                            style={{ color: 'var(--color-dark)' }}
-                          >
-                            <Minus size={14} />
-                          </button>
-                          <span
-                            className="px-3 py-1.5 text-sm font-semibold min-w-[40px] text-center"
-                            style={{ color: 'var(--color-dark)', borderLeft: '1px solid var(--color-border)', borderRight: '1px solid var(--color-border)' }}
-                          >
-                            {item.quantity}
-                          </span>
-                          <button
-                            onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                            className="px-2.5 py-1.5 hover:opacity-60"
-                            style={{ color: 'var(--color-dark)' }}
-                          >
-                            <Plus size={14} />
-                          </button>
-                        </div>
+                      <div className="mt-auto">
+                        <div className="flex items-center justify-between">
+                          {/* Quantity */}
+                          <div className="flex items-center" style={{ border: '1px solid var(--color-border)' }}>
+                            <button
+                              onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                              className="px-2.5 py-1.5 hover:opacity-60"
+                              style={{ color: 'var(--color-dark)' }}
+                            >
+                              <Minus size={14} />
+                            </button>
+                            <span
+                              className="px-3 py-1.5 text-sm font-semibold min-w-[40px] text-center"
+                              style={{ color: 'var(--color-dark)', borderLeft: '1px solid var(--color-border)', borderRight: '1px solid var(--color-border)' }}
+                            >
+                              {item.quantity}
+                            </span>
+                            <button
+                              onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                              disabled={item.quantity >= item.product.current_stock}
+                              className="px-2.5 py-1.5 hover:opacity-60 disabled:opacity-30 disabled:cursor-not-allowed"
+                              style={{ color: 'var(--color-dark)' }}
+                            >
+                              <Plus size={14} />
+                            </button>
+                          </div>
 
-                        <div className="flex items-center gap-4">
-                          <span className="font-bold text-base" style={{ color: 'var(--color-dark)', fontFamily: 'var(--font-display)' }}>
-                            {formatPrice(price * item.quantity)}
-                          </span>
-                          <button
-                            onClick={() => removeItem(item.product.id)}
-                            className="p-1.5 hover:opacity-60"
-                            style={{ color: '#C25B56' }}
-                          >
-                            <Trash2 size={16} />
-                          </button>
+                          <div className="flex items-center gap-4">
+                            <span className="font-bold text-base" style={{ color: 'var(--color-dark)', fontFamily: 'var(--font-display)' }}>
+                              {formatPrice(price * item.quantity)}
+                            </span>
+                            <button
+                              onClick={() => removeItem(item.product.id)}
+                              className="p-1.5 hover:opacity-60"
+                              style={{ color: '#C25B56' }}
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
                         </div>
+                        {item.quantity >= item.product.current_stock && (
+                          <p className="text-xs mt-1.5" style={{ color: 'var(--color-primary-dark)' }}>
+                            Máximo disponible ({item.product.current_stock} un.)
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>

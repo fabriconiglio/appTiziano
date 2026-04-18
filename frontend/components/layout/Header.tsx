@@ -137,7 +137,7 @@ export default function Header() {
               <span
                 style={{ color: 'var(--color-primary)', fontSize: '0.65rem', letterSpacing: '0.25em', textTransform: 'uppercase', fontWeight: 600 }}
               >
-                Peluquería Profesional
+                Artículos de Peluquería
               </span>
             </div>
           </Link>

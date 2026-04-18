@@ -109,11 +109,11 @@ export default function Footer() {
                 fontWeight: 600,
               }}
             >
-              Peluquería Profesional
+              Artículos de Peluquería
             </span>
           </div>
           <p className="text-sm leading-relaxed" style={{ color: '#aaa' }}>
-            Salón de peluquería profesional y distribuidora de productos capilares en Córdoba. Calidad premium para profesionales y consumidores.
+            Distribuidora de artículos de peluquería en Córdoba. Calidad premium para profesionales y consumidores.
           </p>
           <div className="flex gap-4 mt-6">
             {[

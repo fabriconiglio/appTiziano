@@ -6,8 +6,8 @@ import { AuthProvider } from '@/lib/AuthContext'
 import { CartProvider } from '@/lib/CartContext'
 
 export const metadata: Metadata = {
-  title: 'Tiziano Peluquería — Productos Profesionales',
-  description: 'E-commerce de productos de peluquería profesional. Shampoos, acondicionadores, máscaras, coloración y más.',
+  title: 'Tiziano — Artículos de Peluquería',
+  description: 'E-commerce de artículos de peluquería. Shampoos, acondicionadores, máscaras, coloración y más.',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

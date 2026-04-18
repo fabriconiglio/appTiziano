@@ -51,14 +51,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const addItem = useCallback((product: Product, quantity = 1) => {
     setItems((prev) => {
       const existing = prev.find((i) => i.product.id === product.id)
+      const maxStock = product.current_stock
       if (existing) {
+        const newQty = Math.min(existing.quantity + quantity, maxStock)
         return prev.map((i) =>
-          i.product.id === product.id
-            ? { ...i, quantity: i.quantity + quantity }
-            : i,
+          i.product.id === product.id ? { ...i, quantity: newQty } : i,
         )
       }
-      return [...prev, { product, quantity }]
+      return [...prev, { product, quantity: Math.min(quantity, maxStock) }]
     })
   }, [])
 
@@ -72,9 +72,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return
     }
     setItems((prev) =>
-      prev.map((i) =>
-        i.product.id === productId ? { ...i, quantity } : i,
-      ),
+      prev.map((i) => {
+        if (i.product.id !== productId) return i
+        const capped = Math.min(quantity, i.product.current_stock)
+        return { ...i, quantity: capped }
+      }),
     )
   }, [])
 

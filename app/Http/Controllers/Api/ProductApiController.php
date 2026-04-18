@@ -56,7 +56,7 @@ class ProductApiController extends Controller
     {
         $merged = SupplierInventory::with(['distributorCategory', 'distributorBrand'])
             ->where('is_featured', true)
-            ->orderByRaw('CASE WHEN stock_quantity > 0 THEN 0 ELSE 1 END')
+            ->where('stock_quantity', '>', 0)
             ->orderBy('product_name')
             ->get()
             ->map(fn (SupplierInventory $item) => $this->mapSupplierInventoryToApiProduct($item))

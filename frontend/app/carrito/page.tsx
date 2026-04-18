@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Trash2, Minus, Plus, ShoppingBag, ArrowLeft } from 'lucide-react'
 import { useCart } from '@/lib/CartContext'
 import { useAuth } from '@/lib/AuthContext'
-import { formatPrice } from '@/lib/api'
+import { formatPrice, productPath } from '@/lib/api'
 
 export default function CarritoPage() {
   const { items, cartTotal, removeItem, updateQuantity, clearCart } = useCart()
@@ -117,7 +117,7 @@ export default function CarritoPage() {
                     }}
                   >
                     {/* Image */}
-                    <Link href={`/productos/${item.product.id}`} className="flex-shrink-0">
+                    <Link href={productPath(item.product)} className="flex-shrink-0">
                       {item.product.image_url ? (
                         <img
                           src={item.product.image_url}
@@ -137,7 +137,7 @@ export default function CarritoPage() {
 
                     {/* Info */}
                     <div className="flex-1 min-w-0 flex flex-col">
-                      <Link href={`/productos/${item.product.id}`}>
+                      <Link href={productPath(item.product)}>
                         <h3 className="font-semibold text-sm mb-1 hover:opacity-70" style={{ color: 'var(--color-dark)' }}>
                           {item.product.name}
                         </h3>

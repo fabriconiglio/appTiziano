@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import { Search, SlidersHorizontal, X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { getProducts } from '@/lib/api'
 import { Product, Category, Brand, PaginatedResponse } from '@/lib/types'
@@ -12,6 +12,7 @@ interface ProductsClientProps {
   initialData: PaginatedResponse<Product>
   categories: Category[]
   brands: Brand[]
+  initialBrandId: number | null
 }
 
 /** Páginas a mostrar: [1, '…', 5, 6, 7, '…', 28] */
@@ -36,17 +37,52 @@ function paginationItems(current: number, lastPage: number, delta = 2): (number 
   return out
 }
 
-export default function ProductsClient({ initialData, categories, brands }: ProductsClientProps) {
+export default function ProductsClient({
+  initialData,
+  categories,
+  brands,
+  initialBrandId,
+}: ProductsClientProps) {
   const searchParams = useSearchParams()
+  const router = useRouter()
+  const pathname = usePathname()
   const initialSearch = searchParams.get('search') ?? ''
 
   const [data, setData] = useState(initialData)
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null)
-  const [selectedBrand, setSelectedBrand] = useState<number | null>(null)
+  const [selectedBrand, setSelectedBrand] = useState<number | null>(initialBrandId)
   const [search, setSearch] = useState(initialSearch)
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(false)
   const [mobileFilters, setMobileFilters] = useState(false)
+
+  const brandUrlKeyRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    setData(initialData)
+  }, [initialData])
+
+  useEffect(() => {
+    const marca = searchParams.get('marca')
+    const legacy = searchParams.get('brand_id')
+    const key = `${marca ?? ''}|${legacy ?? ''}`
+    let id: number | null = null
+    if (marca) id = brands.find((b) => b.slug === marca)?.id ?? null
+    else if (legacy) {
+      const n = parseInt(legacy, 10)
+      id = Number.isNaN(n) ? null : n
+    }
+    if (brandUrlKeyRef.current === null) {
+      brandUrlKeyRef.current = key
+      setSelectedBrand(id)
+      return
+    }
+    if (brandUrlKeyRef.current !== key) {
+      brandUrlKeyRef.current = key
+      setSelectedBrand(id)
+      setPage(1)
+    }
+  }, [searchParams.toString(), brands])
 
   useEffect(() => {
     const q = searchParams.get('search') ?? ''
@@ -59,9 +95,12 @@ export default function ProductsClient({ initialData, categories, brands }: Prod
   const fetchProducts = useCallback(async () => {
     setLoading(true)
     try {
+      const slug =
+        selectedBrand != null ? brands.find((b) => b.id === selectedBrand)?.slug : undefined
       const result = await getProducts({
         category_id: selectedCategory ?? undefined,
-        brand_id: selectedBrand ?? undefined,
+        brand_slug: slug || undefined,
+        brand_id: slug ? undefined : selectedBrand ?? undefined,
         search: search || undefined,
         page,
       })
@@ -69,7 +108,7 @@ export default function ProductsClient({ initialData, categories, brands }: Prod
     } finally {
       setLoading(false)
     }
-  }, [selectedCategory, selectedBrand, search, page])
+  }, [selectedCategory, selectedBrand, search, page, brands])
 
   useEffect(() => {
     fetchProducts()
@@ -83,6 +122,17 @@ export default function ProductsClient({ initialData, categories, brands }: Prod
   const handleBrandChange = (id: number | null) => {
     setSelectedBrand(id)
     setPage(1)
+    const params = new URLSearchParams(searchParams.toString())
+    params.delete('brand_id')
+    if (id) {
+      const slug = brands.find((b) => b.id === id)?.slug
+      if (slug) params.set('marca', slug)
+      else params.set('brand_id', String(id))
+    } else {
+      params.delete('marca')
+    }
+    const q = params.toString()
+    router.replace(q ? `${pathname}?${q}` : pathname, { scroll: false })
   }
 
   return (

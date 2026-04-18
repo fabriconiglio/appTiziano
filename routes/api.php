@@ -12,7 +12,8 @@ use App\Http\Controllers\Api\ShippingApiController;
 
 Route::get('/sliders', [SliderApiController::class, 'index']);
 Route::get('/products', [ProductApiController::class, 'index']);
-Route::get('/products/{id}', [ProductApiController::class, 'show'])->whereNumber('id');
+Route::get('/products/{identifier}', [ProductApiController::class, 'show'])
+    ->where('identifier', '[A-Za-z0-9\-]+');
 Route::get('/categories', [CategoryApiController::class, 'index']);
 Route::get('/brands', [BrandApiController::class, 'index']);
 

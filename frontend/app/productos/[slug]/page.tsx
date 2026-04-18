@@ -1,25 +1,49 @@
-import { getProduct, getProducts, formatPrice, priceSinIVA } from '@/lib/api'
-import { notFound } from 'next/navigation'
+import type { Metadata } from 'next'
+import { getProduct, getProducts, formatPrice, priceSinIVA, productPath } from '@/lib/api'
+import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronRight, Package, Tag, Star, ArrowLeft } from 'lucide-react'
 import ProductCard from '@/components/products/ProductCard'
 import AddToCartButton from '@/components/products/AddToCartButton'
 
 interface PageProps {
-  params: Promise<{ id: string }>
+  params: Promise<{ slug: string }>
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params
+  const segment = slug?.trim()
+  if (!segment) {
+    return { title: 'Producto — Tiziano' }
+  }
+  try {
+    const product = await getProduct(segment)
+    const raw = product.description ? String(product.description).replace(/\s+/g, ' ').trim() : ''
+    const description =
+      raw.length > 155 ? `${raw.slice(0, 155)}…` : raw || `Comprá ${product.name} en Tiziano.`
+    return {
+      title: `${product.name} — Tiziano`,
+      description,
+    }
+  } catch {
+    return { title: 'Producto — Tiziano' }
+  }
 }
 
 export default async function ProductDetailPage({ params }: PageProps) {
-  const { id } = await params
-  const productId = parseInt(id)
-
-  if (isNaN(productId)) notFound()
+  const { slug } = await params
+  const segment = slug?.trim()
+  if (!segment) notFound()
 
   let product
   try {
-    product = await getProduct(productId)
+    product = await getProduct(segment)
   } catch {
     notFound()
+  }
+
+  if (product.slug && product.slug !== segment) {
+    redirect(productPath(product))
   }
 
   const relatedData = await getProducts({
@@ -42,9 +66,13 @@ export default async function ProductDetailPage({ params }: PageProps) {
       >
         <div className="max-w-7xl mx-auto px-6">
           <nav className="flex items-center gap-2 text-xs" style={{ color: '#888' }}>
-            <Link href="/" style={{ color: '#888' }}>Inicio</Link>
+            <Link href="/" style={{ color: '#888' }}>
+              Inicio
+            </Link>
             <ChevronRight size={12} />
-            <Link href="/productos" style={{ color: '#888' }}>Productos</Link>
+            <Link href="/productos" style={{ color: '#888' }}>
+              Productos
+            </Link>
             <ChevronRight size={12} />
             <span style={{ color: 'var(--color-primary)' }}>{product.name}</span>
           </nav>
@@ -94,7 +122,11 @@ export default async function ProductDetailPage({ params }: PageProps) {
                 <Link
                   href={`/categorias/${product.category.slug || product.category.id}`}
                   className="inline-block text-xs font-semibold uppercase tracking-widest mb-4 px-3 py-1.5"
-                  style={{ background: 'var(--color-cream)', color: 'var(--color-dark-soft)', border: '1px solid var(--color-border)' }}
+                  style={{
+                    background: 'var(--color-cream)',
+                    color: 'var(--color-dark-soft)',
+                    border: '1px solid var(--color-border)',
+                  }}
                 >
                   {product.category.name}
                 </Link>
@@ -114,10 +146,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
 
               {/* Brand */}
               {product.brand && (
-                <p
-                  className="text-sm italic mb-4"
-                  style={{ color: 'var(--color-primary-dark)' }}
-                >
+                <p className="text-sm italic mb-4" style={{ color: 'var(--color-primary-dark)' }}>
                   por {product.brand.name}
                 </p>
               )}
@@ -127,21 +156,17 @@ export default async function ProductDetailPage({ params }: PageProps) {
                 {Array.from({ length: 5 }).map((_, i) => (
                   <Star key={i} size={14} fill="var(--color-primary)" style={{ color: 'var(--color-primary)' }} />
                 ))}
-                <span className="text-xs ml-2" style={{ color: 'var(--color-dark-soft)' }}>(Uso Profesional)</span>
+                <span className="text-xs ml-2" style={{ color: 'var(--color-dark-soft)' }}>
+                  (Uso Profesional)
+                </span>
               </div>
 
               {/* Decorative line */}
-              <div
-                className="mb-6"
-                style={{ width: '50px', height: '2px', background: 'var(--color-primary)' }}
-              />
+              <div className="mb-6" style={{ width: '50px', height: '2px', background: 'var(--color-primary)' }} />
 
               {/* Description */}
               {product.description && (
-                <p
-                  className="text-sm leading-relaxed mb-6"
-                  style={{ color: 'var(--color-dark-soft)' }}
-                >
+                <p className="text-sm leading-relaxed mb-6" style={{ color: 'var(--color-dark-soft)' }}>
                   {product.description}
                 </p>
               )}
@@ -154,7 +179,9 @@ export default async function ProductDetailPage({ params }: PageProps) {
                 {product.sku && (
                   <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--color-dark-soft)' }}>
                     <Tag size={13} style={{ color: 'var(--color-primary)' }} />
-                    <span>SKU: <strong style={{ color: 'var(--color-dark)' }}>{product.sku}</strong></span>
+                    <span>
+                      SKU: <strong style={{ color: 'var(--color-dark)' }}>{product.sku}</strong>
+                    </span>
                   </div>
                 )}
                 <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--color-dark-soft)' }}>
@@ -181,10 +208,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
                 >
                   {price}
                 </span>
-                <span
-                  className="block text-sm mt-1"
-                  style={{ color: 'var(--color-dark-soft)' }}
-                >
+                <span className="block text-sm mt-1" style={{ color: 'var(--color-dark-soft)' }}>
                   Precio sin imp. {priceSinIVA(product.price)}
                 </span>
                 <p className="mt-1 text-xs" style={{ color: '#999' }}>

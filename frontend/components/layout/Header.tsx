@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Menu, X, ChevronDown, Search, ShoppingBag, User, Loader2 } from 'lucide-react'
 import { Category, Product } from '@/lib/types'
-import { getCategories, searchProducts, formatPrice, priceSinIVA } from '@/lib/api'
+import { getCategories, searchProducts, formatPrice, priceSinIVA, productPath } from '@/lib/api'
 import { useAuth } from '@/lib/AuthContext'
 import { useCart } from '@/lib/CartContext'
 
@@ -282,7 +282,7 @@ export default function Header() {
                           {searchResults.map((product) => (
                             <Link
                               key={product.id}
-                              href={`/productos/${product.id}`}
+                              href={productPath(product)}
                               onClick={closeSearch}
                               className="flex items-center gap-3 px-4 py-3 transition-colors"
                               style={{ borderBottom: '1px solid var(--color-border)' }}
@@ -501,7 +501,7 @@ export default function Header() {
                       {searchResults.map((product) => (
                         <Link
                           key={product.id}
-                          href={`/productos/${product.id}`}
+                          href={productPath(product)}
                           onClick={() => { closeSearch(); setMobileOpen(false) }}
                           className="flex items-center gap-3 px-3 py-2.5"
                           style={{ borderBottom: '1px solid var(--color-border)' }}

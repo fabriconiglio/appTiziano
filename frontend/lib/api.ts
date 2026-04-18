@@ -16,13 +16,15 @@ async function apiFetch<T>(path: string, cacheMode: 'isr' | 'no-store' = 'isr'):
 export async function getProducts(params?: {
   category_id?: number
   brand_id?: number
+  brand_slug?: string
   search?: string
   page?: number
   featured?: boolean
 }): Promise<PaginatedResponse<Product>> {
   const qs = new URLSearchParams()
   if (params?.category_id) qs.set('category_id', String(params.category_id))
-  if (params?.brand_id) qs.set('brand_id', String(params.brand_id))
+  if (params?.brand_slug) qs.set('brand_slug', params.brand_slug)
+  else if (params?.brand_id) qs.set('brand_id', String(params.brand_id))
   if (params?.search) qs.set('search', params.search)
   if (params?.page) qs.set('page', String(params.page))
   if (params?.featured) qs.set('featured', '1')
@@ -31,8 +33,16 @@ export async function getProducts(params?: {
   return apiFetch<PaginatedResponse<Product>>(`/products${query}`, cacheMode)
 }
 
-export async function getProduct(id: number): Promise<Product> {
-  return apiFetch<Product>(`/products/${id}`)
+/** Ruta pública del producto (slug si existe; si no, id numérico). */
+export function productPath(product: Pick<Product, 'id' | 'slug'>): string {
+  if (product.slug && String(product.slug).length > 0) {
+    return `/productos/${encodeURIComponent(product.slug)}`
+  }
+  return `/productos/${product.id}`
+}
+
+export async function getProduct(identifier: string): Promise<Product> {
+  return apiFetch<Product>(`/products/${encodeURIComponent(identifier)}`)
 }
 
 export async function searchProducts(query: string, limit = 6): Promise<Product[]> {

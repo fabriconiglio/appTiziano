@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class SupplierInventory extends Model
 {
@@ -111,6 +112,38 @@ class SupplierInventory extends Model
     public function supplier()
     {
         return $this->belongsTo(Supplier::class, 'supplier_name', 'name');
+    }
+
+    protected static function booted(): void
+    {
+        static::created(function (SupplierInventory $item) {
+            if (empty($item->slug)) {
+                $item->slug = static::uniqueSlugForProduct($item->product_name, $item->id);
+                $item->saveQuietly();
+            }
+        });
+
+        static::saving(function (SupplierInventory $item) {
+            if (! $item->exists) {
+                return;
+            }
+            if ($item->isDirty('product_name')) {
+                $item->slug = static::uniqueSlugForProduct($item->product_name, $item->id);
+            }
+        });
+    }
+
+    public static function uniqueSlugForProduct(string $name, int $id): string
+    {
+        $base = Str::slug($name) ?: 'producto';
+        $slug = $base.'-'.$id;
+        $candidate = $slug;
+        $n = 2;
+        while (static::where('slug', $candidate)->where('id', '!=', $id)->exists()) {
+            $candidate = $slug.'-'.$n++;
+        }
+
+        return $candidate;
     }
 
     /**

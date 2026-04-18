@@ -105,6 +105,18 @@ class DistributorBrandController extends Controller
             ->with('success', 'Marca de distribuidora actualizada exitosamente');
     }
 
+    public function toggleFeatured(DistributorBrand $distributorBrand)
+    {
+        $distributorBrand->is_featured = ! $distributorBrand->is_featured;
+        $distributorBrand->save();
+
+        $message = $distributorBrand->is_featured
+            ? '"'.$distributorBrand->name.'" quedó destacada en el E-Commerce.'
+            : 'Se quitó el destacado de "'.$distributorBrand->name.'".';
+
+        return back()->with('success', $message);
+    }
+
     public function destroy(DistributorBrand $distributorBrand)
     {
         // Detach categories before deleting

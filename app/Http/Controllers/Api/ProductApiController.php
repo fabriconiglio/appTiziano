@@ -24,7 +24,12 @@ class ProductApiController extends Controller
             $query->where('distributor_category_id', $request->category_id);
         }
 
-        if ($request->filled('brand_id')) {
+        if ($request->filled('brand_slug')) {
+            $slug = $request->string('brand_slug')->trim()->toString();
+            $query->whereHas('distributorBrand', function ($q) use ($slug) {
+                $q->where('slug', $slug)->where('is_active', true);
+            });
+        } elseif ($request->filled('brand_id')) {
             $query->where('distributor_brand_id', $request->brand_id);
         }
 
@@ -77,16 +82,27 @@ class ProductApiController extends Controller
         return response()->json($paginator);
     }
 
-    public function show(int $id): JsonResponse
+    public function show(string $identifier): JsonResponse
     {
-        $inventory = SupplierInventory::with(['distributorCategory', 'distributorBrand'])->find($id);
+        $inventory = null;
+        if (ctype_digit($identifier)) {
+            $inventory = SupplierInventory::with(['distributorCategory', 'distributorBrand'])->find((int) $identifier);
+        }
+        if (! $inventory) {
+            $inventory = SupplierInventory::with(['distributorCategory', 'distributorBrand'])
+                ->where('slug', $identifier)
+                ->first();
+        }
+
         if ($inventory) {
             return response()->json($this->mapSupplierInventoryToApiProduct($inventory));
         }
 
-        $product = Product::with(['category', 'brand'])->find($id);
-        if ($product) {
-            return response()->json($product);
+        if (ctype_digit($identifier)) {
+            $product = Product::with(['category', 'brand'])->find((int) $identifier);
+            if ($product) {
+                return response()->json($product);
+            }
         }
 
         abort(404);
@@ -105,6 +121,7 @@ class ProductApiController extends Controller
 
         return [
             'id' => $item->id,
+            'slug' => $item->slug,
             'name' => $item->product_name,
             'description' => $item->description,
             'sku' => $item->sku,

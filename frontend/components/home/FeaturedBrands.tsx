@@ -29,7 +29,7 @@ export default async function FeaturedBrands() {
           {brands.map((brand) => (
             <Link
               key={brand.id}
-              href={`/productos?brand_id=${brand.id}`}
+              href={`/productos?marca=${encodeURIComponent(brand.slug)}`}
               className="group flex flex-col items-center gap-4 p-6 transition-all"
               style={{
                 background: 'var(--color-white)',

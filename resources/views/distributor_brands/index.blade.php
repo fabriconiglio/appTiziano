@@ -36,6 +36,9 @@
                                             <img src="{{ $brand->logo_url }}" alt="{{ $brand->name }}" class="img-thumbnail me-2" width="50">
                                         @endif
                                         {{ $brand->name }}
+                                        @if($brand->is_featured)
+                                            <span class="badge bg-warning text-dark ms-1" title="Destacada en E-Commerce"><i class="fas fa-star"></i></span>
+                                        @endif
                                     </td>
                                     <td>{{ Str::limit($brand->description, 50) }}</td>
                                     <td>
@@ -57,6 +60,14 @@
                                     </td>
                                     <td>
                                         <div class="d-flex align-items-center gap-2">
+                                            <form action="{{ route('distributor_brands.toggle-featured', $brand) }}" method="POST" class="d-inline">
+                                                @csrf
+                                                <button type="submit"
+                                                        class="btn btn-sm {{ $brand->is_featured ? 'btn-warning' : 'btn-outline-warning' }}"
+                                                        title="{{ $brand->is_featured ? 'Quitar destacado del E-Commerce' : 'Destacar en el E-Commerce' }}">
+                                                    <i class="fas fa-star"></i>
+                                                </button>
+                                            </form>
                                             <a href="{{ route('distributor_brands.edit', $brand) }}" class="btn btn-sm btn-primary" title="Editar">
                                                 <i class="fas fa-edit"></i>
                                             </a>

@@ -16,6 +16,8 @@ export interface Brand {
 
 export interface Product {
   id: number
+  /** Slug para URL SEO (/productos/mi-producto-123); opcional en catálogo legacy */
+  slug?: string | null
   name: string
   description: string | null
   sku: string | null

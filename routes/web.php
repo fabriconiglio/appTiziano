@@ -178,6 +178,8 @@ Route::get('/api/supplier-inventories/get-product', [App\Http\Controllers\Suppli
 
     // CRUD de distributor brands
     Route::resource('distributor_brands', \App\Http\Controllers\DistributorBrandController::class);
+    Route::post('distributor_brands/{distributorBrand}/toggle-featured', [\App\Http\Controllers\DistributorBrandController::class, 'toggleFeatured'])
+        ->name('distributor_brands.toggle-featured');
 
     // CRUD de distributor categories
     Route::resource('distributor_categories', \App\Http\Controllers\DistributorCategoryController::class);

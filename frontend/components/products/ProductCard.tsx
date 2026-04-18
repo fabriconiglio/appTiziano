@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { ShoppingBag, Star, Check } from 'lucide-react'
 import { useState } from 'react'
 import { Product } from '@/lib/types'
-import { formatPrice, priceSinIVA } from '@/lib/api'
+import { formatPrice, priceSinIVA, productPath } from '@/lib/api'
 import { useCart } from '@/lib/CartContext'
 
 interface ProductCardProps {
@@ -46,7 +46,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       }}
     >
       {/* Image area */}
-      <Link href={`/productos/${product.id}`} className="block relative overflow-hidden" style={{ aspectRatio: '1 / 1' }}>
+      <Link href={productPath(product)} className="block relative overflow-hidden" style={{ aspectRatio: '1 / 1' }}>
         {product.image_url ? (
           <img
             src={product.image_url}
@@ -109,7 +109,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           ))}
         </div>
 
-        <Link href={`/productos/${product.id}`}>
+        <Link href={productPath(product)}>
           <h3
             className="font-semibold text-sm mb-1 leading-snug line-clamp-2 hover:opacity-70 transition-opacity"
             style={{ color: 'var(--color-dark)', fontFamily: 'var(--font-body)' }}

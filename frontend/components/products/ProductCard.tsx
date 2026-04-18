@@ -140,7 +140,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           <button
             onClick={handleAdd}
             disabled={!inStock}
-            className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold uppercase tracking-wider transition-all"
+            className="shrink-0 flex items-center justify-center p-2.5 sm:px-3 sm:py-2 sm:gap-1.5 text-xs font-semibold uppercase tracking-wider transition-all"
             style={{
               background: added ? '#2E7D52' : inStock ? 'var(--color-dark)' : '#ccc',
               color: 'var(--color-white)',
@@ -162,8 +162,10 @@ export default function ProductCard({ product }: ProductCardProps) {
               el.style.color = 'var(--color-white)'
             }}
           >
-            {added ? <Check size={13} /> : <ShoppingBag size={13} />}
-            {added ? 'Agregado' : inStock ? 'Agregar' : 'Sin stock'}
+            {added ? <Check size={14} /> : <ShoppingBag size={14} />}
+            <span className="hidden sm:inline">
+              {added ? 'Agregado' : inStock ? 'Agregar' : 'Sin stock'}
+            </span>
           </button>
         </div>
       </div>

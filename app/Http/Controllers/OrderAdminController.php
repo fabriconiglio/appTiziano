@@ -4,10 +4,18 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Notifications\OrderStatusChangedNotification;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class OrderAdminController extends Controller
 {
+    public function pendingCount(): JsonResponse
+    {
+        $count = Order::where('status', 'pending')->count();
+
+        return response()->json(['count' => $count]);
+    }
+
     public function index(Request $request)
     {
         $query = Order::with(['user', 'items'])->orderByDesc('created_at');

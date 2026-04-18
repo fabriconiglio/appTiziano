@@ -45,8 +45,11 @@ export async function getCategories(): Promise<Category[]> {
   return apiFetch<Category[]>('/categories')
 }
 
-export async function getBrands(): Promise<Brand[]> {
-  return apiFetch<Brand[]>('/brands')
+export async function getBrands(params?: { featured?: boolean }): Promise<Brand[]> {
+  const qs = new URLSearchParams()
+  if (params?.featured) qs.set('featured', '1')
+  const query = qs.toString() ? `?${qs}` : ''
+  return apiFetch<Brand[]>(`/brands${query}`)
 }
 
 export async function getSliders(): Promise<Slider[]> {

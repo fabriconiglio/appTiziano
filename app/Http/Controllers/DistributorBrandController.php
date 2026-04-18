@@ -31,11 +31,13 @@ class DistributorBrandController extends Controller
             'logo_url' => 'nullable|url',
             'logo_file' => 'nullable|image|max:2048',
             'is_active' => 'boolean',
+            'is_featured' => 'boolean',
             'categories' => 'required|array',
             'categories.*' => 'exists:distributor_categories,id'
         ]);
 
         $validated['slug'] = Str::slug($validated['name']);
+        $validated['is_featured'] = $request->boolean('is_featured');
 
         // Si se sube un archivo, guardarlo y usar esa ruta
         if ($request->hasFile('logo_file')) {
@@ -79,11 +81,13 @@ class DistributorBrandController extends Controller
             'logo_url' => 'nullable|url',
             'logo_file' => 'nullable|image|max:2048',
             'is_active' => 'boolean',
+            'is_featured' => 'boolean',
             'categories' => 'required|array',
             'categories.*' => 'exists:distributor_categories,id'
         ]);
 
         $validated['slug'] = Str::slug($validated['name']);
+        $validated['is_featured'] = $request->boolean('is_featured');
 
         // Si se sube un archivo, guardarlo y usar esa ruta
         if ($request->hasFile('logo_file')) {

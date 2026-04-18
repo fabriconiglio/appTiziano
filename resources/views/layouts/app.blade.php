@@ -283,6 +283,7 @@
                                     <a class="dropdown-item" href="{{ route('orders.index') }}">
                                         <i class="fas fa-shopping-cart me-2"></i>
                                         {{ __('Pedidos') }}
+                                        <span class="badge bg-danger ms-1 d-none" id="pending-orders-count">0</span>
                                     </a>
                                 </li>
                             </ul>
@@ -427,10 +428,27 @@ function updateDistribuidoraAlertCount() {
         });
 }
 
-// Función para actualizar ambos contadores
+// Actualizar contador de pedidos pendientes
+function updatePendingOrdersCount() {
+    $.get('{{ route("orders.pending-count") }}')
+        .done(function(data) {
+            $('#pending-orders-count').text(data.count);
+            if (data.count > 0) {
+                $('#pending-orders-count').removeClass('d-none');
+            } else {
+                $('#pending-orders-count').addClass('d-none');
+            }
+        })
+        .fail(function(xhr, status, error) {
+            console.error('Error al obtener pedidos pendientes:', error);
+        });
+}
+
+// Función para actualizar todos los contadores
 function updateAllAlertCounts() {
     updatePeluqueriaAlertCount();
     updateDistribuidoraAlertCount();
+    updatePendingOrdersCount();
 }
 
 // Actualizar al cargar la página

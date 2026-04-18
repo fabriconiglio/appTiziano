@@ -11,6 +11,7 @@ export interface Brand {
   slug: string
   description: string | null
   logo_url: string | null
+  is_featured?: boolean
 }
 
 export interface Product {
@@ -45,13 +46,6 @@ export interface PaginatedResponse<T> {
   from: number
   to: number
   links: { url: string | null; label: string; active: boolean }[]
-}
-
-export type HairType = {
-  slug: string
-  label: string
-  description: string
-  icon: string
 }
 
 export interface Slider {

@@ -158,7 +158,7 @@ export default function ContactoPage() {
               {/* Redes */}
               <div className="mt-8 flex gap-4">
                 <a
-                  href="https://instagram.com/tiziano_peluqueria.spa"
+                  href="https://www.instagram.com/tiziano.articulosdepeluqueria"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-10 h-10 flex items-center justify-center rounded-full transition-all"

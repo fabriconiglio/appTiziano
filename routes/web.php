@@ -169,6 +169,7 @@ Route::get('/api/supplier-inventories/get-product', [App\Http\Controllers\Suppli
 
     // Pedidos del E-Commerce
     Route::get('orders', [\App\Http\Controllers\OrderAdminController::class, 'index'])->name('orders.index');
+    Route::get('orders/pending-count', [\App\Http\Controllers\OrderAdminController::class, 'pendingCount'])->name('orders.pending-count');
     Route::get('orders/{id}', [\App\Http\Controllers\OrderAdminController::class, 'show'])->name('orders.show');
     Route::patch('orders/{id}/status', [\App\Http\Controllers\OrderAdminController::class, 'updateStatus'])->name('orders.update-status');
 

@@ -1,3 +1,6 @@
+export const DISCOUNT_THRESHOLD = 150_000
+export const DISCOUNT_RATE = 0.20
+
 export interface Category {
   id: number
   name: string
@@ -113,6 +116,7 @@ export interface OrderRequest {
   shipping_address_2?: string
   shipping_method: ShippingMethod
   shipping_cost?: number
+  discount?: number
 }
 
 export interface Order {
@@ -124,6 +128,7 @@ export interface Order {
   mercadopago_preference_id?: string | null
   mercadopago_payment_id?: string | null
   total: number
+  discount?: number | null
   shipping_cost?: number | null
   notes?: string
   shipping_name?: string

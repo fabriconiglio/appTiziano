@@ -6,9 +6,10 @@ import { Trash2, Minus, Plus, ShoppingBag, ArrowLeft } from 'lucide-react'
 import { useCart } from '@/lib/CartContext'
 import { useAuth } from '@/lib/AuthContext'
 import { formatPrice, productPath } from '@/lib/api'
+import { DISCOUNT_THRESHOLD, DISCOUNT_RATE } from '@/lib/types'
 
 export default function CarritoPage() {
-  const { items, cartTotal, removeItem, updateQuantity, clearCart } = useCart()
+  const { items, cartTotal, discount, finalTotal, removeItem, updateQuantity, clearCart } = useCart()
   const { isAuthenticated } = useAuth()
   const router = useRouter()
 
@@ -253,6 +254,34 @@ export default function CarritoPage() {
                   })}
                 </div>
 
+                {/* Banner de incentivo al descuento */}
+                {cartTotal <= DISCOUNT_THRESHOLD && cartTotal > DISCOUNT_THRESHOLD * 0.7 && (
+                  <div
+                    className="mb-4 px-4 py-3 text-xs font-semibold"
+                    style={{ background: 'var(--color-cream)', border: '1px solid var(--color-primary)', color: 'var(--color-dark)' }}
+                  >
+                    Agregá {formatPrice(DISCOUNT_THRESHOLD - cartTotal)} más y obtenés un <strong>20% de descuento</strong> en tu pedido.
+                  </div>
+                )}
+
+                {/* Descuento activo */}
+                {discount > 0 && (
+                  <>
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm" style={{ color: 'var(--color-dark-soft)' }}>Subtotal</span>
+                      <span className="text-sm" style={{ color: 'var(--color-dark-soft)' }}>{formatPrice(cartTotal)}</span>
+                    </div>
+                    <div className="flex justify-between items-center mb-4 pb-4" style={{ borderBottom: '1px solid var(--color-border)' }}>
+                      <span className="text-sm font-semibold" style={{ color: '#2E7D52' }}>
+                        Descuento {Math.round(DISCOUNT_RATE * 100)}%
+                      </span>
+                      <span className="text-sm font-semibold" style={{ color: '#2E7D52' }}>
+                        −{formatPrice(discount)}
+                      </span>
+                    </div>
+                  </>
+                )}
+
                 <div className="flex justify-between items-center mb-6">
                   <span className="text-sm font-semibold uppercase tracking-wider" style={{ color: 'var(--color-dark)' }}>
                     Total
@@ -261,7 +290,7 @@ export default function CarritoPage() {
                     className="text-2xl font-bold"
                     style={{ color: 'var(--color-dark)', fontFamily: 'var(--font-display)' }}
                   >
-                    {formatPrice(cartTotal)}
+                    {formatPrice(finalTotal)}
                   </span>
                 </div>
 

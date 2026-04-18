@@ -1,12 +1,14 @@
 'use client'
 
 import { createContext, useContext, useState, useEffect, useCallback, useMemo, type ReactNode } from 'react'
-import { Product, CartItem } from './types'
+import { Product, CartItem, DISCOUNT_THRESHOLD, DISCOUNT_RATE } from './types'
 
 interface CartContextType {
   items: CartItem[]
   cartCount: number
   cartTotal: number
+  discount: number
+  finalTotal: number
   addItem: (product: Product, quantity?: number) => void
   removeItem: (productId: number) => void
   updateQuantity: (productId: number, quantity: number) => void
@@ -84,10 +86,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const cartCount = useMemo(() => items.reduce((sum, i) => sum + i.quantity, 0), [items])
   const cartTotal = useMemo(() => items.reduce((sum, i) => sum + priceToNumber(i.product.price) * i.quantity, 0), [items])
+  const discount = useMemo(() => cartTotal > DISCOUNT_THRESHOLD ? cartTotal * DISCOUNT_RATE : 0, [cartTotal])
+  const finalTotal = useMemo(() => cartTotal - discount, [cartTotal, discount])
 
   const value = useMemo(
-    () => ({ items, cartCount, cartTotal, addItem, removeItem, updateQuantity, clearCart }),
-    [items, cartCount, cartTotal, addItem, removeItem, updateQuantity, clearCart],
+    () => ({ items, cartCount, cartTotal, discount, finalTotal, addItem, removeItem, updateQuantity, clearCart }),
+    [items, cartCount, cartTotal, discount, finalTotal, addItem, removeItem, updateQuantity, clearCart],
   )
 
   return (

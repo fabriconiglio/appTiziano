@@ -15,6 +15,7 @@ class Order extends Model
         'payment_method',
         'payment_status',
         'total',
+        'discount',
         'notes',
         'mercadopago_preference_id',
         'mercadopago_payment_id',
@@ -31,6 +32,7 @@ class Order extends Model
 
     protected $casts = [
         'total' => 'decimal:2',
+        'discount' => 'decimal:2',
         'shipping_cost' => 'decimal:2',
     ];
 

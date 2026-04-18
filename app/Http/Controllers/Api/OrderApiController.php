@@ -35,6 +35,7 @@ class OrderApiController extends Controller
             'shipping_address_2' => ['nullable', 'string', 'max:100'],
             'shipping_method' => ['required', 'in:local_pickup,cordoba,national'],
             'shipping_cost' => ['nullable', 'numeric', 'min:0'],
+            'discount' => ['nullable', 'numeric', 'min:0'],
         ]);
 
         return DB::transaction(function () use ($request, $validated) {
@@ -64,6 +65,11 @@ class OrderApiController extends Controller
                 $product->decrement('stock_quantity', $item['quantity']);
             }
 
+            $discountThreshold = 150000;
+            $discountRate = 0.20;
+            $discount = $total > $discountThreshold ? round($total * $discountRate, 2) : 0;
+            $total = $total - $discount;
+
             $shippingCost = isset($validated['shipping_cost']) ? (float) $validated['shipping_cost'] : null;
             if ($shippingCost && $validated['shipping_method'] === 'national') {
                 $total += $shippingCost;
@@ -76,6 +82,7 @@ class OrderApiController extends Controller
                 'payment_method' => $validated['payment_method'],
                 'payment_status' => 'pending',
                 'total' => $total,
+                'discount' => $discount > 0 ? $discount : null,
                 'shipping_cost' => $shippingCost,
                 'notes' => $validated['notes'] ?? null,
                 'shipping_name' => $validated['shipping_name'],
@@ -175,6 +182,7 @@ class OrderApiController extends Controller
             'mercadopago_preference_id' => $order->mercadopago_preference_id,
             'mercadopago_payment_id' => $order->mercadopago_payment_id,
             'total' => (float) $order->total,
+            'discount' => $order->discount ? (float) $order->discount : null,
             'shipping_cost' => $order->shipping_cost ? (float) $order->shipping_cost : null,
             'notes' => $order->notes,
             'shipping_name' => $order->shipping_name,

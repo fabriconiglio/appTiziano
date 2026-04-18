@@ -19,6 +19,7 @@ import { useCart } from '@/lib/CartContext'
 import { useAuth } from '@/lib/AuthContext'
 import { createOrder, formatPrice, getShippingQuote } from '@/lib/api'
 import type { ShippingData, ShippingMethod, ShippingQuote } from '@/lib/types'
+import { DISCOUNT_THRESHOLD, DISCOUNT_RATE } from '@/lib/types'
 
 type PaymentMethod = 'mercadopago' | 'transfer'
 
@@ -117,7 +118,9 @@ export default function CheckoutPage() {
   }, [step, shippingMethod, fetchQuote, shippingData.shipping_zip])
 
   const resolvedShippingCost = shippingMethod === 'national' && shippingQuote?.available ? shippingQuote.cost ?? 0 : 0
-  const grandTotal = cartTotal + resolvedShippingCost
+  const discount = cartTotal > DISCOUNT_THRESHOLD ? cartTotal * DISCOUNT_RATE : 0
+  const discountedTotal = cartTotal - discount
+  const grandTotal = discountedTotal + resolvedShippingCost
 
   // Pre-fill name from user on first render
   const didPrefill = useRef(false)
@@ -194,6 +197,7 @@ export default function CheckoutPage() {
         ...shippingData,
         shipping_method: shippingMethod,
         ...(resolvedShippingCost > 0 ? { shipping_cost: resolvedShippingCost } : {}),
+        ...(discount > 0 ? { discount } : {}),
       }
 
       const result = await createOrder(orderData, token)
@@ -796,7 +800,29 @@ export default function CheckoutPage() {
                   </div>
                 )}
 
-                {/* Shipping cost line */}
+                {/* Descuento por volumen */}
+                {discount > 0 && (
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-xs" style={{ color: 'var(--color-dark-soft)' }}>
+                      Subtotal productos
+                    </span>
+                    <span className="text-sm" style={{ color: 'var(--color-dark-soft)' }}>
+                      {formatPrice(cartTotal)}
+                    </span>
+                  </div>
+                )}
+                {discount > 0 && (
+                  <div className="flex justify-between items-center mb-3 pb-3" style={{ borderBottom: '1px solid var(--color-border)' }}>
+                    <span className="text-xs font-semibold" style={{ color: '#2E7D52' }}>
+                      Descuento {Math.round(DISCOUNT_RATE * 100)}%
+                    </span>
+                    <span className="text-sm font-semibold" style={{ color: '#2E7D52' }}>
+                      −{formatPrice(discount)}
+                    </span>
+                  </div>
+                )}
+
+                {/* Envío */}
                 {resolvedShippingCost > 0 && (
                   <div className="flex justify-between items-center mb-3 pb-3" style={{ borderBottom: '1px solid var(--color-border)' }}>
                     <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--color-dark-soft)' }}>
@@ -804,18 +830,6 @@ export default function CheckoutPage() {
                     </span>
                     <span className="text-sm font-medium" style={{ color: 'var(--color-dark)' }}>
                       {formatPrice(resolvedShippingCost)}
-                    </span>
-                  </div>
-                )}
-
-                {/* Subtotal */}
-                {resolvedShippingCost > 0 && (
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-xs" style={{ color: 'var(--color-dark-soft)' }}>
-                      Subtotal productos
-                    </span>
-                    <span className="text-sm" style={{ color: 'var(--color-dark-soft)' }}>
-                      {formatPrice(cartTotal)}
                     </span>
                   </div>
                 )}

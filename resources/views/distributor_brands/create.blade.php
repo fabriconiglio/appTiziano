@@ -73,6 +73,16 @@
                         <label class="form-check-label" for="is_active">Marca Activa</label>
                     </div>
 
+                    <div class="mb-3 form-check">
+                        <input type="hidden" name="is_featured" value="0">
+                        <input type="checkbox" class="form-check-input" id="is_featured"
+                               name="is_featured" value="1" {{ old('is_featured') ? 'checked' : '' }}>
+                        <label class="form-check-label" for="is_featured">
+                            <i class="fas fa-star text-warning"></i> Marca destacada en el E-Commerce
+                        </label>
+                        <div class="form-text">Aparece en la sección de marcas destacadas de la tienda online.</div>
+                    </div>
+
                     <div class="d-flex justify-content-end">
                         <button type="submit" class="btn btn-primary">Crear Marca de Distribuidora</button>
                     </div>

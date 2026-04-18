@@ -16,7 +16,8 @@ class Order extends Model
         'payment_status',
         'total',
         'notes',
-        'taca_taca_order_id',
+        'mercadopago_preference_id',
+        'mercadopago_payment_id',
         'shipping_name',
         'shipping_phone',
         'shipping_province',
@@ -25,10 +26,12 @@ class Order extends Model
         'shipping_address',
         'shipping_address_2',
         'shipping_method',
+        'shipping_cost',
     ];
 
     protected $casts = [
         'total' => 'decimal:2',
+        'shipping_cost' => 'decimal:2',
     ];
 
     public function user(): BelongsTo

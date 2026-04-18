@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
@@ -17,10 +17,10 @@ import {
 } from 'lucide-react'
 import { useCart } from '@/lib/CartContext'
 import { useAuth } from '@/lib/AuthContext'
-import { createOrder, formatPrice } from '@/lib/api'
-import type { ShippingData, ShippingMethod } from '@/lib/types'
+import { createOrder, formatPrice, getShippingQuote } from '@/lib/api'
+import type { ShippingData, ShippingMethod, ShippingQuote } from '@/lib/types'
 
-type PaymentMethod = 'taca_taca' | 'transfer'
+type PaymentMethod = 'mercadopago' | 'transfer'
 
 const PROVINCES = [
   'Buenos Aires', 'CABA', 'Catamarca', 'Chaco', 'Chubut', 'Córdoba',
@@ -34,7 +34,7 @@ const SHIPPING_OPTIONS: {
   value: ShippingMethod
   label: string
   description: string
-  cost: string
+  defaultCost: string
   time: string
   Icon: typeof MapPin
 }[] = [
@@ -42,23 +42,23 @@ const SHIPPING_OPTIONS: {
     value: 'local_pickup',
     label: 'Retiro en local',
     description: 'Retirá tu pedido en Santa Ana 2725, Loc. 2, Córdoba',
-    cost: 'Gratis',
+    defaultCost: 'Gratis',
     time: 'Inmediato (una vez confirmado el pago)',
     Icon: MapPin,
   },
   {
     value: 'cordoba',
     label: 'Envío a Córdoba Capital',
-    description: 'Entrega por cadete en Córdoba Capital y alrededores',
-    cost: 'A coordinar',
+    description: 'Entrega por Uber Motos en Córdoba Capital y alrededores',
+    defaultCost: 'A coordinar',
     time: '24 a 48 hs hábiles',
     Icon: Truck,
   },
   {
     value: 'national',
     label: 'Envío al interior del país',
-    description: 'Por Correo Argentino, Andreani u otro operador',
-    cost: 'A coordinar',
+    description: 'Envío por Andreani a todo el país',
+    defaultCost: 'Calculando...',
     time: '3 a 5 días hábiles',
     Icon: Package,
   },
@@ -90,6 +90,34 @@ export default function CheckoutPage() {
   const [error, setError] = useState('')
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const orderCompletedRef = useRef(false)
+
+  const [shippingQuote, setShippingQuote] = useState<ShippingQuote | null>(null)
+  const [quoteLoading, setQuoteLoading] = useState(false)
+
+  const fetchQuote = useCallback(async () => {
+    if (!shippingData.shipping_zip || items.length === 0) return
+    setQuoteLoading(true)
+    try {
+      const quote = await getShippingQuote(
+        shippingData.shipping_zip,
+        items.map((i) => ({ product_id: i.product.id, quantity: i.quantity })),
+      )
+      setShippingQuote(quote)
+    } catch {
+      setShippingQuote({ available: false, message: 'Error al cotizar. Contactanos.' })
+    } finally {
+      setQuoteLoading(false)
+    }
+  }, [shippingData.shipping_zip, items])
+
+  useEffect(() => {
+    if (step === 2 && shippingMethod === 'national' && shippingData.shipping_zip) {
+      fetchQuote()
+    }
+  }, [step, shippingMethod, fetchQuote, shippingData.shipping_zip])
+
+  const resolvedShippingCost = shippingMethod === 'national' && shippingQuote?.available ? shippingQuote.cost ?? 0 : 0
+  const grandTotal = cartTotal + resolvedShippingCost
 
   // Pre-fill name from user on first render
   const didPrefill = useRef(false)
@@ -165,6 +193,7 @@ export default function CheckoutPage() {
         notes: notes || undefined,
         ...shippingData,
         shipping_method: shippingMethod,
+        ...(resolvedShippingCost > 0 ? { shipping_cost: resolvedShippingCost } : {}),
       }
 
       const result = await createOrder(orderData, token)
@@ -461,51 +490,77 @@ export default function CheckoutPage() {
                   </h2>
 
                   <div className="flex flex-col gap-4 mb-8">
-                    {SHIPPING_OPTIONS.map((opt) => (
-                      <button
-                        key={opt.value}
-                        onClick={() => setShippingMethod(opt.value)}
-                        className="flex items-start gap-4 p-5 text-left transition-all"
-                        style={{
-                          background: 'var(--color-white)',
-                          border: shippingMethod === opt.value
-                            ? '2px solid var(--color-primary)'
-                            : '1px solid var(--color-border)',
-                        }}
-                      >
-                        <div
-                          className="flex items-center justify-center rounded-full shrink-0"
+                    {SHIPPING_OPTIONS.map((opt) => {
+                      let costLabel = opt.defaultCost
+                      if (opt.value === 'national') {
+                        if (quoteLoading) {
+                          costLabel = 'Calculando...'
+                        } else if (shippingQuote?.available && shippingQuote.cost) {
+                          costLabel = formatPrice(shippingQuote.cost)
+                        } else if (shippingQuote && !shippingQuote.available) {
+                          costLabel = shippingQuote.message ?? 'Contactanos para cotizar'
+                        }
+                      }
+
+                      return (
+                        <button
+                          key={opt.value}
+                          onClick={() => {
+                            setShippingMethod(opt.value)
+                            if (opt.value === 'national' && !shippingQuote) {
+                              fetchQuote()
+                            }
+                          }}
+                          className="flex items-start gap-4 p-5 text-left transition-all"
                           style={{
-                            width: 48,
-                            height: 48,
-                            background: shippingMethod === opt.value ? 'var(--color-primary)' : 'var(--color-bg)',
+                            background: 'var(--color-white)',
+                            border: shippingMethod === opt.value
+                              ? '2px solid var(--color-primary)'
+                              : '1px solid var(--color-border)',
                           }}
                         >
-                          <opt.Icon
-                            size={22}
+                          <div
+                            className="flex items-center justify-center rounded-full shrink-0"
                             style={{
-                              color: shippingMethod === opt.value ? 'var(--color-dark)' : 'var(--color-dark-soft)',
+                              width: 48,
+                              height: 48,
+                              background: shippingMethod === opt.value ? 'var(--color-primary)' : 'var(--color-bg)',
                             }}
-                          />
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-semibold text-sm mb-1" style={{ color: 'var(--color-dark)' }}>
-                            {opt.label}
-                          </p>
-                          <p className="text-xs mb-2" style={{ color: 'var(--color-dark-soft)' }}>
-                            {opt.description}
-                          </p>
-                          <div className="flex flex-wrap gap-4 text-xs">
-                            <span style={{ color: 'var(--color-dark)' }}>
-                              <strong>Costo:</strong> {opt.cost}
-                            </span>
-                            <span style={{ color: 'var(--color-dark)' }}>
-                              <strong>Plazo:</strong> {opt.time}
-                            </span>
+                          >
+                            <opt.Icon
+                              size={22}
+                              style={{
+                                color: shippingMethod === opt.value ? 'var(--color-dark)' : 'var(--color-dark-soft)',
+                              }}
+                            />
                           </div>
-                        </div>
-                      </button>
-                    ))}
+                          <div className="flex-1">
+                            <p className="font-semibold text-sm mb-1" style={{ color: 'var(--color-dark)' }}>
+                              {opt.label}
+                            </p>
+                            <p className="text-xs mb-2" style={{ color: 'var(--color-dark-soft)' }}>
+                              {opt.description}
+                            </p>
+                            <div className="flex flex-wrap gap-4 text-xs">
+                              <span style={{ color: 'var(--color-dark)' }}>
+                                <strong>Costo:</strong>{' '}
+                                {quoteLoading && opt.value === 'national' ? (
+                                  <Loader2 size={12} className="inline animate-spin" />
+                                ) : (
+                                  costLabel
+                                )}
+                              </span>
+                              <span style={{ color: 'var(--color-dark)' }}>
+                                <strong>Plazo:</strong>{' '}
+                                {opt.value === 'national' && shippingQuote?.estimated_days
+                                  ? shippingQuote.estimated_days
+                                  : opt.time}
+                              </span>
+                            </div>
+                          </div>
+                        </button>
+                      )
+                    })}
                   </div>
 
                   <div className="flex justify-between">
@@ -576,11 +631,11 @@ export default function CheckoutPage() {
                     </button>
 
                     <button
-                      onClick={() => setPaymentMethod('taca_taca')}
+                      onClick={() => setPaymentMethod('mercadopago')}
                       className="flex items-start gap-4 p-5 text-left transition-all"
                       style={{
                         background: 'var(--color-white)',
-                        border: paymentMethod === 'taca_taca'
+                        border: paymentMethod === 'mercadopago'
                           ? '2px solid var(--color-primary)'
                           : '1px solid var(--color-border)',
                       }}
@@ -590,22 +645,22 @@ export default function CheckoutPage() {
                         style={{
                           width: 48,
                           height: 48,
-                          background: paymentMethod === 'taca_taca' ? 'var(--color-primary)' : 'var(--color-bg)',
+                          background: paymentMethod === 'mercadopago' ? 'var(--color-primary)' : 'var(--color-bg)',
                         }}
                       >
                         <CreditCard
                           size={22}
                           style={{
-                            color: paymentMethod === 'taca_taca' ? 'var(--color-dark)' : 'var(--color-dark-soft)',
+                            color: paymentMethod === 'mercadopago' ? 'var(--color-dark)' : 'var(--color-dark-soft)',
                           }}
                         />
                       </div>
                       <div>
                         <p className="font-semibold text-sm mb-1" style={{ color: 'var(--color-dark)' }}>
-                          Taca Taca (Tarjeta de crédito/débito)
+                          Mercado Pago (Tarjeta, débito, efectivo)
                         </p>
                         <p className="text-xs" style={{ color: 'var(--color-dark-soft)' }}>
-                          Pagá con tarjeta de crédito o débito de forma segura a través de Taca Taca.
+                          Pagá con tarjeta de crédito, débito, dinero en cuenta o efectivo a través de Mercado Pago.
                         </p>
                       </div>
                     </button>
@@ -741,6 +796,30 @@ export default function CheckoutPage() {
                   </div>
                 )}
 
+                {/* Shipping cost line */}
+                {resolvedShippingCost > 0 && (
+                  <div className="flex justify-between items-center mb-3 pb-3" style={{ borderBottom: '1px solid var(--color-border)' }}>
+                    <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--color-dark-soft)' }}>
+                      Envío (Andreani)
+                    </span>
+                    <span className="text-sm font-medium" style={{ color: 'var(--color-dark)' }}>
+                      {formatPrice(resolvedShippingCost)}
+                    </span>
+                  </div>
+                )}
+
+                {/* Subtotal */}
+                {resolvedShippingCost > 0 && (
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-xs" style={{ color: 'var(--color-dark-soft)' }}>
+                      Subtotal productos
+                    </span>
+                    <span className="text-sm" style={{ color: 'var(--color-dark-soft)' }}>
+                      {formatPrice(cartTotal)}
+                    </span>
+                  </div>
+                )}
+
                 {/* Total */}
                 <div className="flex justify-between items-center mb-6">
                   <span className="text-sm font-semibold uppercase tracking-wider" style={{ color: 'var(--color-dark)' }}>
@@ -750,7 +829,7 @@ export default function CheckoutPage() {
                     className="text-2xl font-bold"
                     style={{ color: 'var(--color-dark)', fontFamily: 'var(--font-display)' }}
                   >
-                    {formatPrice(cartTotal)}
+                    {formatPrice(grandTotal)}
                   </span>
                 </div>
 

@@ -36,7 +36,7 @@
                             <select name="payment_method" class="form-select">
                                 <option value="">Método de pago</option>
                                 <option value="transfer" {{ request('payment_method') === 'transfer' ? 'selected' : '' }}>Transferencia</option>
-                                <option value="taca_taca" {{ request('payment_method') === 'taca_taca' ? 'selected' : '' }}>Taca Taca</option>
+                                <option value="mercadopago" {{ request('payment_method') === 'mercadopago' ? 'selected' : '' }}>Mercado Pago</option>
                             </select>
                         </div>
                         <div class="col-md-2">
@@ -92,16 +92,16 @@
                                     <td>
                                         @if($order->payment_method === 'transfer')
                                             <span class="badge bg-info text-dark">Transferencia</span>
-                                        @else
-                                            <span class="badge bg-dark">Taca Taca</span>
+                                        @elseif($order->payment_method === 'mercadopago')
+                                            <span class="badge bg-primary">Mercado Pago</span>
                                         @endif
                                     </td>
                                     <td>
                                         @php
                                             $shippingLabels = [
                                                 'local_pickup' => 'Retiro en local',
-                                                'cordoba' => 'Córdoba',
-                                                'national' => 'Interior',
+                                                'cordoba' => 'Uber Motos',
+                                                'national' => 'Andreani',
                                             ];
                                         @endphp
                                         <span class="badge bg-secondary">{{ $shippingLabels[$order->shipping_method] ?? '—' }}</span>

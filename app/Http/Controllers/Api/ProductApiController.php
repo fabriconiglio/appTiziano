@@ -130,6 +130,8 @@ class ProductApiController extends Controller
             ] : null,
             'image_url' => $imageUrl,
             'image_urls' => $imageUrls,
+            'peso_gramos' => $item->peso_gramos,
+            'volumen_cm3' => $item->volumen_cm3,
             'created_at' => $item->created_at?->toIso8601String(),
             'updated_at' => $item->updated_at?->toIso8601String(),
         ];

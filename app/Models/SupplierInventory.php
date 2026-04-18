@@ -29,6 +29,8 @@ class SupplierInventory extends Model
         'costo',
         'images',
         'is_featured',
+        'peso_gramos',
+        'volumen_cm3',
     ];
 
     protected $dates = [
@@ -45,6 +47,8 @@ class SupplierInventory extends Model
         'last_restock_date' => 'date',
         'images' => 'array',
         'is_featured' => 'boolean',
+        'peso_gramos' => 'integer',
+        'volumen_cm3' => 'integer',
     ];
 
     // Puedes añadir métodos personalizados según necesites

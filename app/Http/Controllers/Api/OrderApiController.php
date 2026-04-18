@@ -8,10 +8,11 @@ use App\Models\SupplierInventory;
 use App\Models\User;
 use App\Notifications\NewOrderAdminNotification;
 use App\Notifications\NewOrderNotification;
-use App\Services\TacaTacaService;
+use App\Services\MercadoPagoService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 
 class OrderApiController extends Controller
@@ -19,7 +20,7 @@ class OrderApiController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'payment_method' => ['required', 'in:taca_taca,transfer'],
+            'payment_method' => ['required', 'in:mercadopago,transfer'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'integer', 'exists:supplier_inventories,id'],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
@@ -33,6 +34,7 @@ class OrderApiController extends Controller
             'shipping_address' => ['required', 'string', 'max:255'],
             'shipping_address_2' => ['nullable', 'string', 'max:100'],
             'shipping_method' => ['required', 'in:local_pickup,cordoba,national'],
+            'shipping_cost' => ['nullable', 'numeric', 'min:0'],
         ]);
 
         return DB::transaction(function () use ($request, $validated) {
@@ -62,6 +64,11 @@ class OrderApiController extends Controller
                 $product->decrement('stock_quantity', $item['quantity']);
             }
 
+            $shippingCost = isset($validated['shipping_cost']) ? (float) $validated['shipping_cost'] : null;
+            if ($shippingCost && $validated['shipping_method'] === 'national') {
+                $total += $shippingCost;
+            }
+
             $order = Order::create([
                 'order_number' => Order::generateOrderNumber(),
                 'user_id' => $request->user()->id,
@@ -69,6 +76,7 @@ class OrderApiController extends Controller
                 'payment_method' => $validated['payment_method'],
                 'payment_status' => 'pending',
                 'total' => $total,
+                'shipping_cost' => $shippingCost,
                 'notes' => $validated['notes'] ?? null,
                 'shipping_name' => $validated['shipping_name'],
                 'shipping_phone' => $validated['shipping_phone'],
@@ -91,21 +99,49 @@ class OrderApiController extends Controller
 
             $response = ['order' => $this->formatOrder($order)];
 
-            if ($validated['payment_method'] === 'taca_taca') {
+            if ($validated['payment_method'] === 'mercadopago') {
                 try {
-                    $tacaTacaService = app(TacaTacaService::class);
-                    $checkoutUrl = $tacaTacaService->createPaymentIntent($order);
-                    $response['checkout_url'] = $checkoutUrl;
-                } catch (\Exception $e) {
+                    $mp = app(MercadoPagoService::class);
+                    $response['checkout_url'] = $mp->createPreference($order);
+                } catch (\Throwable $e) {
+                    Log::error('Error creando preferencia Mercado Pago', [
+                        'order_id' => $order->id,
+                        'error' => $e->getMessage(),
+                    ]);
                     $order->update(['payment_status' => 'failed']);
                     return response()->json([
-                        'message' => 'Error al procesar el pago con Taca Taca. Intentá de nuevo.',
+                        'message' => 'Error al procesar el pago con Mercado Pago. Intentá de nuevo.',
                     ], 502);
                 }
             }
 
             return response()->json($response, 201);
         });
+    }
+
+    /**
+     * Webhook público de Mercado Pago.
+     * MP envía notificaciones con el body { action, data: { id }, type } o
+     * como querystring ?topic=payment&id=123. Sólo nos interesa el topic 'payment'.
+     */
+    public function mercadopagoWebhook(Request $request, MercadoPagoService $mp): JsonResponse
+    {
+        $type = $request->input('type') ?? $request->query('topic');
+        $paymentId = $request->input('data.id') ?? $request->query('id');
+
+        if ($type === 'payment' && $paymentId) {
+            try {
+                $mp->handlePaymentNotification((string) $paymentId);
+            } catch (\Throwable $e) {
+                Log::error('MP webhook error', [
+                    'payment_id' => $paymentId,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        // Siempre 200: MP reintenta en error.
+        return response()->json(['received' => true]);
     }
 
     public function index(Request $request): JsonResponse
@@ -136,7 +172,10 @@ class OrderApiController extends Controller
             'status' => $order->status,
             'payment_method' => $order->payment_method,
             'payment_status' => $order->payment_status,
+            'mercadopago_preference_id' => $order->mercadopago_preference_id,
+            'mercadopago_payment_id' => $order->mercadopago_payment_id,
             'total' => (float) $order->total,
+            'shipping_cost' => $order->shipping_cost ? (float) $order->shipping_cost : null,
             'notes' => $order->notes,
             'shipping_name' => $order->shipping_name,
             'shipping_phone' => $order->shipping_phone,

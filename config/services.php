@@ -39,11 +39,23 @@ return [
         'client_id' => env('GOOGLE_CLIENT_ID'),
     ],
 
-    'tacataca' => [
-        'client_id' => env('TACATACA_CLIENT_ID'),
-        'client_secret' => env('TACATACA_CLIENT_SECRET'),
-        'auth_url' => env('TACATACA_AUTH_URL', 'https://auth.preprod.geopagos.com'),
-        'checkout_url' => env('TACATACA_CHECKOUT_URL', 'https://api-taca-taca.preprod.geopagos.com'),
+    'mercadopago' => [
+        'access_token' => env('MERCADOPAGO_ACCESS_TOKEN'),
+        'public_key' => env('MERCADOPAGO_PUBLIC_KEY'),
+        'webhook_secret' => env('MERCADOPAGO_WEBHOOK_SECRET'),
+    ],
+
+    'andreani' => [
+        'user' => env('ANDREANI_USER'),
+        'password' => env('ANDREANI_PASSWORD'),
+        'cliente' => env('ANDREANI_CLIENTE'),
+        'contrato' => env('ANDREANI_CONTRATO'),
+        'cp_origen' => env('ANDREANI_CP_ORIGEN', '5000'),
+        'debug' => env('ANDREANI_DEBUG', false),
+    ],
+
+    'frontend' => [
+        'url' => env('FRONTEND_URL', 'http://localhost:3000'),
     ],
 
 ];

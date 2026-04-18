@@ -57,7 +57,7 @@ function IconAmex() {
   )
 }
 
-function IconTacaTaca() {
+function IconMercadoPago() {
   return (
     <span
       style={{
@@ -73,9 +73,9 @@ function IconTacaTaca() {
         borderRadius: '3px',
         opacity: 0.7,
       }}
-      aria-label="Taca Taca"
+      aria-label="Mercado Pago"
     >
-      TACA TACA
+      MERCADO PAGO
     </span>
   )
 }
@@ -119,7 +119,7 @@ export default function Footer() {
             {[
               { Icon: IconInstagram, href: 'https://instagram.com/tiziano_peluqueria.spa', label: 'Instagram' },
               { Icon: IconFacebook, href: 'https://facebook.com/tiziano.peluqueria.spa', label: 'Facebook' },
-              { Icon: IconWhatsApp, href: 'https://wa.me/5493516197836', label: 'WhatsApp' },
+              { Icon: IconWhatsApp, href: 'https://wa.me/5493518586698', label: 'WhatsApp' },
             ].map(({ Icon, href, label }) => (
               <a
                 key={label}
@@ -211,11 +211,11 @@ export default function Footer() {
             </li>
             <li className="flex gap-3 items-center" style={{ color: '#aaa' }}>
               <Phone size={16} className="shrink-0" style={{ color: 'var(--color-primary)' }} />
-              <span>(0351) 619-7836</span>
+              <span>(351) 858-6698</span>
             </li>
             <li className="flex gap-3 items-center" style={{ color: '#aaa' }}>
               <Mail size={16} className="shrink-0" style={{ color: 'var(--color-primary)' }} />
-              <span>tizianopeluqueriaspa@gmail.com</span>
+              <span>tiendatiziano@gmail.com</span>
             </li>
           </ul>
         </div>
@@ -232,7 +232,7 @@ export default function Footer() {
             <IconMastercard />
             <IconAmex />
             <Landmark size={22} strokeWidth={1.5} aria-label="Transferencia bancaria" />
-            <IconTacaTaca />
+            <IconMercadoPago />
           </div>
         </div>
       </div>

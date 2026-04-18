@@ -21,9 +21,11 @@ class NewOrderNotification extends Notification
     public function toMail($notifiable): MailMessage
     {
         $frontendUrl = env('FRONTEND_URL', 'http://localhost:3000');
-        $paymentLabel = $this->order->payment_method === 'transfer'
-            ? 'Transferencia bancaria'
-            : 'Taca Taca (tarjeta)';
+        $paymentLabel = match ($this->order->payment_method) {
+            'transfer' => 'Transferencia bancaria',
+            'mercadopago' => 'Mercado Pago',
+            default => ucfirst((string) $this->order->payment_method),
+        };
 
         $mail = (new MailMessage)
             ->subject("Pedido #{$this->order->order_number} confirmado — Tiziano Peluquería")
@@ -44,8 +46,8 @@ class NewOrderNotification extends Notification
                  ->line("Referencia: {$this->order->order_number}")
                  ->line('---')
                  ->line('Una vez realizada la transferencia, envianos el comprobante:')
-                 ->line("[Enviar comprobante por WhatsApp](https://wa.me/5493516197836?text={$whatsappText})")
-                 ->line('O por email a tizianopeluqueriaspa@gmail.com indicando el número de pedido.');
+                 ->line("[Enviar comprobante por WhatsApp](https://wa.me/5493518586698?text={$whatsappText})")
+                 ->line('O por email a tiendatiziano@gmail.com indicando el número de pedido.');
         }
 
         $mail->action('Ver mi pedido', $frontendUrl . '/checkout/confirmacion?order=' . $this->order->id)

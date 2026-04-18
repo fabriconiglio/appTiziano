@@ -129,6 +129,21 @@
                                     @enderror
                                 </div>
 
+                                <div class="col-md-3 mb-3">
+                                    <label for="peso_gramos" class="form-label">Peso (gramos)</label>
+                                    <input type="number" class="form-control @error('peso_gramos') is-invalid @enderror" id="peso_gramos" name="peso_gramos" value="{{ old('peso_gramos', $supplierInventory->peso_gramos) }}" min="1" placeholder="ej: 500">
+                                    @error('peso_gramos')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label for="volumen_cm3" class="form-label">Volumen (cm³)</label>
+                                    <input type="number" class="form-control @error('volumen_cm3') is-invalid @enderror" id="volumen_cm3" name="volumen_cm3" value="{{ old('volumen_cm3', $supplierInventory->volumen_cm3) }}" min="1" placeholder="ej: 2000">
+                                    @error('volumen_cm3')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
                                 <div class="col-md-6 mb-3">
                                     <label for="last_restock_date" class="form-label">Fecha de Última Reposición</label>
                                     <input type="date" class="form-control @error('last_restock_date') is-invalid @enderror" id="last_restock_date" name="last_restock_date" value="{{ old('last_restock_date', $supplierInventory->last_restock_date ? $supplierInventory->last_restock_date->format('Y-m-d') : '') }}">

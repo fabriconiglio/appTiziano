@@ -1,4 +1,4 @@
-import { AuthResponse, Brand, Category, Order, OrderRequest, PaginatedResponse, Product, Slider, User } from './types'
+import { AuthResponse, Brand, Category, Order, OrderRequest, PaginatedResponse, Product, ShippingQuote, Slider, User } from './types'
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
 
@@ -115,6 +115,20 @@ export async function googleLogin(credential: string): Promise<AuthResponse> {
     method: 'POST',
     body: JSON.stringify({ credential }),
   })
+}
+
+export async function getShippingQuote(
+  shippingZip: string,
+  items: { product_id: number; quantity: number }[],
+): Promise<ShippingQuote> {
+  const res = await fetch(`${BASE_URL}/api/shipping/quote`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({ shipping_zip: shippingZip, items }),
+    cache: 'no-store',
+  })
+  if (!res.ok) throw new Error(`Shipping quote error ${res.status}`)
+  return res.json()
 }
 
 export async function createOrder(data: OrderRequest, token: string): Promise<{ order: Order; checkout_url?: string }> {

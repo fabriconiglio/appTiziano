@@ -12,7 +12,7 @@ const sections = [
     title: '1. Datos del proveedor',
     content: `El presente sitio web y tienda online es operado por **Tiziano Peluquería & Spa** (en adelante, "Tiziano"), con domicilio en Santa Ana 2725, Loc. 2, Ciudad de Córdoba, Provincia de Córdoba, Argentina. CUIT: 27-25757470-4.
 
-Contacto: tizianopeluqueriaspa@gmail.com | WhatsApp: (0351) 619-7836.`,
+Contacto: tiendatiziano@gmail.com | WhatsApp: (351) 858-6698.`,
   },
   {
     title: '2. Objeto',
@@ -32,7 +32,7 @@ El uso del sitio y la realización de compras implican la aceptación plena de l
     title: '4. Medios de pago',
     content: `Aceptamos los siguientes medios de pago:
 
-- **Tarjetas de crédito y débito** (Visa, Mastercard, American Express) procesadas a través de la plataforma Taca Taca, proveedor de servicios de pago autorizado por el Banco Central de la República Argentina.
+- **Mercado Pago:** tarjetas de crédito y débito (Visa, Mastercard, American Express), dinero en cuenta de Mercado Pago y pagos en efectivo, procesados a través de la plataforma Mercado Pago, proveedor de servicios de pago autorizado por el Banco Central de la República Argentina.
 - **Transferencia bancaria** a la cuenta indicada al momento de confirmar el pedido. El pedido se confirma una vez acreditado el pago y verificado el comprobante.
 
 Los datos de pago son gestionados exclusivamente por los procesadores de pago correspondientes. Tiziano no almacena datos de tarjetas de crédito o débito.`,
@@ -57,7 +57,7 @@ El reembolso se realizará dentro de los 10 días hábiles posteriores a la rece
     title: '7. Garantías',
     content: `Todos los productos comercializados por Tiziano cuentan con la garantía legal establecida por la **Ley 24.240 de Defensa del Consumidor**.
 
-En caso de recibir un producto defectuoso o en mal estado, contactanos dentro de las 48 horas de recibido a tizianopeluqueriaspa@gmail.com o por WhatsApp, adjuntando fotos del producto y el embalaje. Procederemos al reemplazo o reembolso según corresponda.
+En caso de recibir un producto defectuoso o en mal estado, contactanos dentro de las 48 horas de recibido a tiendatiziano@gmail.com o por WhatsApp, adjuntando fotos del producto y el embalaje. Procederemos al reemplazo o reembolso según corresponda.
 
 Por razones de higiene, no se aceptan devoluciones de productos que hayan sido abiertos o utilizados, salvo defectos de fabricación.`,
   },

@@ -23,14 +23,42 @@ function ConfirmacionContent() {
   const [copiedField, setCopiedField] = useState<string | null>(null)
 
   const orderId = searchParams.get('order')
+  // Mercado Pago agrega estos params al back_url (ver Checkout Pro).
+  const mpStatus = searchParams.get('status') ?? searchParams.get('collection_status')
 
   useEffect(() => {
     if (authLoading || !token || !orderId) return
-    getOrder(parseInt(orderId), token)
-      .then(setOrder)
-      .catch(() => {})
-      .finally(() => setLoading(false))
-  }, [orderId, token, authLoading])
+    let cancelled = false
+    let tries = 0
+
+    const tick = async () => {
+      try {
+        const o = await getOrder(parseInt(orderId), token)
+        if (cancelled) return
+        setOrder(o)
+        // Si MP aprobó pero el webhook todavía no actualizó la orden, reintentar un par de veces.
+        if (
+          mpStatus === 'approved' &&
+          o.payment_method === 'mercadopago' &&
+          o.payment_status === 'pending' &&
+          tries < 4
+        ) {
+          tries += 1
+          setTimeout(tick, 2000)
+          return
+        }
+      } catch {
+        // ignore
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+
+    tick()
+    return () => {
+      cancelled = true
+    }
+  }, [orderId, token, authLoading, mpStatus])
 
   const copyToClipboard = (text: string, field: string) => {
     navigator.clipboard.writeText(text)
@@ -191,8 +219,8 @@ function ConfirmacionContent() {
                   </p>
                   <p className="text-sm mt-0.5" style={{ color: 'var(--color-dark)' }}>
                     {order.shipping_method === 'local_pickup' && 'Retiro en local'}
-                    {order.shipping_method === 'cordoba' && 'Envío a Córdoba Capital'}
-                    {order.shipping_method === 'national' && 'Envío al interior del país'}
+                    {order.shipping_method === 'cordoba' && 'Envío por Uber Motos — Córdoba Capital'}
+                    {order.shipping_method === 'national' && 'Envío por Andreani — Interior del país'}
                   </p>
                 </div>
               </div>
@@ -268,7 +296,7 @@ function ConfirmacionContent() {
 
               <div className="mt-4 flex flex-col sm:flex-row gap-3">
                 <a
-                  href={`https://wa.me/5493516197836?text=${encodeURIComponent(
+                  href={`https://wa.me/5493518586698?text=${encodeURIComponent(
                     `Hola! Realicé una transferencia para el pedido #${order.order_number} por ${formatPrice(order.total)}. Adjunto el comprobante.`
                   )}`}
                   target="_blank"
@@ -280,7 +308,7 @@ function ConfirmacionContent() {
                   Enviar por WhatsApp
                 </a>
                 <a
-                  href={`mailto:tizianopeluqueriaspa@gmail.com?subject=${encodeURIComponent(
+                  href={`mailto:tiendatiziano@gmail.com?subject=${encodeURIComponent(
                     `Comprobante de transferencia - Pedido #${order.order_number}`
                   )}&body=${encodeURIComponent(
                     `Hola,\n\nRealicé una transferencia para el pedido #${order.order_number} por ${formatPrice(order.total)}.\n\nAdjunto el comprobante de pago.\n\nSaludos.`
@@ -295,7 +323,7 @@ function ConfirmacionContent() {
             </div>
           )}
 
-          {/* Taca Taca info */}
+          {/* Mercado Pago info */}
           {!isTransfer && (
             <div
               className="p-6 mb-6"
@@ -308,11 +336,11 @@ function ConfirmacionContent() {
                 Estado del pago
               </h2>
               <p className="text-sm" style={{ color: 'var(--color-dark-soft)' }}>
-                {order.payment_status === 'paid'
-                  ? 'El pago fue procesado con éxito. ¡Gracias por tu compra!'
-                  : order.payment_status === 'failed'
+                {order.payment_status === 'paid' || mpStatus === 'approved'
+                  ? 'El pago fue procesado con éxito a través de Mercado Pago. ¡Gracias por tu compra!'
+                  : order.payment_status === 'failed' || mpStatus === 'rejected'
                     ? 'Hubo un problema con el pago. Contactanos para resolverlo.'
-                    : 'Tu pago está siendo procesado. Te notificaremos cuando se confirme.'}
+                    : 'Tu pago está siendo procesado por Mercado Pago. Te notificaremos cuando se confirme.'}
               </p>
             </div>
           )}

@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\SliderApiController;
 use App\Http\Controllers\Api\AuthApiController;
 use App\Http\Controllers\Api\OrderApiController;
 use App\Http\Controllers\Api\ArrepentimientoController;
+use App\Http\Controllers\Api\ShippingApiController;
 
 Route::get('/sliders', [SliderApiController::class, 'index']);
 Route::get('/products', [ProductApiController::class, 'index']);
@@ -16,6 +17,11 @@ Route::get('/categories', [CategoryApiController::class, 'index']);
 Route::get('/brands', [BrandApiController::class, 'index']);
 
 Route::post('/arrepentimiento', [ArrepentimientoController::class, 'store']);
+
+Route::post('/shipping/quote', [ShippingApiController::class, 'quote']);
+
+Route::post('/mercadopago/webhook', [OrderApiController::class, 'mercadopagoWebhook'])
+    ->middleware('mp.signature');
 
 Route::post('/auth/register', [AuthApiController::class, 'register']);
 Route::post('/auth/login', [AuthApiController::class, 'login']);

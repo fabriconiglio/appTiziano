@@ -38,7 +38,7 @@ class ArrepentimientoConfirmacionNotification extends Notification
         $mail->line("**Total del pedido:** $" . number_format($this->order->total, 0, ',', '.'))
              ->line('---')
              ->line('De acuerdo con el Art. 34 de la Ley 24.240 de Defensa del Consumidor, el pedido fue cancelado. Si corresponde un reembolso, nos comunicaremos con vos para coordinar la devolución.')
-             ->line('Si tenés alguna consulta, contactanos a tizianopeluqueriaspa@gmail.com o por WhatsApp al (0351) 619-7836.')
+             ->line('Si tenés alguna consulta, contactanos a tiendatiziano@gmail.com o por WhatsApp al (351) 858-6698.')
              ->salutation("Saludos,\nTiziano Peluquería & Spa");
 
         return $mail;

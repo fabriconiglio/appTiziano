@@ -476,6 +476,8 @@ class SupplierInventoryController extends Controller
             'costo' => 'nullable|numeric|min:0',
             'images.*' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'is_featured' => 'nullable|boolean',
+            'peso_gramos' => 'nullable|integer|min:1',
+            'volumen_cm3' => 'nullable|integer|min:1',
         ]);
 
         $validated['is_featured'] = $request->boolean('is_featured');
@@ -555,6 +557,8 @@ class SupplierInventoryController extends Controller
             'delete_images.*' => 'string',
             'image_order' => 'nullable|string',
             'is_featured' => 'nullable|boolean',
+            'peso_gramos' => 'nullable|integer|min:1',
+            'volumen_cm3' => 'nullable|integer|min:1',
         ]);
 
         $validated['is_featured'] = $request->boolean('is_featured');

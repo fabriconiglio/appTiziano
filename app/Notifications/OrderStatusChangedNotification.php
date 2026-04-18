@@ -63,7 +63,7 @@ class OrderStatusChangedNotification extends Notification
         } elseif ($this->order->status === 'delivered') {
             $mail->line('¡Tu pedido fue entregado! Esperamos que disfrutes tus productos.');
         } elseif ($this->order->status === 'cancelled') {
-            $mail->line('Si tenés alguna consulta sobre la cancelación, contactanos a tizianopeluqueriaspa@gmail.com');
+            $mail->line('Si tenés alguna consulta sobre la cancelación, contactanos a tiendatiziano@gmail.com');
         }
 
         $mail->action('Ver mi pedido', $frontendUrl . '/checkout/confirmacion?order=' . $this->order->id)

@@ -28,12 +28,12 @@ const faqSections: FAQSection[] = [
       {
         question: '¿Qué métodos de pago aceptan?',
         answer:
-          'Aceptamos tarjetas de crédito y débito (Visa, Mastercard, American Express) a través de Taca Taca, y también transferencia bancaria. Los datos bancarios se muestran al momento de confirmar el pedido.',
+          'Aceptamos tarjetas de crédito y débito (Visa, Mastercard, American Express), dinero en cuenta y pagos en efectivo a través de Mercado Pago, y también transferencia bancaria. Los datos bancarios se muestran al momento de confirmar el pedido.',
       },
       {
         question: '¿Cuánto tarda en confirmarse mi pedido?',
         answer:
-          'Si pagás con tarjeta a través de Taca Taca, la confirmación es inmediata. Si elegís transferencia bancaria, confirmamos tu pedido una vez que recibamos y verifiquemos el comprobante de pago (generalmente en minutos durante el horario comercial).',
+          'Si pagás con Mercado Pago (tarjeta o dinero en cuenta), la confirmación es inmediata. Si elegís transferencia bancaria o efectivo, confirmamos tu pedido una vez que se acredite el pago (generalmente en minutos durante el horario comercial).',
       },
       {
         question: '¿Puedo modificar o cancelar mi pedido?',
@@ -111,7 +111,7 @@ const faqSections: FAQSection[] = [
       {
         question: '¿Me pueden asesorar sobre qué producto necesito?',
         answer:
-          'Por supuesto. Escribinos por WhatsApp al (0351) 619-7836 contándonos tu tipo de cabello y necesidad, y nuestro equipo te va a recomendar los productos ideales.',
+          'Por supuesto. Escribinos por WhatsApp al (351) 858-6698 contándonos tu tipo de cabello y necesidad, y nuestro equipo te va a recomendar los productos ideales.',
       },
     ],
   },
@@ -272,7 +272,7 @@ export default function FAQPage() {
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <a
-              href="https://wa.me/5493516197836"
+              href="https://wa.me/5493518586698"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-block px-6 py-3 text-sm font-semibold uppercase tracking-wider transition-opacity hover:opacity-90"

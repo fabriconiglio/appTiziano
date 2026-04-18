@@ -98,11 +98,14 @@
                             @php
                                 $shippingLabels = [
                                     'local_pickup' => 'Retiro en local',
-                                    'cordoba' => 'Envío a Córdoba Capital',
-                                    'national' => 'Envío al interior',
+                                    'cordoba' => 'Uber Motos — Córdoba Capital',
+                                    'national' => 'Andreani — Interior',
                                 ];
                             @endphp
                             <strong>{{ $shippingLabels[$order->shipping_method] ?? $order->shipping_method ?? '—' }}</strong>
+                            @if($order->shipping_cost)
+                                <span class="badge bg-info ms-2">Envío: ${{ number_format($order->shipping_cost, 2, ',', '.') }}</span>
+                            @endif
                         </li>
                         <li class="list-group-item">
                             <small class="text-muted d-block">Destinatario</small>
@@ -171,14 +174,20 @@
                             <span>Método de pago</span>
                             @if($order->payment_method === 'transfer')
                                 <span class="badge bg-info text-dark">Transferencia</span>
-                            @else
-                                <span class="badge bg-dark">Taca Taca</span>
+                            @elseif($order->payment_method === 'mercadopago')
+                                <span class="badge bg-primary">Mercado Pago</span>
                             @endif
                         </li>
-                        @if($order->taca_taca_order_id)
+                        @if($order->mercadopago_preference_id)
                             <li class="list-group-item d-flex justify-content-between">
-                                <span>ID Taca Taca</span>
-                                <code>{{ $order->taca_taca_order_id }}</code>
+                                <span>Preferencia MP</span>
+                                <code class="small">{{ $order->mercadopago_preference_id }}</code>
+                            </li>
+                        @endif
+                        @if($order->mercadopago_payment_id)
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>Pago MP</span>
+                                <code class="small">{{ $order->mercadopago_payment_id }}</code>
                             </li>
                         @endif
                         <li class="list-group-item d-flex justify-content-between">

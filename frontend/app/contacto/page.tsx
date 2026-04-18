@@ -35,14 +35,14 @@ const contactInfo = [
   {
     Icon: Phone,
     label: 'Teléfono',
-    value: '(0351) 619-7836',
-    href: 'tel:+5493516197836',
+    value: '(351) 858-6698',
+    href: 'tel:+5493518586698',
   },
   {
     Icon: Mail,
     label: 'Email',
-    value: 'tizianopeluqueriaspa@gmail.com',
-    href: 'mailto:tizianopeluqueriaspa@gmail.com',
+    value: 'tiendatiziano@gmail.com',
+    href: 'mailto:tiendatiziano@gmail.com',
   },
   {
     Icon: Clock,
@@ -145,7 +145,7 @@ export default function ContactoPage() {
 
               {/* WhatsApp CTA */}
               <a
-                href="https://wa.me/5493516197836"
+                href="https://wa.me/5493518586698"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-3 px-6 py-3.5 text-sm font-semibold uppercase tracking-wider transition-opacity hover:opacity-90"
@@ -206,7 +206,7 @@ export default function ContactoPage() {
                   Envianos un mensaje
                 </h3>
                 <form
-                  action="mailto:tizianopeluqueriaspa@gmail.com"
+                  action="mailto:tiendatiziano@gmail.com"
                   method="POST"
                   encType="text/plain"
                   className="space-y-4"

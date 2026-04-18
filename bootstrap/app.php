@@ -18,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'restrict.inventory' => \App\Http\Middleware\RestrictToInventory::class,
+            'mp.signature' => \App\Http\Middleware\VerifyMercadoPagoSignature::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

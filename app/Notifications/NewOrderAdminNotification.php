@@ -21,9 +21,11 @@ class NewOrderAdminNotification extends Notification
     public function toMail($notifiable): MailMessage
     {
         $appUrl = env('APP_URL', 'http://localhost:8000');
-        $paymentLabel = $this->order->payment_method === 'transfer'
-            ? 'Transferencia bancaria'
-            : 'Taca Taca (tarjeta)';
+        $paymentLabel = match ($this->order->payment_method) {
+            'transfer' => 'Transferencia bancaria',
+            'mercadopago' => 'Mercado Pago',
+            default => ucfirst((string) $this->order->payment_method),
+        };
 
         $itemList = $this->order->items->map(
             fn ($item) => "• {$item->product_name} x{$item->quantity} — $" . number_format($item->subtotal, 0, ',', '.')

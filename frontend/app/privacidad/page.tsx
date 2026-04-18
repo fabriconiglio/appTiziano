@@ -12,7 +12,7 @@ const sections = [
     title: '1. Responsable del tratamiento',
     paragraphs: [
       'El responsable del tratamiento de tus datos personales es **Tiziano Peluquería & Spa**, con domicilio en Santa Ana 2725, Loc. 2, Ciudad de Córdoba, Provincia de Córdoba, Argentina. CUIT: 27-25757470-4.',
-      'Contacto para consultas sobre datos personales: tizianopeluqueriaspa@gmail.com.',
+      'Contacto para consultas sobre datos personales: tiendatiziano@gmail.com.',
     ],
   },
   {
@@ -50,7 +50,7 @@ const sections = [
     title: '5. Compartición con terceros',
     paragraphs: [
       'Tus datos personales pueden ser compartidos con los siguientes terceros, exclusivamente para las finalidades indicadas:',
-      '- **Taca Taca (Servicio de Pago SAU):** procesamiento de pagos con tarjeta de crédito y débito. Taca Taca opera como Proveedor de Servicios de Pago autorizado por el BCRA.',
+      '- **Mercado Pago (Mercado Libre S.R.L.):** procesamiento de pagos con tarjeta de crédito y débito, dinero en cuenta y efectivo. Mercado Pago opera como Proveedor de Servicios de Pago autorizado por el BCRA.',
       '- **Servicios de mensajería y correo:** para la entrega de los productos adquiridos (Correo Argentino, Andreani u otros operadores logísticos).',
       '- **Google:** si optaste por iniciar sesión con Google, se comparten datos básicos de autenticación con Google LLC.',
       'No vendemos, alquilamos ni cedemos tus datos personales a terceros con fines comerciales o publicitarios.',
@@ -75,7 +75,7 @@ const sections = [
       '- **Rectificación:** solicitar la corrección de datos inexactos o incompletos.',
       '- **Supresión:** solicitar la eliminación de tus datos personales cuando ya no sean necesarios para la finalidad para la que fueron recopilados.',
       '- **Oposición:** oponerte al tratamiento de tus datos en determinadas circunstancias.',
-      'Para ejercer estos derechos, enviá un email a tizianopeluqueriaspa@gmail.com con el asunto "Datos Personales", indicando tu nombre completo, email de registro y el derecho que deseás ejercer. Responderemos dentro de los 10 días hábiles.',
+      'Para ejercer estos derechos, enviá un email a tiendatiziano@gmail.com con el asunto "Datos Personales", indicando tu nombre completo, email de registro y el derecho que deseás ejercer. Responderemos dentro de los 10 días hábiles.',
       'La **Agencia de Acceso a la Información Pública** (AAIP), en su carácter de Órgano de Control de la Ley 25.326, tiene la atribución de atender las denuncias y reclamos que se interpongan con relación al incumplimiento de las normas sobre protección de datos personales.',
     ],
   },
@@ -110,8 +110,8 @@ const sections = [
     title: '11. Contacto',
     paragraphs: [
       'Si tenés preguntas o inquietudes sobre esta Política de Privacidad o sobre el tratamiento de tus datos personales, podés contactarnos:',
-      '- **Email:** tizianopeluqueriaspa@gmail.com',
-      '- **WhatsApp:** (0351) 619-7836',
+      '- **Email:** tiendatiziano@gmail.com',
+      '- **WhatsApp:** (351) 858-6698',
       '- **Dirección:** Santa Ana 2725, Loc. 2, Córdoba, Argentina',
     ],
   },

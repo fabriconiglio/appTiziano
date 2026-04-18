@@ -30,6 +30,8 @@ export interface Product {
   /** Primera imagen pública (inventario distribuidora); URL absoluta desde Laravel */
   image_url?: string | null
   image_urls?: string[]
+  peso_gramos?: number | null
+  volumen_cm3?: number | null
   created_at: string
   updated_at: string
 }
@@ -94,8 +96,16 @@ export interface ShippingData {
   shipping_address_2?: string
 }
 
+export interface ShippingQuote {
+  available: boolean
+  carrier?: string
+  cost?: number
+  estimated_days?: string
+  message?: string
+}
+
 export interface OrderRequest {
-  payment_method: 'taca_taca' | 'transfer'
+  payment_method: 'mercadopago' | 'transfer'
   items: { product_id: number; quantity: number; unit_price: number }[]
   notes?: string
   shipping_name: string
@@ -106,6 +116,7 @@ export interface OrderRequest {
   shipping_address: string
   shipping_address_2?: string
   shipping_method: ShippingMethod
+  shipping_cost?: number
 }
 
 export interface Order {
@@ -114,7 +125,10 @@ export interface Order {
   status: string
   payment_method: string
   payment_status: string
+  mercadopago_preference_id?: string | null
+  mercadopago_payment_id?: string | null
   total: number
+  shipping_cost?: number | null
   notes?: string
   shipping_name?: string
   shipping_phone?: string

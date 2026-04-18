@@ -31,7 +31,7 @@ const shippingMethods = [
       'Entrega rápida en Córdoba Capital y localidades cercanas. Ideal para recibir tus productos profesionales sin espera.',
     details: [
       'Cobertura: Córdoba Capital, Villa Allende, Mendiolaza, Unquillo, La Calera, Río Ceballos, Alta Gracia',
-      'Envío por cadete o servicio de mensajería local',
+      'Envío por Uber Motos',
       'Horario de entrega: de 9:00 a 18:00 hs',
       'Te contactamos para coordinar la entrega',
     ],
@@ -42,10 +42,10 @@ const shippingMethods = [
     cost: 'Según destino y peso (calculado al checkout)',
     time: '3 a 5 días hábiles',
     description:
-      'Llegamos a todo el territorio argentino a través de servicios de correo confiables.',
+      'Llegamos a todo el territorio argentino con Andreani. El costo se calcula automáticamente al checkout según peso y destino.',
     details: [
       'Cobertura: todo el territorio nacional',
-      'Servicios: Correo Argentino, Andreani u otro operador según disponibilidad',
+      'Servicio: Andreani',
       'Código de seguimiento enviado por email',
       'Los plazos comienzan a partir de la confirmación del pago',
     ],
@@ -251,7 +251,7 @@ export default function EnviosPage() {
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <a
-              href="https://wa.me/5493516197836"
+              href="https://wa.me/5493518586698"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-block px-6 py-3 text-sm font-semibold uppercase tracking-wider transition-opacity hover:opacity-90"

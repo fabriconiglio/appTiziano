@@ -116,7 +116,10 @@ class ProductApiController extends Controller
         $cat = $item->distributorCategory;
         $brand = $item->distributorBrand;
         $price = $item->precio_menor ?? $item->price ?? 0;
-        $imageUrls = $item->image_urls;
+        $frontendUrl = rtrim(config('services.frontend.url', config('app.url')), '/');
+        $imageUrls = array_map(function ($image) use ($frontendUrl) {
+            return $frontendUrl . '/storage/' . $image;
+        }, $item->images ?? []);
         $imageUrl = $imageUrls[0] ?? null;
 
         return [

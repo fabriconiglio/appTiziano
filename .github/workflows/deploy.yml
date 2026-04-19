@@ -32,6 +32,7 @@ jobs:
             cd frontend
             npm ci
             npm run build
-            pm2 restart tiendatiziano-next 2>/dev/null || \
-              pm2 start npm --name tiendatiziano-next -- start -- --port 3000
+            pm2 describe tiendatiziano-next > /dev/null 2>&1 \
+              && pm2 reload tiendatiziano-next --update-env \
+              || pm2 start npm --name tiendatiziano-next -- start -- --port 3000
             pm2 save

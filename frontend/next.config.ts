@@ -12,6 +12,14 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'api.tiendatiziano.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'tiendatiziano.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.tiendatiziano.com',
+      },
     ],
   },
 };

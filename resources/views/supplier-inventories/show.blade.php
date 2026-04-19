@@ -24,6 +24,23 @@
                             </div>
                         @endif
 
+                        @if(!empty($supplierInventory->images) && count($supplierInventory->images) > 0)
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <h5>Fotos del Producto</h5>
+                                <hr>
+                                <div class="d-flex flex-wrap gap-2">
+                                    @foreach($supplierInventory->image_urls as $url)
+                                        <a href="{{ $url }}" target="_blank">
+                                            <img src="{{ $url }}" alt="{{ $supplierInventory->product_name }}"
+                                                 style="width:150px;height:150px;object-fit:cover;border-radius:6px;border:1px solid #dee2e6;">
+                                        </a>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+
                         <div class="row mb-4">
                             <div class="col-md-12">
                                 <h5>Información del Producto</h5>

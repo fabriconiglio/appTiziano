@@ -68,6 +68,22 @@ Transversales: **AFIP** (factura A/B/C), stock + alertas, Google OAuth login.
 - Respuestas breves; no summaries al final de cada edición.
 - Si el cambio afecta crons o cuentas corrientes, avisar riesgos antes.
 
+### 7.1 Deploy automático — ¡cuidado al tocar el server!
+
+- **Cada `git push` a `master` dispara GitHub Actions** ([.github/workflows/deploy.yml](.github/workflows/deploy.yml)) que se conecta vía SSH a `root@165.227.202.245` y ejecuta:
+  - `git pull`, `composer install`, `php artisan migrate --force`, cache de config/route/view.
+  - En `frontend/`: `pm2 stop tiendatiziano-next`, `rm -rf .next`, `npm ci`, `npm run build`, `pm2 restart`.
+- **NO ejecutar comandos manuales en el server mientras un workflow está corriendo** — los `npm ci` / `composer install` concurrentes corrompen el `node_modules` y dejan el sitio caído (síntoma típico: `next: not found`, `middleware-manifest.json missing`).
+- **Antes de pushear o tocar el server**, chequear el estado del último run:
+
+  ```bash
+  curl -s "https://api.github.com/repos/fabriconiglio/appTiziano/actions/runs?per_page=1" \
+    | grep -E '"status"|"conclusion"|"display_title"'
+  ```
+
+  Si `status` es `in_progress` o `queued`, **esperar** a que pase a `completed` antes de hacer cambios manuales en el server.
+- Si modificás algo del backend o el frontend que requiera deploy, preferí **un solo push consolidado** y dejar que el Action haga el trabajo, en vez de hacer cambios manuales sueltos.
+
 ## 8. Archivos críticos — referencia rápida
 
 | Área | Path |

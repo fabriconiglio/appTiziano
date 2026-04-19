@@ -9,10 +9,10 @@ import { getOrder, formatPrice } from '@/lib/api'
 import { Order } from '@/lib/types'
 
 const BANK_INFO = {
-  banco: 'Banco Nación Argentina',
-  titular: 'Tiziano Peluquería & Spa',
-  cbu: '0110012345678901234567',
-  alias: 'TIZIANO.PELUQUERIA',
+  banco: 'Mercado Pago',
+  titular: 'Marcos Javier Cornejo',
+  cbu: '0000003100009106432272',
+  alias: 'tiendatiziano',
 }
 
 function ConfirmacionContent() {

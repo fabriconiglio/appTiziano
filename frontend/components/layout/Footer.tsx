@@ -118,7 +118,7 @@ export default function Footer() {
           <div className="flex gap-4 mt-6">
             {[
               { Icon: IconInstagram, href: 'https://www.instagram.com/tiziano.articulosdepeluqueria', label: 'Instagram' },
-              { Icon: IconFacebook, href: 'https://facebook.com/tiziano.peluqueria.spa', label: 'Facebook' },
+              { Icon: IconFacebook, href: 'https://www.facebook.com/share/18cGsXYSmT/', label: 'Facebook' },
               { Icon: IconWhatsApp, href: 'https://wa.me/5493518586698', label: 'WhatsApp' },
             ].map(({ Icon, href, label }) => (
               <a

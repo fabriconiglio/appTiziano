@@ -168,7 +168,7 @@ export default function ContactoPage() {
                   <IconInstagram size={18} />
                 </a>
                 <a
-                  href="https://facebook.com/tiziano.peluqueria.spa"
+                  href="https://www.facebook.com/share/18cGsXYSmT/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-10 h-10 flex items-center justify-center rounded-full transition-all"

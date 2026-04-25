@@ -1022,6 +1022,14 @@ class DistributorTechnicalRecordController extends Controller
                         ];
                     }
                     
+                    $imagePath = null;
+                    if (!empty($supplierInventory->images) && is_array($supplierInventory->images)) {
+                        $candidate = storage_path('app/public/' . $supplierInventory->images[0]);
+                        if (file_exists($candidate)) {
+                            $imagePath = $candidate;
+                        }
+                    }
+
                     $products[] = [
                         'name' => $supplierInventory->product_name,
                         'description' => $displayText,
@@ -1035,7 +1043,8 @@ class DistributorTechnicalRecordController extends Controller
                             'type' => $productData['discount_type'],
                             'value' => $productData['discount_value'],
                             'reason' => $productData['discount_reason'] ?? 'Sin motivo especificado'
-                        ] : null
+                        ] : null,
+                        'image_path' => $imagePath,
                     ];
                     
                     $total += $totalPrice;

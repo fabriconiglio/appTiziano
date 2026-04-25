@@ -335,6 +335,14 @@ class DistributorClienteNoFrecuenteController extends Controller
             foreach ($distributorClienteNoFrecuente->products_purchased as $productData) {
                 $supplierInventory = SupplierInventory::with('distributorBrand')->find($productData['product_id']);
                 if ($supplierInventory) {
+                    $imagePath = null;
+                    if (!empty($supplierInventory->images) && is_array($supplierInventory->images)) {
+                        $candidate = storage_path('app/public/' . $supplierInventory->images[0]);
+                        if (file_exists($candidate)) {
+                            $imagePath = $candidate;
+                        }
+                    }
+
                     $products[] = [
                         'product_name' => $supplierInventory->product_name,
                         'description' => $supplierInventory->description,
@@ -345,7 +353,8 @@ class DistributorClienteNoFrecuenteController extends Controller
                         'discount_type' => $productData['discount_type'] ?? null,
                         'discount_value' => $productData['discount_value'] ?? null,
                         'discount_reason' => $productData['discount_reason'] ?? null,
-                        'subtotal' => $productData['quantity'] * $productData['price']
+                        'subtotal' => $productData['quantity'] * $productData['price'],
+                        'image_path' => $imagePath,
                     ];
                 }
             }

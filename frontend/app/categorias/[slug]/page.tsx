@@ -1,11 +1,36 @@
-import { getCategories, getProducts, formatPrice } from '@/lib/api'
+import type { Metadata } from 'next'
+import { Suspense } from 'react'
+import { getCategories, getProducts } from '@/lib/api'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
-import ProductCard from '@/components/products/ProductCard'
+import { PaginatedResponse, Product } from '@/lib/types'
+import CategoryClient from './CategoryClient'
 
 interface PageProps {
   params: Promise<{ slug: string }>
+}
+
+const emptyPaginated: PaginatedResponse<Product> = {
+  data: [],
+  current_page: 1,
+  last_page: 1,
+  per_page: 24,
+  total: 0,
+  from: 0,
+  to: 0,
+  links: [],
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params
+  const categories = await getCategories().catch(() => [])
+  const category = categories.find((c) => c.slug === slug || String(c.id) === slug)
+  if (!category) return {}
+  return {
+    title: `${category.name} — Tiziano`,
+    description: category.description ?? `Productos de ${category.name} para peluquería profesional.`,
+  }
 }
 
 export default async function CategoryPage({ params }: PageProps) {
@@ -16,8 +41,7 @@ export default async function CategoryPage({ params }: PageProps) {
 
   if (!category) notFound()
 
-  const productsData = await getProducts({ category_id: category.id }).catch(() => null)
-  const products = productsData?.data ?? []
+  const initialData = await getProducts({ category_id: category.id, page: 1 }).catch(() => emptyPaginated)
 
   return (
     <>
@@ -56,42 +80,9 @@ export default async function CategoryPage({ params }: PageProps) {
       </div>
 
       {/* Products */}
-      <section style={{ background: 'var(--color-bg)', padding: '48px 0 80px' }}>
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex items-center justify-between mb-8">
-            <p className="text-sm" style={{ color: 'var(--color-dark-soft)' }}>
-              <span className="font-semibold" style={{ color: 'var(--color-dark)' }}>{products.length}</span> productos en esta categoría
-            </p>
-            <Link
-              href="/productos"
-              className="text-xs font-semibold uppercase tracking-wider pb-0.5"
-              style={{ color: 'var(--color-dark)', borderBottom: '1px solid var(--color-primary)' }}
-            >
-              Ver todos
-            </Link>
-          </div>
-
-          {products.length === 0 ? (
-            <div className="text-center py-20">
-              <p
-                style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', color: 'var(--color-dark)' }}
-                className="mb-3"
-              >
-                Sin productos en esta categoría
-              </p>
-              <Link href="/productos" className="btn-primary mt-4 inline-block">
-                Ver catálogo completo
-              </Link>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-              {products.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
+      <Suspense>
+        <CategoryClient initialData={initialData} category={category} />
+      </Suspense>
     </>
   )
 }

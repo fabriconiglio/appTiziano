@@ -18,7 +18,13 @@ class BrandApiController extends Controller
         }
 
         $brands = $query->orderBy('name')
-            ->get(['id', 'name', 'slug', 'description', 'logo_url', 'is_featured']);
+            ->get(['id', 'name', 'slug', 'description', 'logo_url', 'is_featured'])
+            ->map(function ($brand) {
+                if ($brand->logo_url && str_starts_with($brand->logo_url, '/')) {
+                    $brand->logo_url = rtrim(config('app.url'), '/') . $brand->logo_url;
+                }
+                return $brand;
+            });
 
         return response()->json($brands);
     }

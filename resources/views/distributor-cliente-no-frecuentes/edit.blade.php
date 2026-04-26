@@ -627,7 +627,28 @@ document.addEventListener('DOMContentLoaded', function() {
         // Evento cuando se selecciona un producto
         select.on('select2:select', function (e) {
             const data = e.params.data;
-            const productRow = $(this).closest('.product-row');
+            const currentRow = $(this).closest('.product-row');
+            const productId = $(this).val();
+
+            // Verificar duplicados
+            let existingRow = null;
+            $('.product-row').each(function() {
+                if ($(this).is(currentRow)) return;
+                if ($(this).find('.product-description-select').val() == productId) {
+                    existingRow = $(this);
+                    return false;
+                }
+            });
+            if (existingRow) {
+                const qtyInput = existingRow.find('.quantity-input');
+                qtyInput.val(parseInt(qtyInput.val() || 1) + 1).trigger('input');
+                updateSubtotal(existingRow);
+                currentRow.remove();
+                updateTotal();
+                return;
+            }
+
+            const productRow = currentRow;
             
             // Guardar datos del producto
             productRow.data('precio-mayor', data.precio_mayor || 0);

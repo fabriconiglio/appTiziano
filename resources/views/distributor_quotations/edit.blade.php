@@ -518,8 +518,27 @@
                 $(`.product-row[data-index="${productIndex}"] .product-description-select`).on('select2:select', function(e) {
                     const data = e.params.data;
                     
-                    // Obtener precio del producto seleccionado
+                    // Verificar duplicados
+                    const currentRow = $(this).closest('.product-row');
                     const productId = $(this).val();
+                    let existingRow = null;
+                    $('.product-row').each(function() {
+                        if ($(this).is(currentRow)) return;
+                        if ($(this).find('.product-description-select').val() == productId) {
+                            existingRow = $(this);
+                            return false;
+                        }
+                    });
+                    if (existingRow) {
+                        const qtyInput = existingRow.find('.quantity-input');
+                        qtyInput.val(parseInt(qtyInput.val() || 1) + 1).trigger('input');
+                        calculateSubtotal(existingRow);
+                        currentRow.remove();
+                        updateTotal();
+                        return;
+                    }
+                    
+                    // Obtener precio del producto seleccionado
                     if (productId) {
                         $.ajax({
                             url: '{{ route("api.supplier-inventories.get-product") }}',

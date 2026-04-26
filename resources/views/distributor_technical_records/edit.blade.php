@@ -716,6 +716,26 @@
                 const brand = data.brand || '';
                 const description = data.description || '';
                 
+                // Verificar duplicados
+                const currentRow = $(this).closest('.product-row');
+                const productId = $(this).val();
+                let existingRow = null;
+                $('.product-row').each(function() {
+                    if ($(this).is(currentRow)) return;
+                    if ($(this).find('.product-description-select').val() == productId) {
+                        existingRow = $(this);
+                        return false;
+                    }
+                });
+                if (existingRow) {
+                    const qtyInput = existingRow.find('.quantity-input');
+                    qtyInput.val(parseInt(qtyInput.val() || 1) + 1).trigger('input');
+                    calculateSubtotal(existingRow);
+                    currentRow.remove();
+                    updateTotal();
+                    return;
+                }
+                
                 // Actualizar campos automáticamente
                 $(this).closest('.product-row').find('.stock-display').val(stock);
                 
@@ -886,6 +906,26 @@
                     const brand = data.brand || '';
                     const description = data.description || '';
                     
+                    // Verificar duplicados
+                    const currentRow = $(this).closest('.product-row');
+                    const productId = $(this).val();
+                    let existingRow = null;
+                    $('.product-row').each(function() {
+                        if ($(this).is(currentRow)) return;
+                        if ($(this).find('.product-description-select').val() == productId) {
+                            existingRow = $(this);
+                            return false;
+                        }
+                    });
+                    if (existingRow) {
+                        const qtyInput = existingRow.find('.quantity-input');
+                        qtyInput.val(parseInt(qtyInput.val() || 1) + 1).trigger('input');
+                        calculateSubtotal(existingRow);
+                        currentRow.remove();
+                        updateTotal();
+                        return;
+                    }
+                    
                     // Actualizar campos automáticamente
                     $(this).closest('.product-row').find('.stock-display').val(stock);
                     $(this).closest('.product-row').find('.product-name-display').val(productName + (brand ? ' - ' + brand : ''));
@@ -893,7 +933,6 @@
                     $(this).closest('.product-row').find('.description-display').val(description);
                     
                     // Obtener precio del producto seleccionado
-                    const productId = $(this).val();
                     if (productId) {
                         $.ajax({
                             url: '{{ route("api.supplier-inventories.get-product") }}',

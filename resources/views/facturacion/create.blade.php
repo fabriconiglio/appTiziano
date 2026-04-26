@@ -500,11 +500,22 @@ if (document.getElementById('product-search')) {
 }
 
 function addItemToTable(productId, productName, productPrice, quantity = 1) {
-    itemCounter++;
-    
-    // Convertir precio a número si viene como string
     const price = parseFloat(productPrice) || 0;
     const qty = parseFloat(quantity) || 1;
+    
+    // Verificar duplicados por productId
+    if (productId) {
+        const existingRow = document.querySelector(`#items-tbody input[type="hidden"][value="${productId}"]`);
+        if (existingRow) {
+            const row = existingRow.closest('tr');
+            const qtyInput = row.querySelector('.item-quantity');
+            qtyInput.value = parseFloat(qtyInput.value || 1) + qty;
+            updateTotals();
+            return;
+        }
+    }
+    
+    itemCounter++;
     
     const tbody = document.getElementById('items-tbody');
     const row = document.createElement('tr');

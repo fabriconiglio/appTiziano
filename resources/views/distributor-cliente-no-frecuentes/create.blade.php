@@ -420,24 +420,44 @@ $(document).ready(function() {
         // Evento cuando se selecciona un producto
         $(`.product-row[data-index="${productIndex}"] .product-description-select`).on('select2:select', function(e) {
             const data = e.params.data;
-            const productRow = $(this).closest('.product-row');
-            
-            console.log('Producto seleccionado:', data); // Debug
-            
+            const currentRow = $(this).closest('.product-row');
+            const productId = $(this).val();
+
+            // Verificar duplicados
+            let existingRow = null;
+            $('.product-row').each(function() {
+                if ($(this).is(currentRow)) return;
+                if ($(this).find('.product-description-select').val() == productId) {
+                    existingRow = $(this);
+                    return false;
+                }
+            });
+            if (existingRow) {
+                const qtyInput = existingRow.find('.quantity-input');
+                qtyInput.val(parseInt(qtyInput.val() || 1) + 1).trigger('input');
+                updateSubtotal(existingRow);
+                currentRow.remove();
+                updateTotal();
+                updateProductCounter();
+                return;
+            }
+
+            const productRow = currentRow;
+
             // Guardar los precios en el elemento del producto
             productRow.data('precio-mayor', data.precio_mayor || 0);
             productRow.data('precio-menor', data.precio_menor || 0);
-            
+
             // Llenar los campos con la información del producto
             const stockValue = data.stock_quantity !== undefined ? data.stock_quantity : (data.stock !== undefined ? data.stock : 0);
             productRow.find('.stock-display').val(stockValue);
-            
+
             // Establecer cantidad por defecto
             productRow.find('.quantity-input').val(1);
-            
+
             // Actualizar precio según el tipo seleccionado
             updateProductPrice(productRow);
-            
+
             // Calcular subtotal inicial
             updateSubtotal(productRow);
             updateTotal();
@@ -614,9 +634,29 @@ $(document).ready(function() {
     // Evento global para selección de productos
     $(document).on('select2:select', '.product-description-select', function(e) {
         const data = e.params.data;
-        const productRow = $(this).closest('.product-row');
-        
-        console.log('Producto seleccionado:', data); // Debug
+        const currentRow = $(this).closest('.product-row');
+        const productId = $(this).val();
+
+        // Verificar duplicados
+        let existingRow = null;
+        $('.product-row').each(function() {
+            if ($(this).is(currentRow)) return;
+            if ($(this).find('.product-description-select').val() == productId) {
+                existingRow = $(this);
+                return false;
+            }
+        });
+        if (existingRow) {
+            const qtyInput = existingRow.find('.quantity-input');
+            qtyInput.val(parseInt(qtyInput.val() || 1) + 1).trigger('input');
+            updateSubtotal(existingRow);
+            currentRow.remove();
+            updateTotal();
+            updateProductCounter();
+            return;
+        }
+
+        const productRow = currentRow;
         
         // Guardar los precios en el elemento del producto
         productRow.data('precio-mayor', data.precio_mayor || 0);

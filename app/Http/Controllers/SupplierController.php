@@ -83,6 +83,12 @@ class SupplierController extends Controller
     public function show(Supplier $supplier)
     {
         $supplier->load(['supplierInventories', 'supplierPurchases']);
+
+        $independentPayments = SupplierCurrentAccount::where('supplier_id', $supplier->id)
+            ->where('type', 'payment')
+            ->whereNull('supplier_purchase_id')
+            ->orderByDesc('date')
+            ->get();
         
         // Obtener estadísticas del proveedor
         $stats = [
@@ -92,7 +98,7 @@ class SupplierController extends Controller
             'out_of_stock_products' => $supplier->out_of_stock_products->count(),
         ];
 
-        return view('suppliers.show', compact('supplier', 'stats'));
+        return view('suppliers.show', compact('supplier', 'stats', 'independentPayments'));
     }
 
     /**
@@ -677,5 +683,23 @@ class SupplierController extends Controller
             Log::error('Error al registrar pago a proveedor: ' . $e->getMessage());
             return back()->withInput()->with('error', 'Error al registrar el pago: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Eliminar un pago independiente de la cuenta corriente del proveedor
+     */
+    public function destroyPayment(Request $request, Supplier $supplier, SupplierCurrentAccount $account)
+    {
+        if ($account->supplier_id !== $supplier->id || $account->supplier_purchase_id !== null) {
+            abort(404);
+        }
+
+        $account->delete();
+
+        $route = $request->input('redirect_to') === 'show'
+            ? redirect()->route('suppliers.show', $supplier)
+            : redirect()->route('suppliers.current-account.show', $supplier);
+
+        return $route->with('success', 'Pago eliminado exitosamente.');
     }
 }

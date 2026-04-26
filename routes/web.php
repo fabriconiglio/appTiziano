@@ -214,6 +214,8 @@ Route::get('/api/supplier-inventories/get-product', [App\Http\Controllers\Suppli
         ->name('suppliers.create-payment');
     Route::post('suppliers/{supplier}/store-payment', [\App\Http\Controllers\SupplierController::class, 'storePayment'])
         ->name('suppliers.store-payment');
+    Route::delete('suppliers/{supplier}/destroy-payment/{account}', [\App\Http\Controllers\SupplierController::class, 'destroyPayment'])
+        ->name('suppliers.destroy-payment');
 
     // CRUD de proveedores de peluquería
     Route::resource('hairdressing-suppliers', \App\Http\Controllers\HairdressingSupplierController::class);
@@ -245,7 +247,9 @@ Route::get('/api/supplier-inventories/get-product', [App\Http\Controllers\Suppli
         ->name('hairdressing-suppliers.create-payment');
     Route::post('hairdressing-suppliers/{hairdressingSupplier}/store-payment', [\App\Http\Controllers\HairdressingSupplierController::class, 'storePayment'])
         ->name('hairdressing-suppliers.store-payment');
-    
+    Route::delete('hairdressing-suppliers/{hairdressingSupplier}/destroy-payment/{account}', [\App\Http\Controllers\HairdressingSupplierController::class, 'destroyPayment'])
+        ->name('hairdressing-suppliers.destroy-payment');
+
     // Clientes No Frecuentes
     Route::resource('cliente-no-frecuentes', \App\Http\Controllers\ClienteNoFrecuenteController::class);
     

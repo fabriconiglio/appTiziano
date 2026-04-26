@@ -169,21 +169,26 @@ use Illuminate\Support\Facades\Storage;
                 </div>
             </div>
 
-            <!-- Compras al Proveedor -->
+            <!-- Compras y Pagos al Proveedor -->
             <div class="card">
                 <div class="card-header">
                     <h6 class="mb-0">
-                        <i class="fas fa-shopping-cart"></i> Compras al Proveedor
+                        <i class="fas fa-shopping-cart"></i> Compras y Pagos al Proveedor
                     </h6>
                 </div>
                 <div class="card-body">
-                    @if($supplier->supplierPurchases->count() > 0)
+                    @php
+                        $purchases = $supplier->supplierPurchases->map(fn($p) => ['type' => 'purchase', 'date' => $p->purchase_date, 'item' => $p]);
+                        $payments  = $independentPayments->map(fn($p) => ['type' => 'payment', 'date' => $p->date, 'item' => $p]);
+                        $rows = $purchases->concat($payments)->sortByDesc('date');
+                    @endphp
+                    @if($rows->count() > 0)
                         <div class="table-responsive">
                             <table class="table table-sm">
                                 <thead>
                                     <tr>
                                         <th>Fecha</th>
-                                        <th>N° Factura</th>
+                                        <th>Tipo / N° Factura</th>
                                         <th>Total</th>
                                         <th>Pago</th>
                                         <th>Saldo</th>
@@ -193,63 +198,87 @@ use Illuminate\Support\Facades\Storage;
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach($supplier->supplierPurchases->sortByDesc('purchase_date') as $purchase)
-                                        <tr>
-                                            <td>
-                                                <div class="fw-bold">{{ $purchase->purchase_date->format('d/m/Y') }}</div>
-                                            </td>
-                                            <td>
-                                                <span class="badge bg-primary">{{ $purchase->receipt_number }}</span>
-                                            </td>
-                                            <td>
-                                                <div class="fw-bold text-success">${{ number_format($purchase->total_amount, 2, ',', '.') }}</div>
-                                            </td>
-                                            <td>
-                                                <div class="fw-bold text-primary">${{ number_format($purchase->payment_amount, 2, ',', '.') }}</div>
-                                            </td>
-                                            <td>
-                                                @if($purchase->balance_amount > 0)
-                                                    <span class="badge bg-danger text-white">${{ number_format($purchase->balance_amount, 2, ',', '.') }}</span>
-                                                @else
-                                                    <span class="badge bg-success">Pagado</span>
-                                                @endif
-                                            </td>
-                                            <td>
-                                                @if($purchase->receipt_file)
-                                                    <a href="{{ Storage::url($purchase->receipt_file) }}" 
-                                                       target="_blank" 
-                                                       class="btn btn-sm btn-outline-primary">
-                                                        <i class="fas fa-download"></i> Ver
-                                                    </a>
-                                                @else
-                                                    <span class="text-muted">Sin archivo</span>
-                                                @endif
-                                            </td>
-                                            <td>
-                                                @if($purchase->notes)
-                                                    <small class="text-muted">{{ Str::limit($purchase->notes, 50) }}</small>
-                                                @else
-                                                    <span class="text-muted">Sin observaciones</span>
-                                                @endif
-                                            </td>
-                                            <td>
-                                                <div class="btn-group" role="group">
-                                                    <a href="{{ route('suppliers.edit-purchase', ['supplier' => $supplier, 'purchase' => $purchase]) }}" 
-                                                       class="btn btn-warning btn-sm" 
-                                                       title="Editar compra">
-                                                        <i class="fas fa-edit"></i>
-                                                    </a>
-                                                    <button type="button" 
-                                                            class="btn btn-danger btn-sm delete-purchase-btn" 
-                                                            title="Eliminar compra"
-                                                            data-purchase-id="{{ $purchase->id }}"
-                                                            data-purchase-number="{{ $purchase->receipt_number }}"
-                                                            data-supplier-name="{{ $supplier->name }}">
+                                    @foreach($rows as $row)
+                                        @if($row['type'] === 'purchase')
+                                            @php $purchase = $row['item']; @endphp
+                                            <tr>
+                                                <td><div class="fw-bold">{{ $purchase->purchase_date->format('d/m/Y') }}</div></td>
+                                                <td><span class="badge bg-primary">{{ $purchase->receipt_number }}</span></td>
+                                                <td><div class="fw-bold text-success">${{ number_format($purchase->total_amount, 2, ',', '.') }}</div></td>
+                                                <td><div class="fw-bold text-primary">${{ number_format($purchase->payment_amount, 2, ',', '.') }}</div></td>
+                                                <td>
+                                                    @if($purchase->balance_amount > 0)
+                                                        <span class="badge bg-danger text-white">${{ number_format($purchase->balance_amount, 2, ',', '.') }}</span>
+                                                    @else
+                                                        <span class="badge bg-success">Pagado</span>
+                                                    @endif
+                                                </td>
+                                                <td>
+                                                    @if($purchase->receipt_file)
+                                                        <a href="{{ Storage::url($purchase->receipt_file) }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                            <i class="fas fa-download"></i> Ver
+                                                        </a>
+                                                    @else
+                                                        <span class="text-muted">Sin archivo</span>
+                                                    @endif
+                                                </td>
+                                                <td>
+                                                    @if($purchase->notes)
+                                                        <small class="text-muted">{{ Str::limit($purchase->notes, 50) }}</small>
+                                                    @else
+                                                        <span class="text-muted">Sin observaciones</span>
+                                                    @endif
+                                                </td>
+                                                <td>
+                                                    <div class="btn-group" role="group">
+                                                        <a href="{{ route('suppliers.edit-purchase', ['supplier' => $supplier, 'purchase' => $purchase]) }}"
+                                                           class="btn btn-warning btn-sm" title="Editar compra">
+                                                            <i class="fas fa-edit"></i>
+                                                        </a>
+                                                        <button type="button"
+                                                                class="btn btn-danger btn-sm delete-purchase-btn"
+                                                                title="Eliminar compra"
+                                                                data-purchase-id="{{ $purchase->id }}"
+                                                                data-purchase-number="{{ $purchase->receipt_number }}"
+                                                                data-supplier-name="{{ $supplier->name }}">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        @else
+                                            @php $payment = $row['item']; @endphp
+                                            <tr class="table-success">
+                                                <td><div class="fw-bold">{{ $payment->date->format('d/m/Y') }}</div></td>
+                                                <td>
+                                                    <span class="badge bg-success">PAGO</span>
+                                                    @if($payment->reference)
+                                                        <small class="text-muted ms-1">{{ $payment->reference }}</small>
+                                                    @endif
+                                                </td>
+                                                <td><span class="text-muted">—</span></td>
+                                                <td><div class="fw-bold text-success">${{ number_format($payment->amount, 2, ',', '.') }}</div></td>
+                                                <td><span class="text-muted">—</span></td>
+                                                <td><span class="text-muted">—</span></td>
+                                                <td>
+                                                    @if($payment->observations)
+                                                        <small class="text-muted">{{ Str::limit($payment->observations, 50) }}</small>
+                                                    @else
+                                                        <span class="text-muted">Sin observaciones</span>
+                                                    @endif
+                                                </td>
+                                                <td>
+                                                    <button type="button"
+                                                            class="btn btn-danger btn-sm delete-payment-show-btn"
+                                                            title="Eliminar pago"
+                                                            data-account-id="{{ $payment->id }}"
+                                                            data-account-desc="{{ $payment->description }}"
+                                                            data-account-amount="${{ number_format($payment->amount, 2, ',', '.') }}">
                                                         <i class="fas fa-trash"></i>
                                                     </button>
-                                                </div>
-                                            </td>
-                                        </tr>
+                                                </td>
+                                            </tr>
+                                        @endif
                                     @endforeach
                                 </tbody>
                             </table>
@@ -257,8 +286,7 @@ use Illuminate\Support\Facades\Storage;
                     @else
                         <div class="text-center py-4">
                             <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
-                            <h6 class="text-muted">No hay compras registradas para este proveedor</h6>
-                            <p class="text-muted">Comienza registrando tu primera compra usando el botón "Agregar Compra"</p>
+                            <h6 class="text-muted">No hay compras ni pagos registrados para este proveedor</h6>
                         </div>
                     @endif
                 </div>
@@ -474,6 +502,79 @@ document.addEventListener('DOMContentLoaded', function() {
             closeModalFunction();
         }
     });
+
+    // Modal de eliminación de pago independiente
+    const paymentModal = document.getElementById('deletePaymentShowModal');
+    const paymentDeleteButtons = document.querySelectorAll('.delete-payment-show-btn');
+    const closePaymentModal = document.getElementById('closeDeletePaymentShowModal');
+    const cancelPaymentButton = document.getElementById('cancelDeletePaymentShow');
+    const deletePaymentForm = document.getElementById('deletePaymentShowForm');
+    const paymentDescSpan = document.getElementById('modalPaymentShowDesc');
+    const paymentAmountSpan = document.getElementById('modalPaymentShowAmount');
+
+    paymentDeleteButtons.forEach(function(button) {
+        button.addEventListener('click', function() {
+            const accountId = this.getAttribute('data-account-id');
+            paymentDescSpan.textContent = this.getAttribute('data-account-desc');
+            paymentAmountSpan.textContent = this.getAttribute('data-account-amount');
+            deletePaymentForm.action = '/suppliers/{{ $supplier->id }}/destroy-payment/' + accountId;
+            paymentModal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        });
+    });
+
+    function closePaymentModalFn() {
+        paymentModal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+
+    closePaymentModal.addEventListener('click', closePaymentModalFn);
+    cancelPaymentButton.addEventListener('click', closePaymentModalFn);
+    paymentModal.addEventListener('click', function(e) {
+        if (e.target === paymentModal) closePaymentModalFn();
+    });
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && paymentModal.style.display === 'flex') closePaymentModalFn();
+    });
 });
 </script>
-@endsection 
+
+<!-- Modal de Confirmación de Eliminación de Pago -->
+<div id="deletePaymentShowModal" class="custom-modal">
+    <div class="custom-modal-content">
+        <div class="custom-modal-header">
+            <h5 class="custom-modal-title">
+                <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                Confirmar Eliminación de Pago
+            </h5>
+            <button type="button" class="custom-modal-close" id="closeDeletePaymentShowModal">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="custom-modal-body">
+            <p class="mb-3">¿Estás seguro de que querés eliminar este pago?</p>
+            <div class="alert alert-warning">
+                <strong>Descripción:</strong> <span id="modalPaymentShowDesc"></span><br>
+                <strong>Importe:</strong> <span id="modalPaymentShowAmount"></span>
+            </div>
+            <p class="text-danger mb-0">
+                <i class="fas fa-info-circle me-1"></i>
+                <strong>Esta acción no se puede deshacer.</strong>
+            </p>
+        </div>
+        <div class="custom-modal-footer">
+            <button type="button" class="btn btn-secondary" id="cancelDeletePaymentShow">
+                <i class="fas fa-times me-1"></i> Cancelar
+            </button>
+            <form id="deletePaymentShowForm" method="POST" style="display: inline;">
+                @csrf
+                @method('DELETE')
+                <input type="hidden" name="redirect_to" value="show">
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-trash me-1"></i> Sí, Eliminar
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+@endsection

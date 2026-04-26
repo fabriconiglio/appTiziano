@@ -33,8 +33,8 @@
 
     <!-- Información del Proveedor -->
     <div class="card mb-4">
-        <div class="card-header bg-dark text-white">
-            <h5 class="mb-0">{{ $supplier->full_name }}</h5>
+        <div class="card-header bg-light">
+            <h5 class="mb-0 text-dark">{{ $supplier->full_name }}</h5>
         </div>
         <div class="card-body py-2">
             <div class="row">
@@ -130,6 +130,7 @@
                             <th class="text-end">Débito</th>
                             <th class="text-end">Crédito</th>
                             <th class="text-end px-3">Saldo</th>
+                            <th class="text-center">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -169,10 +170,22 @@
                                         @endif
                                     </span>
                                 </td>
+                                <td class="text-center">
+                                    @if($account->type === 'payment' && is_null($account->supplier_purchase_id))
+                                        <button type="button"
+                                                class="btn btn-danger btn-sm delete-payment-btn"
+                                                title="Eliminar pago"
+                                                data-account-id="{{ $account->id }}"
+                                                data-account-desc="{{ $account->description }}"
+                                                data-account-amount="${{ number_format($account->amount, 2, ',', '.') }}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    @endif
+                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center py-4">
+                                <td colspan="7" class="text-center py-4">
                                     <i class="fas fa-file-invoice fa-3x text-muted mb-3 d-block"></i>
                                     No hay movimientos registrados.
                                 </td>
@@ -199,6 +212,7 @@
                                         @endif
                                     </span>
                                 </td>
+                                <td></td>
                             </tr>
                         </tfoot>
                     @endif
@@ -207,4 +221,79 @@
         </div>
     </div>
 </div>
+
+<!-- Modal de Confirmación de Eliminación de Pago -->
+<div id="deletePaymentModal" class="custom-modal">
+    <div class="custom-modal-content">
+        <div class="custom-modal-header">
+            <h5 class="custom-modal-title">
+                <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                Confirmar Eliminación
+            </h5>
+            <button type="button" class="custom-modal-close" id="closeDeletePaymentModal">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="custom-modal-body">
+            <p class="mb-3">¿Estás seguro de que querés eliminar este pago?</p>
+            <div class="alert alert-warning">
+                <strong>Descripción:</strong> <span id="modalPaymentDesc"></span><br>
+                <strong>Importe:</strong> <span id="modalPaymentAmount"></span>
+            </div>
+            <p class="text-danger mb-0">
+                <i class="fas fa-info-circle me-1"></i>
+                <strong>Esta acción no se puede deshacer.</strong>
+            </p>
+        </div>
+        <div class="custom-modal-footer">
+            <button type="button" class="btn btn-secondary" id="cancelDeletePayment">
+                <i class="fas fa-times me-1"></i> Cancelar
+            </button>
+            <form id="deletePaymentForm" method="POST" style="display: inline;">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-trash me-1"></i> Sí, Eliminar
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('deletePaymentModal');
+    const deleteButtons = document.querySelectorAll('.delete-payment-btn');
+    const closeModal = document.getElementById('closeDeletePaymentModal');
+    const cancelButton = document.getElementById('cancelDeletePayment');
+    const deleteForm = document.getElementById('deletePaymentForm');
+    const descSpan = document.getElementById('modalPaymentDesc');
+    const amountSpan = document.getElementById('modalPaymentAmount');
+
+    deleteButtons.forEach(function(button) {
+        button.addEventListener('click', function() {
+            const accountId = this.getAttribute('data-account-id');
+            descSpan.textContent = this.getAttribute('data-account-desc');
+            amountSpan.textContent = this.getAttribute('data-account-amount');
+            deleteForm.action = '/suppliers/{{ $supplier->id }}/destroy-payment/' + accountId;
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        });
+    });
+
+    function closeModalFn() {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+
+    closeModal.addEventListener('click', closeModalFn);
+    cancelButton.addEventListener('click', closeModalFn);
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) closeModalFn();
+    });
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && modal.style.display === 'flex') closeModalFn();
+    });
+});
+</script>
 @endsection

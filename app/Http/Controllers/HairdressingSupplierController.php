@@ -86,7 +86,13 @@ class HairdressingSupplierController extends Controller
     public function show(HairdressingSupplier $hairdressingSupplier)
     {
         $hairdressingSupplier->load(['products', 'hairdressingSupplierPurchases']);
-        
+
+        $independentPayments = HairdressingSupplierCurrentAccount::where('hairdressing_supplier_id', $hairdressingSupplier->id)
+            ->where('type', 'payment')
+            ->whereNull('hairdressing_supplier_purchase_id')
+            ->orderByDesc('date')
+            ->get();
+
         $stats = [
             'total_products' => $hairdressingSupplier->products_count,
             'total_value' => $hairdressingSupplier->total_inventory_value,
@@ -94,7 +100,7 @@ class HairdressingSupplierController extends Controller
             'out_of_stock_products' => $hairdressingSupplier->out_of_stock_products->count(),
         ];
 
-        return view('hairdressing-suppliers.show', compact('hairdressingSupplier', 'stats'));
+        return view('hairdressing-suppliers.show', compact('hairdressingSupplier', 'stats', 'independentPayments'));
     }
 
     /**
@@ -698,5 +704,23 @@ class HairdressingSupplierController extends Controller
             Log::error('Error al registrar pago a proveedor de peluquería: ' . $e->getMessage());
             return back()->withInput()->with('error', 'Error al registrar el pago: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Eliminar un pago independiente de la cuenta corriente del proveedor de peluquería
+     */
+    public function destroyPayment(Request $request, HairdressingSupplier $hairdressingSupplier, HairdressingSupplierCurrentAccount $account)
+    {
+        if ($account->hairdressing_supplier_id !== $hairdressingSupplier->id || $account->hairdressing_supplier_purchase_id !== null) {
+            abort(404);
+        }
+
+        $account->delete();
+
+        $route = $request->input('redirect_to') === 'show'
+            ? redirect()->route('hairdressing-suppliers.show', $hairdressingSupplier)
+            : redirect()->route('hairdressing-suppliers.current-account.show', $hairdressingSupplier);
+
+        return $route->with('success', 'Pago eliminado exitosamente.');
     }
 }

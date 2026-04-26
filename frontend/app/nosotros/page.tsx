@@ -90,13 +90,13 @@ export default function NosotrosPage() {
               </h2>
               <div className="space-y-4 text-sm leading-relaxed" style={{ color: 'var(--color-dark-soft)' }}>
                 <p>
-                  Nacimos en Córdoba con una idea clara: ofrecer servicios de peluquería de primer nivel y, al mismo tiempo, acercar a profesionales y consumidores los mejores productos capilares del mercado.
+                  Nacimos en Córdoba con una idea clara:
                 </p>
                 <p>
-                  Nuestro salón, ubicado en <strong style={{ color: 'var(--color-dark)' }}>Santa Ana 2725</strong>, es un espacio donde conviven la atención personalizada de un salón boutique con la variedad de una distribuidora especializada. Trabajamos con marcas reconocidas internacionalmente y somos salón oficial <strong style={{ color: 'var(--color-dark)' }}>L&apos;Oréal Professionnel</strong>.
+                  Somos una distribuidora de productos capilares dedicada a acompañar el trabajo de profesionales de la peluquería con insumos de calidad y confianza. Nos especializamos en ofrecer una amplia variedad de marcas y productos que se adaptan a las necesidades del día a día en el salón.
                 </p>
                 <p>
-                  Desde nuestro rol de distribuidora, abastecemos a salones y profesionales de toda la provincia con precios mayoristas y minoristas, brindando asesoría técnica en cada venta. Cada producto que vendemos es el mismo que usamos en nuestros servicios de corte, coloración, tratamientos y styling.
+                  Trabajamos con ventas por mayor y menor, abasteciendo tanto a peluqueros como a perfumerías, brindando siempre atención cercana, asesoramiento y compromiso en cada venta.
                 </p>
               </div>
             </div>

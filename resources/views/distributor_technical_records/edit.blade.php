@@ -1076,7 +1076,20 @@
                         method: 'GET',
                         data: { product_id: productId },
                         success: function(response) {
-                            const price = response.precio_mayor || response.precio_menor || 0;
+                            const purchaseType = $('#purchase_type').val();
+                            let price = 0;
+                            
+                            switch (purchaseType) {
+                                case 'al_por_mayor':
+                                    price = response.precio_mayor || 0;
+                                    break;
+                                case 'al_por_menor':
+                                    price = response.precio_menor || 0;
+                                    break;
+                                default:
+                                    price = response.precio_menor || response.precio_mayor || 0;
+                                    break;
+                            }
                             const priceDisplay = price > 0 ? '$' + parseFloat(price).toFixed(2) : 'N/A';
                             
                             productRow.find('.price-display').val(priceDisplay);
@@ -1107,6 +1120,7 @@
                 $('.product-row').each(function() {
                     const productRow = $(this);
                     const productId = productRow.find('.product-description-select').val();
+                    const hasDiscount = productRow.find('.discount-type').val() && productRow.find('.discount-value').val();
                     
                     if (productId) {
                         // Recalcular precio del producto
@@ -1115,7 +1129,6 @@
                             method: 'GET',
                             data: { product_id: productId },
                             success: function(response) {
-                                // Determinar el precio según el tipo de compra
                                 const purchaseType = $('#purchase_type').val();
                                 let price = 0;
                                 
@@ -1134,8 +1147,27 @@
                                 const priceDisplay = price > 0 ? '$' + parseFloat(price).toFixed(2) : 'N/A';
                                 
                                 productRow.find('.price-display').val(priceDisplay);
-                                productRow.find('.price-value').val(price);
                                 productRow.find('.original-price-value').val(price);
+                                
+                                if (hasDiscount) {
+                                    // Recalcular el precio con descuento usando el nuevo precio base
+                                    const discountType = productRow.find('.discount-type').val();
+                                    const discountValue = parseFloat(productRow.find('.discount-value').val()) || 0;
+                                    const quantity = parseInt(productRow.find('.quantity-input').val()) || 0;
+                                    const originalSubtotal = price * quantity;
+                                    
+                                    let newSubtotal = originalSubtotal;
+                                    if (discountType === 'percentage') {
+                                        newSubtotal = Math.max(0, originalSubtotal - (originalSubtotal * discountValue / 100));
+                                    } else if (discountType === 'fixed') {
+                                        newSubtotal = Math.max(0, originalSubtotal - discountValue);
+                                    }
+                                    
+                                    const newUnitPrice = quantity > 0 ? newSubtotal / quantity : 0;
+                                    productRow.find('.price-value').val(newUnitPrice);
+                                } else {
+                                    productRow.find('.price-value').val(price);
+                                }
                                 
                                 // Recalcular subtotal
                                 calculateSubtotal(productRow);

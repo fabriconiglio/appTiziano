@@ -327,10 +327,12 @@ class DistributorClienteNoFrecuenteController extends Controller
      */
     public function generateRemito(DistributorClienteNoFrecuente $distributorClienteNoFrecuente)
     {
+        set_time_limit(120);
+
         $distributorClienteNoFrecuente->load('user');
-        
-        // Procesar productos comprados
+
         $products = [];
+        $tempFiles = [];
         if (!empty($distributorClienteNoFrecuente->products_purchased)) {
             foreach ($distributorClienteNoFrecuente->products_purchased as $productData) {
                 $supplierInventory = SupplierInventory::with('distributorBrand')->find($productData['product_id']);
@@ -339,7 +341,7 @@ class DistributorClienteNoFrecuenteController extends Controller
                     if (!empty($supplierInventory->images) && is_array($supplierInventory->images)) {
                         $candidate = storage_path('app/public/' . $supplierInventory->images[0]);
                         if (file_exists($candidate)) {
-                            $imagePath = $candidate;
+                            $imagePath = $this->convertToJpegForPdf($candidate, $tempFiles);
                         }
                     }
 
@@ -367,7 +369,63 @@ class DistributorClienteNoFrecuenteController extends Controller
         ];
 
         $pdf = Pdf::loadView('distributor-cliente-no-frecuentes.remito', $data);
-        
-        return $pdf->download('remito_cliente_no_frecuente_' . $distributorClienteNoFrecuente->id . '_' . date('Y-m-d_H-i-s') . '.pdf');
+
+        $response = $pdf->download('remito_cliente_no_frecuente_' . $distributorClienteNoFrecuente->id . '_' . date('Y-m-d_H-i-s') . '.pdf');
+
+        foreach ($tempFiles as $tmpFile) {
+            @unlink($tmpFile);
+        }
+
+        return $response;
+    }
+
+    /**
+     * Convierte imágenes PNG (con alpha) a JPEG para que dompdf no se cuelgue
+     * procesando el canal alpha pixel a pixel en Cpdf.php.
+     */
+    private function convertToJpegForPdf(string $originalPath, array &$tempFiles): string
+    {
+        $mime = @mime_content_type($originalPath);
+        if ($mime !== 'image/png' && $mime !== 'image/webp') {
+            return $originalPath;
+        }
+
+        try {
+            $src = $mime === 'image/png'
+                ? @imagecreatefrompng($originalPath)
+                : @imagecreatefromwebp($originalPath);
+
+            if (!$src) {
+                return $originalPath;
+            }
+
+            $w = imagesx($src);
+            $h = imagesy($src);
+            $maxDim = 200;
+            if ($w > $maxDim || $h > $maxDim) {
+                $ratio = min($maxDim / $w, $maxDim / $h);
+                $newW = (int) ($w * $ratio);
+                $newH = (int) ($h * $ratio);
+            } else {
+                $newW = $w;
+                $newH = $h;
+            }
+
+            $dst = imagecreatetruecolor($newW, $newH);
+            $white = imagecolorallocate($dst, 255, 255, 255);
+            imagefill($dst, 0, 0, $white);
+            imagecopyresampled($dst, $src, 0, 0, 0, 0, $newW, $newH, $w, $h);
+
+            $tmpPath = sys_get_temp_dir() . '/remito_img_' . md5($originalPath) . '.jpg';
+            imagejpeg($dst, $tmpPath, 75);
+
+            imagedestroy($src);
+            imagedestroy($dst);
+
+            $tempFiles[] = $tmpPath;
+            return $tmpPath;
+        } catch (\Throwable $e) {
+            return $originalPath;
+        }
     }
 }

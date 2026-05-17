@@ -220,7 +220,7 @@ function ConfirmacionContent() {
                   <p className="text-sm mt-0.5" style={{ color: 'var(--color-dark)' }}>
                     {order.shipping_method === 'local_pickup' && 'Retiro en local'}
                     {order.shipping_method === 'cordoba' && 'Envío por Uber Motos — Córdoba Capital'}
-                    {order.shipping_method === 'national' && 'Envío por Andreani — Interior del país'}
+                    {order.shipping_method === 'national' && 'Envío a domicilio — Todo el país'}
                   </p>
                 </div>
               </div>

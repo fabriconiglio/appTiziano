@@ -9,6 +9,7 @@ use Google\Client as GoogleClient;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class AuthApiController extends Controller
@@ -28,7 +29,14 @@ class AuthApiController extends Controller
             'role' => 'customer',
         ]);
 
-        $user->notify(new WelcomeNotification());
+        try {
+            $user->notify(new WelcomeNotification());
+        } catch (\Throwable $e) {
+            Log::warning('No se pudo enviar mail de bienvenida', [
+                'user_id' => $user->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         $token = $user->createToken('auth-token')->plainTextToken;
 
@@ -119,7 +127,14 @@ class AuthApiController extends Controller
         }
 
         if ($isNewUser) {
-            $user->notify(new WelcomeNotification());
+            try {
+                $user->notify(new WelcomeNotification());
+            } catch (\Throwable $e) {
+                Log::warning('No se pudo enviar mail de bienvenida (Google)', [
+                    'user_id' => $user->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
         }
 
         $token = $user->createToken('google-auth')->plainTextToken;

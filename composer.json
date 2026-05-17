@@ -18,7 +18,8 @@
         "mercadopago/dx-php": "^3.9",
         "phpoffice/phpspreadsheet": "^1.29",
         "simplesoftwareio/simple-qrcode": "^4.2",
-        "symfony/brevo-mailer": "^7.4"
+        "symfony/brevo-mailer": "^7.4",
+        "symfony/http-client": "^7.4"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

@@ -401,6 +401,11 @@ class DistributorQuotationController extends Controller
             $tempFiles[] = $tmpPath;
             return $tmpPath;
         } catch (\Throwable $e) {
+            Log::warning('Error al convertir imagen para PDF', [
+                'path' => $originalPath,
+                'mime' => $mime ?? 'unknown',
+                'error' => $e->getMessage(),
+            ]);
             return $originalPath;
         }
     }

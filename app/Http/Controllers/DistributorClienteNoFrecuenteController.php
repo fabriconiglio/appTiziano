@@ -393,7 +393,7 @@ class DistributorClienteNoFrecuenteController extends Controller
         if ($mime === 'image/png' || $mime === 'image/webp') {
             $needsConversion = true;
         } elseif ($mime === 'image/jpeg') {
-            // Detectar JPEG progresivo: interlace_get() devuelve 1 si es progresivo
+            // Detectar JPEG progresivo: imageinterlace() devuelve 1 si es progresivo
             $check = @imagecreatefromjpeg($originalPath);
             if ($check) {
                 $needsConversion = imageinterlace($check) || imagesx($check) > 200 || imagesy($check) > 200;
@@ -443,6 +443,11 @@ class DistributorClienteNoFrecuenteController extends Controller
             $tempFiles[] = $tmpPath;
             return $tmpPath;
         } catch (\Throwable $e) {
+            Log::warning('Error al convertir imagen para PDF', [
+                'path' => $originalPath,
+                'mime' => $mime ?? 'unknown',
+                'error' => $e->getMessage(),
+            ]);
             return $originalPath;
         }
     }

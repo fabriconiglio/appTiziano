@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
@@ -14,11 +14,12 @@ import {
   ChevronRight,
   ChevronLeft,
   Check,
+  MessageCircle,
 } from 'lucide-react'
 import { useCart } from '@/lib/CartContext'
 import { useAuth } from '@/lib/AuthContext'
-import { createOrder, formatPrice, getShippingQuote } from '@/lib/api'
-import type { ShippingData, ShippingMethod, ShippingQuote } from '@/lib/types'
+import { createOrder, formatPrice } from '@/lib/api'
+import type { ShippingData, ShippingMethod } from '@/lib/types'
 import { DISCOUNT_THRESHOLD, DISCOUNT_RATE } from '@/lib/types'
 
 type PaymentMethod = 'mercadopago' | 'transfer'
@@ -57,9 +58,9 @@ const SHIPPING_OPTIONS: {
   },
   {
     value: 'national',
-    label: 'Envío al interior del país',
-    description: 'Envío por Andreani a todo el país',
-    defaultCost: 'Calculando...',
+    label: 'Envío a domicilio',
+    description: 'Envío a todo el país. Te enviamos el costo por WhatsApp.',
+    defaultCost: 'A cotizar',
     time: '3 a 5 días hábiles',
     Icon: Package,
   },
@@ -92,32 +93,7 @@ export default function CheckoutPage() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const orderCompletedRef = useRef(false)
 
-  const [shippingQuote, setShippingQuote] = useState<ShippingQuote | null>(null)
-  const [quoteLoading, setQuoteLoading] = useState(false)
-
-  const fetchQuote = useCallback(async () => {
-    if (!shippingData.shipping_zip || items.length === 0) return
-    setQuoteLoading(true)
-    try {
-      const quote = await getShippingQuote(
-        shippingData.shipping_zip,
-        items.map((i) => ({ product_id: i.product.id, quantity: i.quantity })),
-      )
-      setShippingQuote(quote)
-    } catch {
-      setShippingQuote({ available: false, message: 'Error al cotizar. Contactanos.' })
-    } finally {
-      setQuoteLoading(false)
-    }
-  }, [shippingData.shipping_zip, items])
-
-  useEffect(() => {
-    if (step === 2 && shippingMethod === 'national' && shippingData.shipping_zip) {
-      fetchQuote()
-    }
-  }, [step, shippingMethod, fetchQuote, shippingData.shipping_zip])
-
-  const resolvedShippingCost = shippingMethod === 'national' && shippingQuote?.available ? shippingQuote.cost ?? 0 : 0
+  const resolvedShippingCost = 0 // Envío nacional se cotiza por WhatsApp
   const discount = cartTotal > DISCOUNT_THRESHOLD ? cartTotal * DISCOUNT_RATE : 0
   const discountedTotal = cartTotal - discount
   const grandTotal = discountedTotal + resolvedShippingCost
@@ -494,27 +470,10 @@ export default function CheckoutPage() {
                   </h2>
 
                   <div className="flex flex-col gap-4 mb-8">
-                    {SHIPPING_OPTIONS.map((opt) => {
-                      let costLabel = opt.defaultCost
-                      if (opt.value === 'national') {
-                        if (quoteLoading) {
-                          costLabel = 'Calculando...'
-                        } else if (shippingQuote?.available && shippingQuote.cost) {
-                          costLabel = formatPrice(shippingQuote.cost)
-                        } else if (shippingQuote && !shippingQuote.available) {
-                          costLabel = shippingQuote.message ?? 'Contactanos para cotizar'
-                        }
-                      }
-
-                      return (
+                    {SHIPPING_OPTIONS.map((opt) => (
                         <button
                           key={opt.value}
-                          onClick={() => {
-                            setShippingMethod(opt.value)
-                            if (opt.value === 'national' && !shippingQuote) {
-                              fetchQuote()
-                            }
-                          }}
+                          onClick={() => setShippingMethod(opt.value)}
                           className="flex items-start gap-4 p-5 text-left transition-all"
                           style={{
                             background: 'var(--color-white)',
@@ -547,24 +506,42 @@ export default function CheckoutPage() {
                             </p>
                             <div className="flex flex-wrap gap-4 text-xs">
                               <span style={{ color: 'var(--color-dark)' }}>
-                                <strong>Costo:</strong>{' '}
-                                {quoteLoading && opt.value === 'national' ? (
-                                  <Loader2 size={12} className="inline animate-spin" />
-                                ) : (
-                                  costLabel
-                                )}
+                                <strong>Costo:</strong> {opt.defaultCost}
                               </span>
                               <span style={{ color: 'var(--color-dark)' }}>
-                                <strong>Plazo:</strong>{' '}
-                                {opt.value === 'national' && shippingQuote?.estimated_days
-                                  ? shippingQuote.estimated_days
-                                  : opt.time}
+                                <strong>Plazo:</strong> {opt.time}
                               </span>
                             </div>
                           </div>
                         </button>
-                      )
-                    })}
+                    ))}
+
+                    {shippingMethod === 'national' && (
+                      <div
+                        className="flex items-start gap-3 p-4 rounded-lg"
+                        style={{ background: '#f0fdf4', border: '1px solid #bbf7d0' }}
+                      >
+                        <MessageCircle size={20} className="shrink-0 mt-0.5" style={{ color: '#16a34a' }} />
+                        <div>
+                          <p className="text-sm font-semibold" style={{ color: '#15803d' }}>
+                            Te enviamos el costo por WhatsApp
+                          </p>
+                          <p className="text-xs mt-1" style={{ color: '#166534' }}>
+                            Una vez que confirmes tu pedido, te contactamos por WhatsApp con el precio del envío a tu domicilio.
+                          </p>
+                          <a
+                            href="https://wa.me/5493518586698?text=Hola!%20Quiero%20consultar%20el%20costo%20de%20env%C3%ADo%20para%20mi%20pedido"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 mt-2 text-xs font-semibold underline"
+                            style={{ color: '#16a34a' }}
+                          >
+                            <MessageCircle size={14} />
+                            O consultanos ahora por WhatsApp
+                          </a>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex justify-between">

@@ -19,6 +19,9 @@ jobs:
             cd /var/www/laravel-admin
 
             # --- Laravel ---
+            # Limpiar lockfiles de npm que pueden quedar de instalaciones previas
+            git checkout -- frontend/package-lock.json package-lock.json 2>/dev/null || true
+            git clean -fd frontend/package-lock.json package-lock.json || echo "INFO: Lockfiles ya limpios"
             git pull origin master
             composer install --no-dev --optimize-autoloader
             php artisan migrate --force

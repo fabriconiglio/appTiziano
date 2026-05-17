@@ -391,7 +391,9 @@ class DistributorQuotationController extends Controller
             imagefill($dst, 0, 0, $white);
             imagecopyresampled($dst, $src, 0, 0, 0, 0, $newW, $newH, $w, $h);
 
-            $tmpPath = sys_get_temp_dir() . '/presupuesto_img_' . md5($originalPath) . '.jpg';
+            $tmpDir = storage_path('app/temp');
+            if (!is_dir($tmpDir)) { mkdir($tmpDir, 0755, true); }
+            $tmpPath = $tmpDir . '/presupuesto_img_' . md5($originalPath) . '.jpg';
             imageinterlace($dst, 0);
             imagejpeg($dst, $tmpPath, 75);
 

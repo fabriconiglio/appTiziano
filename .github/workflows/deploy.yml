@@ -32,9 +32,18 @@ jobs:
             cd frontend
             pm2 stop tiendatiziano-next 2>/dev/null || true
             rm -rf .next
-            npm ci
-            npm run build
+            if ! command -v pnpm &> /dev/null; then
+              echo "pnpm no encontrado, instalando..."
+              npm install -g pnpm
+              if ! command -v pnpm &> /dev/null; then
+                echo "ERROR CRITICO: No se pudo instalar pnpm"
+                exit 1
+              fi
+            fi
+            echo "pnpm version: $(pnpm --version)"
+            pnpm install --frozen-lockfile
+            pnpm run build
             pm2 describe tiendatiziano-next > /dev/null 2>&1 \
               && pm2 restart tiendatiziano-next --update-env \
-              || pm2 start npm --name tiendatiziano-next -- start -- --port 3000
+              || pm2 start pnpm --name tiendatiziano-next -- start -- --port 3000
             pm2 save

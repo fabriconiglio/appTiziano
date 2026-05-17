@@ -32,8 +32,9 @@ jobs:
             cd frontend
             pm2 stop tiendatiziano-next 2>/dev/null || true
             rm -rf .next
-            npm ci
-            npm run build
+            npm install -g pnpm || true
+            pnpm install --frozen-lockfile
+            pnpm run build
             pm2 describe tiendatiziano-next > /dev/null 2>&1 \
               && pm2 restart tiendatiziano-next --update-env \
               || pm2 start npm --name tiendatiziano-next -- start -- --port 3000

@@ -298,22 +298,111 @@ class DistributorQuotationController extends Controller
      */
     public function exportToPdf(DistributorClient $distributorClient, DistributorQuotation $quotation)
     {
+        set_time_limit(120);
+
         // Verificar que el presupuesto pertenezca al cliente
         if ($quotation->distributor_client_id !== $distributorClient->id) {
             abort(404);
         }
 
+        // Pre-procesar imágenes para compatibilidad con dompdf
+        $tempFiles = [];
+        $productImages = [];
+        if (!empty($quotation->products_quoted)) {
+            foreach ($quotation->products_quoted as $product) {
+                $productId = $product['product_id'];
+                $supplierInventory = \App\Models\SupplierInventory::find($productId);
+                if ($supplierInventory && !empty($supplierInventory->images) && is_array($supplierInventory->images)) {
+                    $candidate = storage_path('app/public/' . $supplierInventory->images[0]);
+                    if (file_exists($candidate)) {
+                        $productImages[$productId] = $this->convertToJpegForPdf($candidate, $tempFiles);
+                    }
+                }
+            }
+        }
+
         $data = [
             'distributorClient' => $distributorClient,
             'quotation' => $quotation,
+            'productImages' => $productImages,
             'generatedAt' => now()->format('d/m/Y H:i:s')
         ];
 
         $pdf = Pdf::loadView('distributor_quotations.pdf', $data);
-        
+
         $filename = 'presupuesto_' . $quotation->quotation_number . '_' . str_replace(' ', '_', $distributorClient->full_name) . '.pdf';
-        
-        return $pdf->download($filename);
+
+        $response = $pdf->download($filename);
+
+        foreach ($tempFiles as $tmpFile) {
+            @unlink($tmpFile);
+        }
+
+        return $response;
+    }
+
+    /**
+     * Convierte imágenes a JPEG baseline para compatibilidad con dompdf.
+     */
+    private function convertToJpegForPdf(string $originalPath, array &$tempFiles): string
+    {
+        $mime = @mime_content_type($originalPath);
+        $needsConversion = false;
+
+        if ($mime === 'image/png' || $mime === 'image/webp') {
+            $needsConversion = true;
+        } elseif ($mime === 'image/jpeg') {
+            $check = @imagecreatefromjpeg($originalPath);
+            if ($check) {
+                $needsConversion = imageinterlace($check) || imagesx($check) > 200 || imagesy($check) > 200;
+                imagedestroy($check);
+            }
+        }
+
+        if (!$needsConversion) {
+            return $originalPath;
+        }
+
+        try {
+            $src = match ($mime) {
+                'image/png' => @imagecreatefrompng($originalPath),
+                'image/webp' => @imagecreatefromwebp($originalPath),
+                default => @imagecreatefromjpeg($originalPath),
+            };
+
+            if (!$src) {
+                return $originalPath;
+            }
+
+            $w = imagesx($src);
+            $h = imagesy($src);
+            $maxDim = 200;
+            if ($w > $maxDim || $h > $maxDim) {
+                $ratio = min($maxDim / $w, $maxDim / $h);
+                $newW = (int) ($w * $ratio);
+                $newH = (int) ($h * $ratio);
+            } else {
+                $newW = $w;
+                $newH = $h;
+            }
+
+            $dst = imagecreatetruecolor($newW, $newH);
+            $white = imagecolorallocate($dst, 255, 255, 255);
+            imagefill($dst, 0, 0, $white);
+            imagecopyresampled($dst, $src, 0, 0, 0, 0, $newW, $newH, $w, $h);
+
+            $tmpPath = sys_get_temp_dir() . '/presupuesto_img_' . md5($originalPath) . '.jpg';
+            imageinterlace($dst, 0);
+            imagejpeg($dst, $tmpPath, 75);
+
+            imagedestroy($src);
+            imagedestroy($dst);
+
+            $tempFiles[] = $tmpPath;
+            return $tmpPath;
+        } catch (\Throwable $e) {
+            return $originalPath;
+        }
     }
 
     /**

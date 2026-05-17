@@ -240,13 +240,7 @@
                     if ($productDescription) $displayText .= ' - ' . $productDescription;
                     if ($productBrand) $displayText .= ' - ' . $productBrand;
 
-                    $productImage = null;
-                    if ($productInfo && !empty($productInfo->images) && is_array($productInfo->images)) {
-                        $imagePath = storage_path('app/public/' . $productInfo->images[0]);
-                        if (file_exists($imagePath)) {
-                            $productImage = $imagePath;
-                        }
-                    }
+                    $productImage = $productImages[$product['product_id']] ?? null;
                 @endphp
                 <tr>
                     <td class="text-center"><strong>{{ $index + 1 }}</strong></td>

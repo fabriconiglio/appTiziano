@@ -380,20 +380,37 @@ class DistributorClienteNoFrecuenteController extends Controller
     }
 
     /**
-     * Convierte imágenes PNG (con alpha) a JPEG para que dompdf no se cuelgue
-     * procesando el canal alpha pixel a pixel en Cpdf.php.
+     * Convierte imágenes a JPEG baseline para compatibilidad con dompdf.
+     * - PNG/WebP: convierte para evitar que dompdf se cuelgue con el canal alpha.
+     * - JPEG progresivo: convierte a baseline porque dompdf no los renderiza.
+     * - JPEG baseline: redimensiona si supera maxDim para reducir tamaño del PDF.
      */
     private function convertToJpegForPdf(string $originalPath, array &$tempFiles): string
     {
         $mime = @mime_content_type($originalPath);
-        if ($mime !== 'image/png' && $mime !== 'image/webp') {
+        $needsConversion = false;
+
+        if ($mime === 'image/png' || $mime === 'image/webp') {
+            $needsConversion = true;
+        } elseif ($mime === 'image/jpeg') {
+            // Detectar JPEG progresivo: interlace_get() devuelve 1 si es progresivo
+            $check = @imagecreatefromjpeg($originalPath);
+            if ($check) {
+                $needsConversion = imageinterlace($check) || imagesx($check) > 200 || imagesy($check) > 200;
+                imagedestroy($check);
+            }
+        }
+
+        if (!$needsConversion) {
             return $originalPath;
         }
 
         try {
-            $src = $mime === 'image/png'
-                ? @imagecreatefrompng($originalPath)
-                : @imagecreatefromwebp($originalPath);
+            $src = match ($mime) {
+                'image/png' => @imagecreatefrompng($originalPath),
+                'image/webp' => @imagecreatefromwebp($originalPath),
+                default => @imagecreatefromjpeg($originalPath),
+            };
 
             if (!$src) {
                 return $originalPath;
@@ -417,6 +434,7 @@ class DistributorClienteNoFrecuenteController extends Controller
             imagecopyresampled($dst, $src, 0, 0, 0, 0, $newW, $newH, $w, $h);
 
             $tmpPath = sys_get_temp_dir() . '/remito_img_' . md5($originalPath) . '.jpg';
+            imageinterlace($dst, 0); // Forzar baseline (no progresivo)
             imagejpeg($dst, $tmpPath, 75);
 
             imagedestroy($src);

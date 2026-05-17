@@ -126,10 +126,18 @@ class MercadoPagoService
             return;
         }
 
+        $newPaymentStatus = $this->mapPaymentStatus($payment->status);
+        $previousPaymentStatus = $order->payment_status;
+
         $order->update([
             'mercadopago_payment_id' => (string) $payment->id,
-            'payment_status' => $this->mapPaymentStatus($payment->status),
+            'payment_status' => $newPaymentStatus,
         ]);
+
+        if ($newPaymentStatus === 'failed' && $previousPaymentStatus !== 'failed') {
+            $order->update(['status' => 'cancelled']);
+            $order->restoreStock();
+        }
     }
 
     private function mapPaymentStatus(?string $mpStatus): string

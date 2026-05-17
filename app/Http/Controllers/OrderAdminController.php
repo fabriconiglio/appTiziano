@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
+use App\Models\SupplierInventory;
 use App\Notifications\OrderStatusChangedNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -75,6 +76,10 @@ class OrderAdminController extends Controller
 
         $statusChanged = $oldStatus !== $order->status;
         $paymentChanged = $oldPaymentStatus !== $order->payment_status;
+
+        if ($statusChanged && $order->status === 'cancelled' && $oldStatus !== 'cancelled') {
+            $order->restoreStock();
+        }
 
         if ($statusChanged || $paymentChanged) {
             $order->user->notify(new OrderStatusChangedNotification(

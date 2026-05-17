@@ -115,7 +115,8 @@ class OrderApiController extends Controller
                         'order_id' => $order->id,
                         'error' => $e->getMessage(),
                     ]);
-                    $order->update(['payment_status' => 'failed']);
+                    $order->update(['payment_status' => 'failed', 'status' => 'cancelled']);
+                    $order->restoreStock();
                     return response()->json([
                         'message' => 'Error al procesar el pago con Mercado Pago. Intentá de nuevo.',
                     ], 502);

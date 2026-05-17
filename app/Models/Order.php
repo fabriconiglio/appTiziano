@@ -46,6 +46,16 @@ class Order extends Model
         return $this->hasMany(OrderItem::class);
     }
 
+    public function restoreStock(): void
+    {
+        $this->loadMissing('items');
+
+        foreach ($this->items as $item) {
+            SupplierInventory::where('id', $item->product_id)
+                ->increment('stock_quantity', $item->quantity);
+        }
+    }
+
     public static function generateOrderNumber(): string
     {
         $prefix = 'TIZ';

@@ -2,10 +2,14 @@
 
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote')->hourly();
+
+// Cancelar pedidos pendientes de pago después de 72 horas
+Schedule::command('orders:cancel-abandoned')->hourly();
 
 // Comando para verificar alertas de stock bajo automáticamente
 Artisan::command('stock:check-cron {--threshold=5}', function () {

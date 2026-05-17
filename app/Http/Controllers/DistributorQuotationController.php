@@ -392,7 +392,10 @@ class DistributorQuotationController extends Controller
             imagecopyresampled($dst, $src, 0, 0, 0, 0, $newW, $newH, $w, $h);
 
             $tmpDir = storage_path('app/temp');
-            if (!is_dir($tmpDir)) { mkdir($tmpDir, 0755, true); }
+            if (!is_dir($tmpDir) && !mkdir($tmpDir, 0755, true)) {
+                Log::error('No se pudo crear directorio temporal para PDF', ['path' => $tmpDir]);
+                return $originalPath;
+            }
             $tmpPath = $tmpDir . '/presupuesto_img_' . md5($originalPath) . '.jpg';
             imageinterlace($dst, 0);
             imagejpeg($dst, $tmpPath, 75);

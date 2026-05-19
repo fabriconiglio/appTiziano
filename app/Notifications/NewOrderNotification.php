@@ -20,7 +20,7 @@ class NewOrderNotification extends Notification
 
     public function toMail($notifiable): MailMessage
     {
-        $frontendUrl = env('FRONTEND_URL', 'http://localhost:3000');
+        $frontendUrl = config('services.frontend.url', 'https://tiendatiziano.com');
         $paymentLabel = match ($this->order->payment_method) {
             'transfer' => 'Transferencia bancaria',
             'mercadopago' => 'Mercado Pago',

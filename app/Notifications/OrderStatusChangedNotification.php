@@ -39,7 +39,7 @@ class OrderStatusChangedNotification extends Notification
 
     public function toMail($notifiable): MailMessage
     {
-        $frontendUrl = env('FRONTEND_URL', 'http://localhost:3000');
+        $frontendUrl = config('services.frontend.url', 'https://tiendatiziano.com');
 
         $mail = (new MailMessage)
             ->subject("Actualización de tu pedido #{$this->order->order_number}")

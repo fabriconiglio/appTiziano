@@ -17,7 +17,7 @@ class WelcomeNotification extends Notification
 
     public function toMail($notifiable): MailMessage
     {
-        $frontendUrl = env('FRONTEND_URL', 'http://localhost:3000');
+        $frontendUrl = config('services.frontend.url', 'https://tiendatiziano.com');
 
         return (new MailMessage)
             ->subject('¡Bienvenido/a a Tiziano Peluquería!')

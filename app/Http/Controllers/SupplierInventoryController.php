@@ -455,6 +455,11 @@ class SupplierInventoryController extends Controller
      */
     public function store(Request $request)
     {
+        $request->merge([
+            'peso_gramos' => $request->peso_gramos ? str_replace(',', '.', $request->peso_gramos) : null,
+            'volumen_cm3' => $request->volumen_cm3 ? str_replace(',', '.', $request->volumen_cm3) : null,
+        ]);
+
         $validated = $request->validate([
             'product_name' => 'required|string|max:255',
             'sku' => 'nullable|string|max:50|unique:supplier_inventories',
@@ -533,6 +538,11 @@ class SupplierInventoryController extends Controller
      */
     public function update(Request $request, SupplierInventory $supplierInventory)
     {
+        $request->merge([
+            'peso_gramos' => $request->peso_gramos ? str_replace(',', '.', $request->peso_gramos) : null,
+            'volumen_cm3' => $request->volumen_cm3 ? str_replace(',', '.', $request->volumen_cm3) : null,
+        ]);
+
         $validated = $request->validate([
             'product_name' => 'required|string|max:255',
             'sku' => 'nullable|string|max:50|unique:supplier_inventories,sku,' . $supplierInventory->id,

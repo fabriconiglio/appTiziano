@@ -96,14 +96,14 @@
 
                                 <div class="col-md-3 mb-3">
                                     <label for="peso_gramos" class="form-label">Peso (gramos)</label>
-                                    <input type="number" step="any" class="form-control @error('peso_gramos') is-invalid @enderror" id="peso_gramos" name="peso_gramos" value="{{ old('peso_gramos') }}" min="0.01" placeholder="ej: 500,5">
+                                    <input type="text" inputmode="decimal" class="form-control @error('peso_gramos') is-invalid @enderror" id="peso_gramos" name="peso_gramos" value="{{ old('peso_gramos') }}" placeholder="ej: 500,5">
                                     @error('peso_gramos')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
                                 <div class="col-md-3 mb-3">
                                     <label for="volumen_cm3" class="form-label">Volumen (cm³)</label>
-                                    <input type="number" step="any" class="form-control @error('volumen_cm3') is-invalid @enderror" id="volumen_cm3" name="volumen_cm3" value="{{ old('volumen_cm3') }}" min="0.01" placeholder="ej: 2000,5">
+                                    <input type="text" inputmode="decimal" class="form-control @error('volumen_cm3') is-invalid @enderror" id="volumen_cm3" name="volumen_cm3" value="{{ old('volumen_cm3') }}" placeholder="ej: 2000,5">
                                     @error('volumen_cm3')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror

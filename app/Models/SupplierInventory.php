@@ -48,8 +48,8 @@ class SupplierInventory extends Model
         'last_restock_date' => 'date',
         'images' => 'array',
         'is_featured' => 'boolean',
-        'peso_gramos' => 'integer',
-        'volumen_cm3' => 'integer',
+        'peso_gramos' => 'decimal:2',
+        'volumen_cm3' => 'decimal:2',
     ];
 
     // Puedes añadir métodos personalizados según necesites

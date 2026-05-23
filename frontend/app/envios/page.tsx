@@ -17,7 +17,7 @@ const shippingMethods = [
       'Retirá tu pedido sin costo en nuestro local. Te avisamos por email cuando esté listo para retirar.',
     details: [
       'Dirección: Santa Ana 2725, Loc. 2, Córdoba',
-      'Horario de retiro: Lunes a Viernes de 9:00 a 18:00, Sábados de 9:00 a 13:00',
+      'Horario de retiro: Mar, Mié y Vie de 10:00 a 20:00 | Jue de 15:00 a 20:00 | Sáb de 10:00 a 14:30',
       'Presentar DNI del titular de la compra',
       'Plazo para retiro: 7 días hábiles desde la confirmación',
     ],
@@ -32,7 +32,7 @@ const shippingMethods = [
     details: [
       'Cobertura: Córdoba Capital, Villa Allende, Mendiolaza, Unquillo, La Calera, Río Ceballos, Alta Gracia',
       'Envío por Uber Motos',
-      'Horario de entrega: de 9:00 a 18:00 hs',
+      'Horario de entrega: Mar, Mié y Vie de 10:00 a 20:00 | Jue de 15:00 a 20:00 | Sáb de 10:00 a 14:30',
       'Te contactamos para coordinar la entrega',
     ],
   },

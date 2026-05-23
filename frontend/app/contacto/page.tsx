@@ -47,7 +47,7 @@ const contactInfo = [
   {
     Icon: Clock,
     label: 'Horarios',
-    value: 'Lunes a Sábado de 9:00 a 19:00 hs',
+    value: 'Mar, Mié y Vie 10 a 20 hs | Jue 15 a 20 hs | Sáb 10 a 14:30 hs',
     href: null,
   },
 ]

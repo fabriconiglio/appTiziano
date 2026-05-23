@@ -26,7 +26,7 @@ class ArrepentimientoAdminNotification extends Notification
 
     public function toMail($notifiable): MailMessage
     {
-        $appUrl = env('APP_URL', 'http://localhost:8000');
+        $appUrl = config('app.url', 'https://admin.tiendatiziano.com');
 
         $itemList = $this->order->items->map(
             fn ($item) => "• {$item->product_name} x{$item->quantity} — $" . number_format($item->subtotal, 0, ',', '.')

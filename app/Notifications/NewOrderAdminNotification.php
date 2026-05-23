@@ -20,7 +20,7 @@ class NewOrderAdminNotification extends Notification
 
     public function toMail($notifiable): MailMessage
     {
-        $appUrl = env('APP_URL', 'http://localhost:8000');
+        $appUrl = config('app.url', 'https://admin.tiendatiziano.com');
         $paymentLabel = match ($this->order->payment_method) {
             'transfer' => 'Transferencia bancaria',
             'mercadopago' => 'Mercado Pago',

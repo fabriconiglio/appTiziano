@@ -102,7 +102,9 @@ class OrderApiController extends Controller
             $request->user()->notify(new NewOrderNotification($order));
 
             $admins = User::where('role', '!=', 'customer')->get();
-            Notification::send($admins, new NewOrderAdminNotification($order->load('user')));
+            $storeEmail = new \Illuminate\Notifications\AnonymousNotifiable();
+            $storeEmail->route('mail', 'tiendatiziano@gmail.com');
+            Notification::send($admins->push($storeEmail), new NewOrderAdminNotification($order->load('user')));
 
             $response = ['order' => $this->formatOrder($order)];
 

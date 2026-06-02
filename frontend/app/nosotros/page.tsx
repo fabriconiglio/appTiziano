@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ChevronRight, Award, Users, Heart, Sparkles } from 'lucide-react'
+import { ChevronRight, Sparkles, Truck, ShoppingBag, Handshake } from 'lucide-react'
 
 export const metadata = {
   title: 'Nosotros — Tiziano Peluquería',
@@ -9,24 +9,24 @@ export const metadata = {
 
 const values = [
   {
-    Icon: Award,
-    title: 'Calidad Profesional',
-    text: 'Trabajamos exclusivamente con marcas líderes del mercado profesional. Cada producto que ofrecemos fue probado y aprobado en nuestro salón antes de llegar a tu mano.',
-  },
-  {
-    Icon: Users,
-    title: 'Atención Personalizada',
-    text: 'Creemos que cada cliente es único. Nuestro equipo asesora de forma individual, ya seas profesional del rubro o busques lo mejor para tu cuidado personal.',
-  },
-  {
     Icon: Sparkles,
-    title: 'Marcas de Primera Línea',
-    text: 'Como salón oficial L\'Oréal Professionnel, accedemos a las últimas innovaciones en coloración, tratamientos y styling, y las trasladamos a nuestra distribuidora.',
+    title: 'Asesoramiento Profesional',
+    text: 'Te ayudamos a elegir los productos ideales para cada necesidad. Brindamos atención personalizada tanto a profesionales como a clientes finales.',
   },
   {
-    Icon: Heart,
-    title: 'Compromiso con la Comunidad',
-    text: 'Participamos activamente en iniciativas solidarias como "Tijeras Solidarias", llevando cortes gratuitos a familias que lo necesitan en la ciudad de Córdoba.',
+    Icon: Truck,
+    title: 'Distribución Rápida y Segura',
+    text: 'Contamos con envíos a todo el país y un proceso ágil para que recibas tus productos en tiempo y forma.',
+  },
+  {
+    Icon: ShoppingBag,
+    title: 'Amplio Catálogo de Productos',
+    text: 'Trabajamos con las mejores marcas del mercado en coloración, tratamientos, styling, herramientas y cuidado capilar.',
+  },
+  {
+    Icon: Handshake,
+    title: 'Atención para Profesionales',
+    text: 'Acompañamos el crecimiento de peluquerías y salones con asesoramiento, stock permanente y precios competitivos.',
   },
 ]
 
@@ -86,7 +86,7 @@ export default function NosotrosPage() {
                   lineHeight: 1.15,
                 }}
               >
-                Tiziano Peluquería &amp; Spa
+                Tiziano Artículos de Peluquería
               </h2>
               <div className="space-y-4 text-sm leading-relaxed" style={{ color: 'var(--color-dark-soft)' }}>
                 <p>

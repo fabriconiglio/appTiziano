@@ -46,6 +46,7 @@ const fallbackSlides: Slider[] = [
 ]
 
 const accentColors = ['#c9bc9d', '#e0d8c8', '#fcf3e4']
+const AUTOPLAY_MS = 8000
 
 export default function HeroSlider() {
   const [slides, setSlides] = useState<Slider[]>(fallbackSlides)
@@ -75,7 +76,7 @@ export default function HeroSlider() {
 
   useEffect(() => {
     if (slides.length <= 1) return
-    const t = setInterval(next, 5500)
+    const t = setInterval(next, AUTOPLAY_MS)
     return () => clearInterval(t)
   }, [next, slides.length])
 
@@ -161,21 +162,25 @@ export default function HeroSlider() {
           )}
 
           {/* Title */}
-          <h1
-            className="font-bold mb-5 whitespace-pre-line"
-            style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: 'clamp(2.5rem, 6vw, 4.5rem)',
-              color: '#ffffff',
-              lineHeight: 1.05,
-              textShadow: '0 2px 20px rgba(0,0,0,0.3)',
-            }}
-          >
-            {slide.title}
-          </h1>
+          {slide.title && (
+            <>
+              <h1
+                className="font-bold mb-5 whitespace-pre-line"
+                style={{
+                  fontFamily: 'var(--font-display)',
+                  fontSize: 'clamp(2.5rem, 6vw, 4.5rem)',
+                  color: '#ffffff',
+                  lineHeight: 1.05,
+                  textShadow: '0 2px 20px rgba(0,0,0,0.3)',
+                }}
+              >
+                {slide.title}
+              </h1>
 
-          {/* Decorative line */}
-          <div className="mb-6" style={{ width: '80px', height: '2px', background: accent }} />
+              {/* Decorative line */}
+              <div className="mb-6" style={{ width: '80px', height: '2px', background: accent }} />
+            </>
+          )}
 
           {/* Subtitle */}
           {slide.subtitle && (

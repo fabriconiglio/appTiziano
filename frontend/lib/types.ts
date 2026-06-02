@@ -55,7 +55,7 @@ export interface PaginatedResponse<T> {
 
 export interface Slider {
   id: number
-  title: string
+  title: string | null
   subtitle: string | null
   tag: string | null
   cta_text: string

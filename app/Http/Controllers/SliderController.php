@@ -22,7 +22,7 @@ class SliderController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'title' => 'required|max:255',
+            'title' => 'nullable|max:255',
             'subtitle' => 'nullable|max:500',
             'tag' => 'nullable|max:100',
             'cta_text' => 'nullable|max:100',
@@ -34,6 +34,7 @@ class SliderController extends Controller
             'is_active' => 'boolean',
         ]);
 
+        $validated['title'] = filled($validated['title'] ?? null) ? trim($validated['title']) : '';
         $validated['is_active'] = $request->boolean('is_active', true);
         $validated['order'] = $validated['order'] ?? 0;
         $validated['cta_text'] = $validated['cta_text'] ?? 'Ver más';
@@ -63,7 +64,7 @@ class SliderController extends Controller
     public function update(Request $request, Slider $slider)
     {
         $validated = $request->validate([
-            'title' => 'required|max:255',
+            'title' => 'nullable|max:255',
             'subtitle' => 'nullable|max:500',
             'tag' => 'nullable|max:100',
             'cta_text' => 'nullable|max:100',
@@ -75,6 +76,7 @@ class SliderController extends Controller
             'is_active' => 'boolean',
         ]);
 
+        $validated['title'] = filled($validated['title'] ?? null) ? trim($validated['title']) : '';
         $validated['is_active'] = $request->boolean('is_active', true);
 
         if ($request->hasFile('image')) {

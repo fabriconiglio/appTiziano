@@ -4,7 +4,7 @@ import { ChevronRight, MapPin, Phone, Mail, Clock, MessageCircle } from 'lucide-
 export const metadata = {
   title: 'Contacto — Tiziano Peluquería',
   description:
-    'Encontranos en Santa Ana 2725, Córdoba. Escribinos por WhatsApp o visitá nuestro salón.',
+    'Encontranos en Santa Ana 2725, Córdoba. Escribinos por WhatsApp o visitá nuestra distribuidora.',
 }
 
 function IconInstagram({ size = 18 }: { size?: number }) {

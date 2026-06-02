@@ -2,9 +2,9 @@ import Link from 'next/link'
 import { ChevronRight, Sparkles, Truck, ShoppingBag, Handshake } from 'lucide-react'
 
 export const metadata = {
-  title: 'Nosotros — Tiziano Peluquería',
+  title: 'Nosotros — Tiziano Artículos de Peluquería',
   description:
-    'Conocé la historia de Tiziano: salón de peluquería profesional y distribuidora de productos capilares en Córdoba, Argentina.',
+    'Conocé la historia de Tiziano: distribuidora de productos capilares en Córdoba, Argentina.',
 }
 
 const values = [
@@ -87,7 +87,7 @@ export default function NosotrosPage() {
                   Nacimos en Córdoba con una idea clara:
                 </p>
                 <p>
-                  Somos una distribuidora de productos capilares dedicada a acompañar el trabajo de profesionales de la peluquería con insumos de calidad y confianza. Nos especializamos en ofrecer una amplia variedad de marcas y productos que se adaptan a las necesidades del día a día en el salón.
+                  Somos una distribuidora de productos capilares dedicada a acompañar el trabajo de profesionales de la peluquería con insumos de calidad y confianza. Nos especializamos en ofrecer una amplia variedad de marcas y productos que se adaptan a las necesidades del día a día.
                 </p>
                 <p>
                   Trabajamos con ventas por mayor y menor, abasteciendo tanto a peluqueros como a perfumerías, brindando siempre atención cercana, asesoramiento y compromiso en cada venta.
@@ -198,7 +198,7 @@ export default function NosotrosPage() {
             ¿Querés conocernos?
           </h2>
           <p className="text-sm mb-8 max-w-lg mx-auto" style={{ color: '#aaa' }}>
-            Visitá nuestro salón, explorá nuestro catálogo online o escribinos por WhatsApp. Estamos para ayudarte.
+            Visitá nuestra distribuidora, explorá nuestro catálogo online o escribinos por WhatsApp. Estamos para ayudarte.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link

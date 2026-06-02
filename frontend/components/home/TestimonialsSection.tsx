@@ -4,7 +4,7 @@ const testimonials = [
   {
     name: 'Valentina M.',
     role: 'Estilista Profesional',
-    text: 'Los productos de Tiziano transformaron mi salón. La calidad es incomparable y mis clientes lo notan desde la primera aplicación.',
+    text: 'Los productos de Tiziano transformaron mi negocio. La calidad es incomparable y mis clientes lo notan desde la primera aplicación.',
     initials: 'VM',
   },
   {

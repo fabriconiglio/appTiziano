@@ -58,19 +58,11 @@ export default async function FeaturedBrands() {
 
               <div className="text-center">
                 <p
-                  className="font-semibold text-sm mb-1"
+                  className="font-semibold text-sm"
                   style={{ color: 'var(--color-dark)', fontFamily: 'var(--font-body)' }}
                 >
                   {brand.name}
                 </p>
-                {brand.description && (
-                  <p
-                    className="text-xs leading-relaxed line-clamp-2"
-                    style={{ color: 'var(--color-dark-soft)' }}
-                  >
-                    {brand.description}
-                  </p>
-                )}
               </div>
             </Link>
           ))}

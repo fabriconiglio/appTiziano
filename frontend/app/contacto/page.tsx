@@ -83,7 +83,7 @@ export default function ContactoPage() {
             className="mt-2 text-sm max-w-xl"
             style={{ color: 'var(--color-primary-light)', fontStyle: 'italic' }}
           >
-            Estamos para asesorarte. Visitá nuestro salón, llamanos o escribinos por WhatsApp.
+            Estamos para asesorarte. Visitá nuestra distribuidora, llamanos o escribinos por WhatsApp.
           </p>
         </div>
       </div>
@@ -109,7 +109,7 @@ export default function ContactoPage() {
                   lineHeight: 1.15,
                 }}
               >
-                Tiziano Peluquería &amp; Spa
+                Tiziano Artículos de Peluquería
               </h2>
 
               <ul className="space-y-5 mb-10">

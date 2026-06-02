@@ -57,12 +57,6 @@ export default function NosotrosPage() {
           >
             Nuestra Historia
           </h1>
-          <p
-            className="mt-2 text-sm max-w-xl"
-            style={{ color: 'var(--color-primary-light)', fontStyle: 'italic' }}
-          >
-            Más que un salón: un espacio donde la pasión por la belleza se transforma en productos y servicios de excelencia.
-          </p>
         </div>
       </div>
 

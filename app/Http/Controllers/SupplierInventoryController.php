@@ -456,8 +456,8 @@ class SupplierInventoryController extends Controller
     public function store(Request $request)
     {
         $request->merge([
-            'peso_gramos' => $request->peso_gramos ? str_replace(',', '.', $request->peso_gramos) : null,
-            'volumen_cm3' => $request->volumen_cm3 ? str_replace(',', '.', $request->volumen_cm3) : null,
+            'peso_gramos' => $this->normalizarDecimalEsAr($request->peso_gramos),
+            'volumen_cm3' => $this->normalizarDecimalEsAr($request->volumen_cm3),
         ]);
 
         $validated = $request->validate([
@@ -539,8 +539,8 @@ class SupplierInventoryController extends Controller
     public function update(Request $request, SupplierInventory $supplierInventory)
     {
         $request->merge([
-            'peso_gramos' => $request->peso_gramos ? str_replace(',', '.', $request->peso_gramos) : null,
-            'volumen_cm3' => $request->volumen_cm3 ? str_replace(',', '.', $request->volumen_cm3) : null,
+            'peso_gramos' => $this->normalizarDecimalEsAr($request->peso_gramos),
+            'volumen_cm3' => $this->normalizarDecimalEsAr($request->volumen_cm3),
         ]);
 
         $validated = $request->validate([
@@ -948,5 +948,30 @@ class SupplierInventoryController extends Controller
             Log::error('Error exportando lista minorista: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Error al generar el PDF. Por favor, intente nuevamente.');
         }
+    }
+
+    /**
+     * Convierte números en formato es-AR (13.462,75) al formato que valida Laravel (13462.75).
+     */
+    private function normalizarDecimalEsAr(?string $valor): ?string
+    {
+        if ($valor === null || trim($valor) === '') {
+            return null;
+        }
+
+        $valor = trim($valor);
+
+        if (str_contains($valor, ',')) {
+            return str_replace(',', '.', str_replace('.', '', $valor));
+        }
+
+        if (substr_count($valor, '.') > 1) {
+            $partes = explode('.', $valor);
+            $decimal = array_pop($partes);
+
+            return implode('', $partes) . '.' . $decimal;
+        }
+
+        return $valor;
     }
 }

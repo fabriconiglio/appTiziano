@@ -11,6 +11,30 @@ Artisan::command('inspire', function () {
 // Cancelar pedidos pendientes de pago después de 72 horas
 Schedule::command('orders:cancel-abandoned')->hourly();
 
+// Recordatorios de turnos de la semana por WhatsApp (con fallback email).
+Artisan::command('recordatorios:semana', function () {
+    $desde = \Carbon\Carbon::now();
+    $hasta = \Carbon\Carbon::now()->endOfWeek(\Carbon\Carbon::SUNDAY);
+
+    $turnos = \App\Models\Turno::where('estado', 'pendiente')
+        ->whereBetween('inicia_en', [$desde, $hasta])
+        ->get();
+
+    $this->info("Encontrados {$turnos->count()} turnos pendientes para esta semana.");
+
+    foreach ($turnos as $turno) {
+        \App\Jobs\EnviarRecordatorioTurno::dispatch($turno->id);
+    }
+
+    \Illuminate\Support\Facades\Log::info('Recordatorios de turnos despachados', [
+        'cantidad' => $turnos->count(),
+        'rango' => [$desde->toDateTimeString(), $hasta->toDateTimeString()],
+    ]);
+
+    return 0;
+})->purpose('Envía recordatorios de los turnos pendientes de la semana')
+  ->weeklyOn(1, '08:00');
+
 // Comando para verificar alertas de stock bajo automáticamente
 Artisan::command('stock:check-cron {--threshold=5}', function () {
     $threshold = $this->option('threshold');

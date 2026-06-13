@@ -19,7 +19,8 @@
         "phpoffice/phpspreadsheet": "^1.29",
         "simplesoftwareio/simple-qrcode": "^4.2",
         "symfony/brevo-mailer": "^7.4",
-        "symfony/http-client": "^7.4"
+        "symfony/http-client": "^7.4",
+        "twilio/sdk": "^8.11"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

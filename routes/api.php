@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\AuthApiController;
 use App\Http\Controllers\Api\OrderApiController;
 use App\Http\Controllers\Api\ArrepentimientoController;
 use App\Http\Controllers\Api\ShippingApiController;
+use App\Http\Controllers\WhatsappWebhookController;
 
 Route::get('/sliders', [SliderApiController::class, 'index']);
 Route::get('/products', [ProductApiController::class, 'index']);
@@ -23,6 +24,10 @@ Route::post('/shipping/quote', [ShippingApiController::class, 'quote']);
 
 Route::post('/mercadopago/webhook', [OrderApiController::class, 'mercadopagoWebhook'])
     ->middleware('mp.signature');
+
+// Webhook de respuestas de WhatsApp (Twilio): el cliente responde SI / NO.
+Route::post('/whatsapp/webhook', WhatsappWebhookController::class)
+    ->middleware('twilio.signature');
 
 Route::post('/auth/register', [AuthApiController::class, 'register']);
 Route::post('/auth/login', [AuthApiController::class, 'login']);

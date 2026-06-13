@@ -37,12 +37,25 @@ return [
 
     'google' => [
         'client_id' => env('GOOGLE_CLIENT_ID'),
+        // Sincronización de turnos con Google Calendar (una vía).
+        'calendar_id' => env('GOOGLE_CALENDAR_ID'),
+        'service_account' => env('GOOGLE_SERVICE_ACCOUNT_JSON', storage_path('app/google/service-account.json')),
+        'calendar_sync_enabled' => env('GOOGLE_CALENDAR_SYNC', false),
     ],
 
     'mercadopago' => [
         'access_token' => env('MERCADOPAGO_ACCESS_TOKEN'),
         'public_key' => env('MERCADOPAGO_PUBLIC_KEY'),
         'webhook_secret' => env('MERCADOPAGO_WEBHOOK_SECRET'),
+    ],
+
+    'twilio' => [
+        'sid' => env('TWILIO_SID'),
+        'token' => env('TWILIO_TOKEN'),
+        // Número de WhatsApp habilitado en Twilio, ej: 'whatsapp:+5493510000000'
+        'whatsapp_from' => env('TWILIO_WHATSAPP_FROM'),
+        // Master switch: si está en false no se envía nada (modo dev / pre-aprobación Meta).
+        'whatsapp_enabled' => env('WHATSAPP_ENABLED', false),
     ],
 
     'andreani' => [

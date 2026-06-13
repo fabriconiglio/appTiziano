@@ -134,6 +134,35 @@
                             </ul>
                         </li>
 
+                        <!-- Módulo de Agenda / Turnos -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="agendaDropdown" role="button"
+                               data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-calendar-alt me-1"></i>
+                                {{ __('Agenda') }}
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="agendaDropdown">
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item" href="{{ route('agenda.index') }}">
+                                        <i class="fas fa-calendar-day text-primary me-2"></i>
+                                        {{ __('Calendario') }}
+                                    </a>
+                                </li>
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item" href="{{ route('servicios.index') }}">
+                                        <i class="fas fa-scissors text-secondary me-2"></i>
+                                        {{ __('Servicios') }}
+                                    </a>
+                                </li>
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item" href="{{ route('peluqueras.index') }}">
+                                        <i class="fas fa-user text-secondary me-2"></i>
+                                        {{ __('Peluqueras') }}
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+
                         <!-- Módulo de Distribuidora -->
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="distribuidoraDropdown" role="button"

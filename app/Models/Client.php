@@ -34,6 +34,11 @@ class Client extends Model
         return $this->hasMany(TechnicalRecord::class);
     }
 
+    public function turnos()
+    {
+        return $this->hasMany(Turno::class);
+    }
+
 
 
     public function currentAccounts()

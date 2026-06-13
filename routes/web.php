@@ -24,6 +24,10 @@ use App\Http\Controllers\ClientCurrentAccountController;
 use App\Http\Controllers\AfipInvoiceController;
 use App\Http\Controllers\AfipConfigurationController;
 use App\Http\Controllers\SliderController;
+use App\Http\Controllers\AgendaController;
+use App\Http\Controllers\TurnoController;
+use App\Http\Controllers\ServicioController;
+use App\Http\Controllers\PeluqueraController;
 use App\Models\DistributorTechnicalRecord;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
@@ -54,6 +58,22 @@ Route::middleware(['auth', 'restrict.inventory'])->group(function () {
     // CRUD de clientes y registros técnicos
     Route::resource('clients', ClientController::class);
     Route::resource('clients.technical-records', TechnicalRecordController::class);
+
+    // Búsqueda y alta rápida de clientes desde el modal de Agenda (JSON)
+    Route::get('clientes/buscar', [ClientController::class, 'buscar'])->name('clients.buscar');
+    Route::post('clientes/rapido', [ClientController::class, 'quickStore'])->name('clients.quick-store');
+
+    // Módulo Agenda / Turnos (peluquería)
+    Route::get('agenda', [AgendaController::class, 'index'])->name('agenda.index');
+    Route::get('agenda/eventos', [AgendaController::class, 'eventos'])->name('agenda.eventos');
+    Route::get('agenda/exportar-pdf', [AgendaController::class, 'exportarPdfDia'])->name('agenda.exportar-pdf');
+    Route::post('turnos', [TurnoController::class, 'store'])->name('turnos.store');
+    Route::put('turnos/{turno}', [TurnoController::class, 'update'])->name('turnos.update');
+    Route::patch('turnos/{turno}/reagendar', [TurnoController::class, 'reagendar'])->name('turnos.reagendar');
+    Route::patch('turnos/{turno}/estado', [TurnoController::class, 'cambiarEstado'])->name('turnos.estado');
+    Route::delete('turnos/{turno}', [TurnoController::class, 'destroy'])->name('turnos.destroy');
+    Route::resource('servicios', ServicioController::class)->except(['show']);
+    Route::resource('peluqueras', PeluqueraController::class)->except(['show']);
     
     // CRUD de cuentas corrientes de clientes de peluquería
     Route::get('client-current-accounts', [ClientCurrentAccountController::class, 'index'])->name('client-current-accounts.index');

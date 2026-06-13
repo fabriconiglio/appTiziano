@@ -80,6 +80,55 @@ class ClientController extends Controller
     }
 
     /**
+     * Búsqueda de clientes para el select del modal de Agenda (JSON).
+     */
+    public function buscar(Request $request)
+    {
+        $q = trim((string) $request->get('q', ''));
+
+        $clientes = Client::query()
+            ->when($q !== '', function ($query) use ($q) {
+                $query->where(function ($sub) use ($q) {
+                    $sub->where('name', 'LIKE', "%{$q}%")
+                        ->orWhere('surname', 'LIKE', "%{$q}%")
+                        ->orWhere('phone', 'LIKE', "%{$q}%")
+                        ->orWhere('dni', 'LIKE', "%{$q}%");
+                });
+            })
+            ->orderBy('name')
+            ->orderBy('surname')
+            ->limit(20)
+            ->get(['id', 'name', 'surname']);
+
+        return response()->json(
+            $clientes->map(fn ($c) => [
+                'id' => $c->id,
+                'label' => trim($c->name . ' ' . $c->surname),
+            ])
+        );
+    }
+
+    /**
+     * Alta rápida de cliente desde el modal de Agenda (devuelve JSON).
+     */
+    public function quickStore(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'surname' => 'required|string|max:255',
+            'phone' => 'nullable|string|max:20',
+            'email' => 'nullable|email|unique:clients',
+        ]);
+
+        $client = Client::create($validated);
+
+        return response()->json([
+            'id' => $client->id,
+            'label' => trim($client->name . ' ' . $client->surname),
+        ], 201);
+    }
+
+    /**
      * Show the form for editing the specified resource.
      */
     public function edit(Client $client)

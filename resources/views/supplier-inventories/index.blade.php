@@ -144,6 +144,11 @@
                                                     <a href="{{ route('supplier-inventories.edit', $item) }}" class="btn btn-primary btn-sm">
                                                         <i class="fas fa-edit"></i>
                                                     </a>
+                                                    @if($item->codigo_barra)
+                                                        <a href="{{ route('supplier-inventories.etiqueta', $item) }}" target="_blank" class="btn btn-secondary btn-sm" title="Imprimir etiqueta">
+                                                            <i class="fas fa-barcode"></i>
+                                                        </a>
+                                                    @endif
                                                     <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#adjustModal{{ $item->id }}">
                                                         <i class="fas fa-layer-group"></i>
                                                     </button>

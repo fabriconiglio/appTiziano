@@ -10,6 +10,7 @@ class SupplierInventory extends Model
     protected $fillable = [
         'product_name',
         'sku',
+        'codigo_barra',
         'description',
         'price',
         'stock_quantity',
@@ -51,6 +52,35 @@ class SupplierInventory extends Model
         'peso_gramos' => 'decimal:2',
         'volumen_cm3' => 'decimal:2',
     ];
+
+    /**
+     * Genera un EAN-13 interno único (a pedido, para productos sin código de fábrica).
+     * Prefijo 20–29: rango que GS1 reserva para uso interno de comercios, así no choca
+     * con códigos reales. Devuelve 13 dígitos válidos (con dígito verificador).
+     */
+    public static function generarCodigoBarraUnico(): string
+    {
+        do {
+            // '20' + 10 dígitos aleatorios = 12 dígitos; el 13º es el verificador.
+            $base = '20' . str_pad((string) random_int(0, 9999999999), 10, '0', STR_PAD_LEFT);
+            $codigo = $base . self::digitoVerificadorEan13($base);
+        } while (static::where('codigo_barra', $codigo)->exists());
+
+        return $codigo;
+    }
+
+    /**
+     * Dígito verificador EAN-13 a partir de los primeros 12 dígitos.
+     */
+    public static function digitoVerificadorEan13(string $doce): int
+    {
+        $suma = 0;
+        for ($i = 0; $i < 12; $i++) {
+            $suma += (int) $doce[$i] * ($i % 2 === 0 ? 1 : 3);
+        }
+
+        return (10 - ($suma % 10)) % 10;
+    }
 
     // Puedes añadir métodos personalizados según necesites
 

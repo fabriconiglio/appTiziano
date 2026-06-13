@@ -52,6 +52,18 @@
                                     </div>
 
                                     <div class="col-md-4 mb-3">
+                                        <strong>Código de barras:</strong>
+                                        @if($supplierInventory->codigo_barra)
+                                            <p class="mb-1">{{ $supplierInventory->codigo_barra }}</p>
+                                            <a href="{{ route('supplier-inventories.etiqueta', $supplierInventory) }}" target="_blank" class="btn btn-sm btn-outline-danger">
+                                                <i class="fas fa-print"></i> Imprimir etiqueta
+                                            </a>
+                                        @else
+                                            <p class="text-muted">Sin código</p>
+                                        @endif
+                                    </div>
+
+                                    <div class="col-md-4 mb-3">
                                         <strong>Categoría Distribuidora:</strong>
                                         <p>{{ $supplierInventory->distributorCategory ? $supplierInventory->distributorCategory->name : 'No disponible' }}</p>
                                     </div>

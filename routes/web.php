@@ -166,6 +166,11 @@ Route::get('/api/supplier-inventories/get-product', [App\Http\Controllers\Suppli
 
     // CRUD de inventario de proveedores
     Route::resource('supplier-inventories', SupplierInventoryController::class);
+    // Código de barras (distribuidora): generar uno interno y etiqueta imprimible
+    Route::post('supplier-inventories/generar-codigo', [SupplierInventoryController::class, 'generarCodigo'])
+        ->name('supplier-inventories.generar-codigo');
+    Route::get('supplier-inventories/{supplierInventory}/etiqueta', [SupplierInventoryController::class, 'etiqueta'])
+        ->name('supplier-inventories.etiqueta');
     Route::post('supplier-inventories/{supplierInventory}/adjust-stock', [SupplierInventoryController::class, 'adjustStock'])
         ->name('supplier-inventories.adjust-stock');
     Route::post('supplier-inventories/{supplierInventory}/toggle-featured', [SupplierInventoryController::class, 'toggleFeatured'])

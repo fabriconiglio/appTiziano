@@ -37,6 +37,18 @@
                                     @enderror
                                 </div>
 
+                                <div class="col-md-6 mb-3">
+                                    <label for="codigo_barra" class="form-label">Código de barras</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control @error('codigo_barra') is-invalid @enderror" id="codigo_barra" name="codigo_barra" value="{{ old('codigo_barra') }}" placeholder="Escaneá o tipeá el de fábrica" autocomplete="off">
+                                        <button type="button" class="btn btn-outline-secondary" id="btnGenerarCodigo">
+                                            <i class="fas fa-barcode"></i> Generar
+                                        </button>
+                                    </div>
+                                    <small class="text-muted">Opcional. Si trae código de fábrica, escanealo; si no tiene, tocá Generar.</small>
+                                    @error('codigo_barra')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                                </div>
+
                                 {{--
                                 <div class="col-md-6 mb-3">
                                     <label for="sku" class="form-label">SKU</label>
@@ -218,6 +230,27 @@
 @endpush
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.js"></script>
+    <script>
+        // Botón "Generar" del código de barras.
+        document.getElementById('btnGenerarCodigo')?.addEventListener('click', async function () {
+            const btn = this;
+            btn.disabled = true;
+            try {
+                const res = await fetch(@json(route('supplier-inventories.generar-codigo')), {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json',
+                    },
+                });
+                const data = await res.json();
+                document.getElementById('codigo_barra').value = data.codigo_barra;
+            } catch (e) {
+                alert('No se pudo generar el código.');
+            }
+            btn.disabled = false;
+        });
+    </script>
     <script>
         $(document).ready(function() {
             $('#notes').summernote({

@@ -19,12 +19,6 @@
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h1 class="h3 mb-0"><i class="fas fa-calendar-alt me-2"></i>Agenda</h1>
             <div class="d-flex gap-2">
-                <a href="{{ route('servicios.index') }}" class="btn btn-outline-secondary btn-sm">
-                    <i class="fas fa-scissors"></i> Servicios
-                </a>
-                <a href="{{ route('peluqueras.index') }}" class="btn btn-outline-secondary btn-sm">
-                    <i class="fas fa-user"></i> Peluqueras
-                </a>
                 <a href="#" id="btnExportarPdf" class="btn btn-outline-danger btn-sm">
                     <i class="fas fa-file-pdf"></i> PDF del día
                 </a>

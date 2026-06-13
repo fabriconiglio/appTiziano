@@ -29,6 +29,7 @@ class SupplierInventoryController extends Controller
                         $q->where(function($subQuery) use ($term) {
                             $subQuery->where('product_name', 'LIKE', "%{$term}%")
                                 ->orWhere('sku', 'LIKE', "%{$term}%")
+                                ->orWhere('codigo_barra', 'LIKE', "%{$term}%")
                                 ->orWhere('description', 'LIKE', "%{$term}%")
                                 ->orWhere('supplier_name', 'LIKE', "%{$term}%")
                                 ->orWhere('category', 'LIKE', "%{$term}%")
@@ -91,6 +92,7 @@ class SupplierInventoryController extends Controller
                 $q->where('product_name', 'LIKE', "%{$query}%")
                 ->orWhere('description', 'LIKE', "%{$query}%")
                 ->orWhere('sku', 'LIKE', "%{$query}%")
+                ->orWhere('codigo_barra', 'LIKE', "%{$query}%")
                 ->orWhere('brand', 'LIKE', "%{$query}%")
                 ->orWhereHas('distributorBrand', function($brandQuery) use ($query) {
                     $brandQuery->where('name', 'LIKE', "%{$query}%");
@@ -110,7 +112,7 @@ class SupplierInventoryController extends Controller
                     }
                 }
             })
-            ->get(['id', 'product_name', 'description', 'stock_quantity', 'sku', 'distributor_brand_id', 'brand', 'precio_mayor', 'precio_menor', 'costo']);
+            ->get(['id', 'product_name', 'description', 'stock_quantity', 'sku', 'codigo_barra', 'distributor_brand_id', 'brand', 'precio_mayor', 'precio_menor', 'costo']);
 
         // Modificar los productos para incluir nombre-descripción-marca como texto de búsqueda
         $products->transform(function ($product) {
@@ -463,6 +465,7 @@ class SupplierInventoryController extends Controller
         $validated = $request->validate([
             'product_name' => 'required|string|max:255',
             'sku' => 'nullable|string|max:50|unique:supplier_inventories',
+            'codigo_barra' => 'nullable|string|max:32|unique:supplier_inventories',
             'description' => 'nullable|string',
             'stock_quantity' => 'required|integer|min:0',
             'category' => 'nullable|string|max:100',
@@ -546,6 +549,7 @@ class SupplierInventoryController extends Controller
         $validated = $request->validate([
             'product_name' => 'required|string|max:255',
             'sku' => 'nullable|string|max:50|unique:supplier_inventories,sku,' . $supplierInventory->id,
+            'codigo_barra' => 'nullable|string|max:32|unique:supplier_inventories,codigo_barra,' . $supplierInventory->id,
             'description' => 'nullable|string',
             'stock_quantity' => 'required|integer|min:0',
             'category' => 'nullable|string|max:100',
@@ -754,6 +758,53 @@ class SupplierInventoryController extends Controller
             'costo' => $product->costo,
             'stock_quantity' => $product->stock_quantity,
             'brand' => $product->distributorBrand ? $product->distributorBrand->name : null
+        ]);
+    }
+
+    /**
+     * Genera un código de barras interno único (EAN-13) para el botón "Generar"
+     * del formulario. No guarda nada: solo devuelve el código sugerido.
+     */
+    public function generarCodigo()
+    {
+        return response()->json([
+            'codigo_barra' => SupplierInventory::generarCodigoBarraUnico(),
+        ]);
+    }
+
+    /**
+     * Etiqueta imprimible con el código de barras del producto.
+     * ?cant=N repite la etiqueta N veces en la hoja (por defecto 1).
+     */
+    public function etiqueta(Request $request, SupplierInventory $supplierInventory)
+    {
+        if (empty($supplierInventory->codigo_barra)) {
+            return redirect()
+                ->route('supplier-inventories.edit', $supplierInventory)
+                ->with('error', 'El producto no tiene código de barras. Cargalo o generá uno antes de imprimir.');
+        }
+
+        $cantidad = max(1, min(100, (int) $request->get('cant', 1)));
+        $codigo = $supplierInventory->codigo_barra;
+        $generator = new \Picqer\Barcode\BarcodeGeneratorSVG();
+
+        // EAN-13 si son 13 dígitos numéricos; si no (o si falla), Code128.
+        try {
+            $tipo = preg_match('/^\d{13}$/', $codigo)
+                ? \Picqer\Barcode\BarcodeGeneratorSVG::TYPE_EAN_13
+                : \Picqer\Barcode\BarcodeGeneratorSVG::TYPE_CODE_128;
+            $svg = $generator->getBarcode($codigo, $tipo, 2, 60);
+        } catch (\Throwable $e) {
+            $svg = $generator->getBarcode($codigo, \Picqer\Barcode\BarcodeGeneratorSVG::TYPE_CODE_128, 2, 60);
+        }
+
+        // Sacar el prólogo XML para poder incrustar el SVG inline en HTML.
+        $svg = preg_replace('/^<\?xml.*?\?>\s*/', '', $svg);
+
+        return view('supplier-inventories.etiqueta', [
+            'producto' => $supplierInventory,
+            'svg' => $svg,
+            'cantidad' => $cantidad,
         ]);
     }
 

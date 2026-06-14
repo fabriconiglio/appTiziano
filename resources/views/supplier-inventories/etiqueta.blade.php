@@ -6,12 +6,14 @@
     <style>
         * { box-sizing: border-box; }
         body { font-family: Arial, Helvetica, sans-serif; margin: 0; padding: 10px; }
-        .barra-acciones { margin-bottom: 12px; }
+        .barra-acciones { margin-bottom: 12px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
         .btn {
             display: inline-block; padding: 8px 14px; border-radius: 6px; border: 1px solid #ccc;
             background: #f3f4f6; color: #222; text-decoration: none; cursor: pointer; font-size: 14px;
         }
         .btn-primary { background: #1f2d3d; color: #fff; border-color: #1f2d3d; }
+        .cant-box { display: flex; align-items: center; gap: 6px; font-size: 14px; }
+        .cant-box input { width: 70px; padding: 6px 8px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
         .hoja { display: flex; flex-wrap: wrap; gap: 8px; }
         .etiqueta {
             width: 5cm; border: 1px dashed #bbb; padding: 6px 8px; text-align: center;
@@ -19,7 +21,6 @@
         }
         .etiqueta .nombre { font-size: 11px; font-weight: bold; margin: 0 0 2px; line-height: 1.1;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .etiqueta .precio { font-size: 12px; margin: 2px 0 0; }
         .etiqueta .codigo { font-size: 10px; letter-spacing: 1px; margin-top: 2px; }
         .etiqueta svg { max-width: 100%; height: auto; }
 
@@ -34,30 +35,40 @@
     <div class="barra-acciones">
         <button class="btn btn-primary" onclick="window.print()">🖨 Imprimir</button>
         <a class="btn" href="{{ route('supplier-inventories.show', $producto) }}">Volver</a>
-        <span style="margin-left:10px; font-size:13px; color:#666;">
-            Imprimiendo {{ $cantidad }} {{ $cantidad == 1 ? 'etiqueta' : 'etiquetas' }}.
-            (Cambiá la cantidad agregando <code>?cant=N</code> a la URL.)
+        <span class="cant-box">
+            Cantidad de etiquetas:
+            <input type="number" id="cantidad" min="1" max="100" value="{{ $cantidad }}">
         </span>
     </div>
 
-    <div class="hoja">
-        @for ($i = 0; $i < $cantidad; $i++)
-            <div class="etiqueta">
-                <p class="nombre">{{ $producto->product_name }}</p>
-                {!! $svg !!}
-                <p class="codigo">{{ $producto->codigo_barra }}</p>
-                @if($producto->precio_menor)
-                    <p class="precio">$ {{ number_format($producto->precio_menor, 2, ',', '.') }}</p>
-                @endif
-            </div>
-        @endfor
-    </div>
+    <!-- Plantilla de una etiqueta -->
+    <template id="tplEtiqueta">
+        <div class="etiqueta">
+            <p class="nombre">{{ $producto->product_name }}</p>
+            {!! $svg !!}
+            <p class="codigo">{{ $producto->codigo_barra }}</p>
+        </div>
+    </template>
+
+    <div class="hoja" id="hoja"></div>
 
     <script>
-        // Abrir el diálogo de impresión automáticamente.
-        window.addEventListener('load', function () {
-            setTimeout(function () { window.print(); }, 300);
-        });
+        const tpl = document.getElementById('tplEtiqueta');
+        const hoja = document.getElementById('hoja');
+        const inputCant = document.getElementById('cantidad');
+
+        function render() {
+            let n = parseInt(inputCant.value, 10);
+            if (isNaN(n) || n < 1) n = 1;
+            if (n > 100) n = 100;
+            hoja.innerHTML = '';
+            for (let i = 0; i < n; i++) {
+                hoja.appendChild(tpl.content.cloneNode(true));
+            }
+        }
+
+        inputCant.addEventListener('input', render);
+        render();
     </script>
 </body>
 </html>

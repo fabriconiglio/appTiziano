@@ -11,6 +11,10 @@ Artisan::command('inspire', function () {
 // Cancelar pedidos pendientes de pago después de 72 horas
 Schedule::command('orders:cancel-abandoned')->hourly();
 
+// Sync bidireccional de la Agenda: aplica los cambios hechos en Google Calendar
+// (mover/borrar eventos de turnos) a los turnos del sistema.
+Schedule::command('agenda:sync-google')->everyFiveMinutes()->withoutOverlapping();
+
 // Recordatorios de turnos de la semana por WhatsApp (con fallback email).
 Artisan::command('recordatorios:semana', function () {
     $desde = \Carbon\Carbon::now();

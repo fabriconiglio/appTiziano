@@ -49,17 +49,25 @@ class SincronizarTurnoGoogleCalendar implements ShouldQueue
         }
 
         if ($this->accion === 'crear') {
-            $eventId = $google->crearEvento($turno);
-            if ($eventId) {
-                $turno->update(['google_event_id' => $eventId]);
+            $resultado = $google->crearEvento($turno);
+            if ($resultado) {
+                // google_updated_at = guard anti-loop: el polling ignora este eco.
+                // OJO: convertir a la zona de la app antes de guardar (viene en UTC).
+                $turno->update([
+                    'google_event_id' => $resultado['id'],
+                    'google_updated_at' => \Carbon\Carbon::parse($resultado['updated'])->setTimezone(config('app.timezone')),
+                ]);
             }
             return;
         }
 
         if ($this->accion === 'actualizar') {
-            $eventId = $google->actualizarEvento($turno);
-            if ($eventId && $eventId !== $turno->google_event_id) {
-                $turno->update(['google_event_id' => $eventId]);
+            $resultado = $google->actualizarEvento($turno);
+            if ($resultado) {
+                $turno->update([
+                    'google_event_id' => $resultado['id'],
+                    'google_updated_at' => \Carbon\Carbon::parse($resultado['updated'])->setTimezone(config('app.timezone')),
+                ]);
             }
         }
     }

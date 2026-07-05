@@ -18,11 +18,14 @@ class Turno extends Model
         'color',
         'notas',
         'google_event_id',
+        'google_updated_at',
+        'origen',
     ];
 
     protected $casts = [
         'inicia_en' => 'datetime',
         'termina_en' => 'datetime',
+        'google_updated_at' => 'datetime',
     ];
 
     public function client()

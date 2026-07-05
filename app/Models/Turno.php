@@ -57,6 +57,11 @@ class Turno extends Model
             return '#adb5bd';
         }
 
+        // Turno importado desde Google sin cliente asignado: naranja de aviso.
+        if (! $this->client_id) {
+            return '#fd7e14';
+        }
+
         return $this->color
             ?? $this->peluquera?->color
             ?? $this->servicio?->color_default
@@ -70,8 +75,10 @@ class Turno extends Model
     {
         return [
             'id' => $this->id,
-            'title' => trim(($this->client?->full_name ?? 'Cliente')
-                . ($this->servicio ? ' · ' . $this->servicio->nombre : '')),
+            'title' => $this->client_id
+                ? trim(($this->client?->full_name ?? 'Cliente')
+                    . ($this->servicio ? ' · ' . $this->servicio->nombre : ''))
+                : '⚠ Sin asignar' . ($this->notas ? ' · ' . strtok($this->notas, "\n") : ''),
             'start' => $this->inicia_en->toIso8601String(),
             'end' => $this->termina_en->toIso8601String(),
             'color' => $this->colorCalendario(),

@@ -75,11 +75,12 @@ class SincronizarAgendaDesdeGoogle extends Command
      */
     private function procesarEvento(Event $evento): bool
     {
-        // Alcance opción (a): solo turnos ya vinculados. Todo lo demás se ignora
-        // (cumpleaños, eventos personales, eventos creados a mano en Google).
         $turno = Turno::where('google_event_id', $evento->getId())->first();
+
+        // Evento sin turno vinculado: si el título empieza con "turno", se importa
+        // como turno sin asignar. El resto (cumpleaños, eventos personales) se ignora.
         if (! $turno) {
-            return false;
+            return $this->importarEventoNuevo($evento);
         }
 
         // Evento borrado en Google -> cancelar el turno (conserva historial).
@@ -140,5 +141,62 @@ class SincronizarAgendaDesdeGoogle extends Command
         $turno->save();
 
         return $cambioHorario;
+    }
+
+    /**
+     * Importa un evento creado a mano en Google Calendar como "turno sin asignar".
+     * Solo si el título empieza con "turno" (filtro para no importar cumpleaños ni
+     * eventos personales del calendario), tiene hora (no es de día completo) y es
+     * a futuro. El cliente se completa después desde el panel.
+     */
+    private function importarEventoNuevo(Event $evento): bool
+    {
+        if ($evento->getStatus() === 'cancelled') {
+            return false;
+        }
+
+        $titulo = trim((string) $evento->getSummary());
+        if (! preg_match('/^turno/i', $titulo)) {
+            return false;
+        }
+
+        // Solo eventos con hora concreta (los de "todo el día" no son turnos).
+        $inicio = $evento->getStart()?->getDateTime();
+        $fin = $evento->getEnd()?->getDateTime();
+        if (! $inicio || ! $fin) {
+            return false;
+        }
+
+        $iniciaEn = Carbon::parse($inicio)->setTimezone(config('app.timezone'));
+        $terminaEn = Carbon::parse($fin)->setTimezone(config('app.timezone'));
+
+        // No importar eventos pasados (ej: en un resync completo del último mes).
+        if ($terminaEn->isPast()) {
+            return false;
+        }
+
+        $notas = $titulo;
+        if ($evento->getDescription()) {
+            $notas .= "\n" . trim($evento->getDescription());
+        }
+
+        $turno = Turno::create([
+            'client_id' => null,
+            'inicia_en' => $iniciaEn,
+            'termina_en' => $terminaEn,
+            'estado' => 'pendiente',
+            'notas' => $notas,
+            'origen' => 'google',
+            'google_event_id' => $evento->getId(),
+            'google_updated_at' => Carbon::parse($evento->getUpdated())->setTimezone(config('app.timezone')),
+        ]);
+
+        Log::info('SyncGoogle: turno importado desde Google Calendar (sin asignar)', [
+            'turno_id' => $turno->id,
+            'titulo' => $titulo,
+            'inicia_en' => $iniciaEn->toDateTimeString(),
+        ]);
+
+        return true;
     }
 }

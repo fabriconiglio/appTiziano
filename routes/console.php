@@ -21,6 +21,7 @@ Artisan::command('recordatorios:semana', function () {
     $hasta = \Carbon\Carbon::now()->endOfWeek(\Carbon\Carbon::SUNDAY);
 
     $turnos = \App\Models\Turno::where('estado', 'pendiente')
+        ->whereNotNull('client_id') // los "sin asignar" (importados de Google) no tienen a quién avisar
         ->whereBetween('inicia_en', [$desde, $hasta])
         ->get();
 

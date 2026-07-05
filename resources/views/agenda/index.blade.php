@@ -25,6 +25,16 @@
             </div>
         </div>
 
+        @if($sinAsignar > 0)
+            <div class="alert alert-warning d-flex align-items-center" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <div>
+                    Hay <strong>{{ $sinAsignar }}</strong> {{ $sinAsignar == 1 ? 'turno creado' : 'turnos creados' }} desde Google Calendar sin cliente asignado
+                    (en naranja). Hacé click en cada uno para asignarle el cliente.
+                </div>
+            </div>
+        @endif
+
         <div class="row">
             <!-- Calendario -->
             <div class="col-12 mb-3">

@@ -15,9 +15,15 @@ class AgendaController extends Controller
      */
     public function index()
     {
+        // Turnos importados desde Google Calendar que todavía no tienen cliente.
+        $sinAsignar = Turno::whereNull('client_id')
+            ->where('estado', '!=', 'cancelado')
+            ->where('termina_en', '>=', Carbon::now())
+            ->count();
+
         // Clientes vía AJAX (clients.buscar). Peluquera/servicio quedan fuera del
         // alta por ahora — el turno se crea solo con cliente + fecha.
-        return view('agenda.index');
+        return view('agenda.index', compact('sinAsignar'));
     }
 
     /**

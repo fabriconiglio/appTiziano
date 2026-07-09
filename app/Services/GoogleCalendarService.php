@@ -21,6 +21,40 @@ class GoogleCalendarService
 {
     private const ZONA = 'America/Argentina/Buenos_Aires';
 
+    /**
+     * Paleta oficial de colores de eventos de Google Calendar (colorId => hex).
+     * El sistema usa los mismos hex, así el color elegido se ve igual en ambos lados.
+     */
+    public const COLORES_GOOGLE = [
+        '1' => '#7986cb',  // Lavanda
+        '2' => '#33b679',  // Salvia
+        '3' => '#8e24aa',  // Uva
+        '4' => '#e67c73',  // Flamenco
+        '5' => '#f6bf26',  // Banana
+        '6' => '#f4511e',  // Mandarina
+        '7' => '#039be5',  // Pavo real
+        '8' => '#616161',  // Grafito
+        '9' => '#3f51b5',  // Arándano
+        '10' => '#0b8043', // Albahaca
+        '11' => '#d50000', // Tomate
+    ];
+
+    public static function colorIdDesdeHex(?string $hex): ?string
+    {
+        if (! $hex) {
+            return null;
+        }
+
+        $id = array_search(strtolower($hex), array_map('strtolower', self::COLORES_GOOGLE), true);
+
+        return $id === false ? null : (string) $id;
+    }
+
+    public static function hexDesdeColorId(?string $colorId): ?string
+    {
+        return $colorId ? (self::COLORES_GOOGLE[$colorId] ?? null) : null;
+    }
+
     public function habilitado(): bool
     {
         return (bool) config('services.google.calendar_sync_enabled')
@@ -201,7 +235,7 @@ class GoogleCalendarService
             $descripcion .= "\nNotas: {$turno->notas}";
         }
 
-        return new Event([
+        $evento = new Event([
             'summary' => "{$cliente} · {$servicio}",
             'description' => $descripcion,
             'start' => new EventDateTime([
@@ -213,5 +247,12 @@ class GoogleCalendarService
                 'timeZone' => self::ZONA,
             ]),
         ]);
+
+        // Color elegido en el sistema -> mismo color en Google Calendar.
+        if ($colorId = self::colorIdDesdeHex($turno->color)) {
+            $evento->setColorId($colorId);
+        }
+
+        return $evento;
     }
 }

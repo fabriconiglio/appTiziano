@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Servicio;
 use App\Models\Turno;
+use App\Services\GoogleCalendarService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -21,9 +23,20 @@ class AgendaController extends Controller
             ->where('termina_en', '>=', Carbon::now())
             ->count();
 
-        // Clientes vía AJAX (clients.buscar). Peluquera/servicio quedan fuera del
-        // alta por ahora — el turno se crea solo con cliente + fecha.
-        return view('agenda.index', compact('sinAsignar'));
+        $servicios = Servicio::activos()->orderBy('nombre')->get(['id', 'nombre', 'duracion_minutos']);
+
+        // Paleta de colores de Google Calendar (mismos hex que usa Google).
+        $nombresColores = [
+            '1' => 'Lavanda', '2' => 'Salvia', '3' => 'Uva', '4' => 'Flamenco',
+            '5' => 'Banana', '6' => 'Mandarina', '7' => 'Pavo real', '8' => 'Grafito',
+            '9' => 'Arándano', '10' => 'Albahaca', '11' => 'Tomate',
+        ];
+        $coloresGoogle = collect(GoogleCalendarService::COLORES_GOOGLE)
+            ->map(fn ($hex, $id) => ['hex' => $hex, 'nombre' => $nombresColores[$id] ?? $hex])
+            ->values();
+
+        // Clientes vía AJAX (clients.buscar).
+        return view('agenda.index', compact('sinAsignar', 'servicios', 'coloresGoogle'));
     }
 
     /**

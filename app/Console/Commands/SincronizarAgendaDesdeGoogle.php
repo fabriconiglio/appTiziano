@@ -123,6 +123,14 @@ class SincronizarAgendaDesdeGoogle extends Command
 
         $cambioHorario = ! $turno->inicia_en->equalTo($iniciaEn) || ! $turno->termina_en->equalTo($terminaEn);
 
+        // Color cambiado en Google -> reflejarlo en el sistema.
+        $cambioColor = false;
+        $hexGoogle = \App\Services\GoogleCalendarService::hexDesdeColorId($evento->getColorId());
+        if ($hexGoogle && strcasecmp((string) $turno->color, $hexGoogle) !== 0) {
+            $turno->color = $hexGoogle;
+            $cambioColor = true;
+        }
+
         // Marcar el updated como procesado siempre (aunque solo hayan tocado el
         // título/descripción, que no mapean a nada del turno).
         $turno->google_updated_at = $updatedGoogle;
@@ -140,7 +148,7 @@ class SincronizarAgendaDesdeGoogle extends Command
 
         $turno->save();
 
-        return $cambioHorario;
+        return $cambioHorario || $cambioColor;
     }
 
     /**
@@ -185,6 +193,7 @@ class SincronizarAgendaDesdeGoogle extends Command
             'inicia_en' => $iniciaEn,
             'termina_en' => $terminaEn,
             'estado' => 'pendiente',
+            'color' => \App\Services\GoogleCalendarService::hexDesdeColorId($evento->getColorId()),
             'notas' => $notas,
             'origen' => 'google',
             'google_event_id' => $evento->getId(),

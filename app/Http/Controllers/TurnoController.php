@@ -22,6 +22,7 @@ class TurnoController extends Controller
             'servicio_id' => 'nullable|exists:servicios,id',
             'inicia_en' => 'required|date',
             'estado' => 'nullable|in:pendiente,confirmado,cancelado',
+            'color' => 'nullable|string|max:20',
             'notas' => 'nullable|string',
         ]);
 
@@ -42,6 +43,7 @@ class TurnoController extends Controller
             'inicia_en' => $iniciaEn,
             'termina_en' => $terminaEn,
             'estado' => $validated['estado'] ?? 'pendiente',
+            'color' => $validated['color'] ?? null,
             'notas' => $validated['notas'] ?? null,
         ]);
 
@@ -64,6 +66,7 @@ class TurnoController extends Controller
             'servicio_id' => 'nullable|exists:servicios,id',
             'inicia_en' => 'required|date',
             'estado' => 'required|in:pendiente,confirmado,cancelado',
+            'color' => 'nullable|string|max:20',
             'notas' => 'nullable|string',
         ]);
 
@@ -84,6 +87,7 @@ class TurnoController extends Controller
             'inicia_en' => $iniciaEn,
             'termina_en' => $terminaEn,
             'estado' => $validated['estado'],
+            'color' => $validated['color'] ?? null,
             'notas' => $validated['notas'] ?? null,
         ]);
 

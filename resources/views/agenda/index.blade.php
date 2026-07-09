@@ -11,6 +11,15 @@
         .agenda-leyenda span { display: inline-flex; align-items: center; margin-right: 1rem; }
         .agenda-leyenda i { width: 14px; height: 14px; border-radius: 3px; display: inline-block; margin-right: .35rem; }
         .fc-event { cursor: pointer; }
+        .color-swatch {
+            width: 26px; height: 26px; border-radius: 50%;
+            border: 2px solid transparent; cursor: pointer; padding: 0;
+        }
+        .color-swatch.selected { border-color: #1f2d3d; box-shadow: inset 0 0 0 2px #fff; }
+        .color-auto {
+            background: #fff; border: 1px dashed #999 !important;
+            font-size: 11px; color: #666; line-height: 1;
+        }
     </style>
 @endpush
 
@@ -87,6 +96,16 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="mb-3">
+                            <label class="form-label">Servicio</label>
+                            <select id="servicioId" class="form-select">
+                                <option value="">Sin especificar</option>
+                                @foreach($servicios as $s)
+                                    <option value="{{ $s->id }}">{{ $s->nombre }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
                         <div class="row">
                             <div class="col-md-7 mb-3">
                                 <label class="form-label">Fecha y hora</label>
@@ -101,6 +120,18 @@
                                 </select>
                             </div>
                         </div>
+                        <div class="mb-3">
+                            <label class="form-label d-block">Color</label>
+                            <input type="hidden" id="turnoColor">
+                            <div id="paletaColores" class="d-flex flex-wrap gap-2 align-items-center">
+                                <button type="button" class="color-swatch color-auto selected" data-color="" title="Automático">A</button>
+                                @foreach($coloresGoogle as $c)
+                                    <button type="button" class="color-swatch" data-color="{{ $c['hex'] }}"
+                                            style="background: {{ $c['hex'] }}" title="{{ $c['nombre'] }}"></button>
+                                @endforeach
+                            </div>
+                        </div>
+
                         <div class="mb-3">
                             <label class="form-label">Notas</label>
                             <textarea id="notas" class="form-control" rows="2"></textarea>
@@ -259,12 +290,27 @@
                 return d.toISOString().slice(0, 16);
             }
 
+            // Paleta de colores (misma que Google Calendar).
+            const paleta = document.getElementById('paletaColores');
+            function setColor(hex) {
+                document.getElementById('turnoColor').value = hex || '';
+                paleta.querySelectorAll('.color-swatch').forEach(function (b) {
+                    b.classList.toggle('selected', (b.dataset.color || '') === (hex || ''));
+                });
+            }
+            paleta.addEventListener('click', function (e) {
+                const b = e.target.closest('.color-swatch');
+                if (b) setColor(b.dataset.color);
+            });
+
             function abrirNuevo(fecha) {
                 form.reset();
                 document.getElementById('turnoId').value = '';
                 document.getElementById('modalTurnoTitulo').textContent = 'Nuevo turno';
                 document.getElementById('btnEliminarTurno').classList.add('d-none');
                 document.getElementById('estado').value = 'pendiente';
+                document.getElementById('servicioId').value = '';
+                setColor('');
                 setCliente('');
                 mostrarNuevoCliente(false);
                 if (fecha) {
@@ -287,6 +333,8 @@
                 document.getElementById('btnEliminarTurno').classList.remove('d-none');
                 mostrarNuevoCliente(false);
                 setCliente(p.client_id, p.cliente);
+                document.getElementById('servicioId').value = p.servicio_id || '';
+                setColor(p.color_propio || '');
                 document.getElementById('iniciaEn').value = toLocalInput(event.start);
                 document.getElementById('estado').value = p.estado;
                 document.getElementById('notas').value = p.notas || '';
@@ -322,6 +370,8 @@
                 const id = document.getElementById('turnoId').value;
                 const payload = {
                     client_id: document.getElementById('clientId').value,
+                    servicio_id: document.getElementById('servicioId').value || null,
+                    color: document.getElementById('turnoColor').value || null,
                     inicia_en: document.getElementById('iniciaEn').value,
                     estado: document.getElementById('estado').value,
                     notas: document.getElementById('notas').value,

@@ -80,14 +80,16 @@ class WhatsappWebhookController extends Controller
 
         $sufijo = substr($digitos, -8); // últimos 8 dígitos, tolerante al prefijo país/área
 
-        $client = Client::whereRaw("REPLACE(REPLACE(REPLACE(phone, ' ', ''), '-', ''), '+', '') LIKE ?", ["%{$sufijo}"])
-            ->first();
+        // Puede haber más de un cliente con el mismo teléfono (fichas duplicadas):
+        // se busca el próximo turno pendiente entre TODOS los que matchean.
+        $clientIds = Client::whereRaw("REPLACE(REPLACE(REPLACE(phone, ' ', ''), '-', ''), '+', '') LIKE ?", ["%{$sufijo}"])
+            ->pluck('id');
 
-        if (! $client) {
+        if ($clientIds->isEmpty()) {
             return null;
         }
 
-        return Turno::where('client_id', $client->id)
+        return Turno::whereIn('client_id', $clientIds)
             ->where('estado', 'pendiente')
             ->where('inicia_en', '>=', Carbon::now()->startOfDay())
             ->orderBy('inicia_en')

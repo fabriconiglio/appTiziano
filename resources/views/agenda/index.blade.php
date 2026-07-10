@@ -95,6 +95,12 @@
                                     <button type="button" id="ncGuardar" class="btn btn-sm btn-success">Crear y seleccionar</button>
                                 </div>
                             </div>
+
+                            <!-- Teléfono del cliente elegido: editable por si está mal o cambió -->
+                            <div class="mt-2">
+                                <label class="form-label small text-muted mb-1">Teléfono del cliente</label>
+                                <input type="text" id="telefonoCliente" class="form-control form-control-sm" placeholder="Sin teléfono cargado">
+                            </div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Servicio</label>
@@ -220,26 +226,35 @@
                         });
                         const data = await res.json();
                         clienteChoices.setChoices(
-                            data.map(c => ({ value: String(c.id), label: c.label })),
+                            data.map(c => ({ value: String(c.id), label: c.label, customProperties: { phone: c.phone || '' } })),
                             'value', 'label', true
                         );
                     } catch (err) { /* ignorar errores de red transitorios */ }
                 }, 250);
             });
 
-            // Fija (o limpia) el cliente seleccionado. label necesario al editar,
-            // porque la opción no está precargada.
-            function setCliente(id, label) {
+            // Al elegir un cliente de la lista, precargar su teléfono guardado.
+            const telefonoInput = document.getElementById('telefonoCliente');
+            clienteSelect.addEventListener('choice', function (e) {
+                const props = e.detail.choice.customProperties;
+                telefonoInput.value = (props && props.phone) || '';
+            });
+
+            // Fija (o limpia) el cliente seleccionado + su teléfono. label/phone
+            // necesarios al editar, porque la opción no está precargada.
+            function setCliente(id, label, phone) {
                 if (id) {
                     clienteChoices.setChoices(
                         [{ value: String(id), label: label || ('Cliente #' + id), selected: true }],
                         'value', 'label', true
                     );
+                    telefonoInput.value = phone || '';
                 } else {
                     clienteChoices.setChoices(
                         [{ value: '', label: 'Buscar cliente...', placeholder: true, selected: true }],
                         'value', 'label', true
                     );
+                    telefonoInput.value = '';
                 }
             }
 
@@ -279,8 +294,9 @@
                     ncAlert.classList.remove('d-none');
                     return;
                 }
-                // Sumar el cliente nuevo al select y seleccionarlo.
+                // Sumar el cliente nuevo al select, seleccionarlo y precargar su teléfono.
                 clienteChoices.setChoices([{ value: String(data.id), label: data.label, selected: true }], 'value', 'label', false);
+                telefonoInput.value = data.phone || payload.phone || '';
                 mostrarNuevoCliente(false);
             });
 
@@ -332,7 +348,7 @@
                 document.getElementById('modalTurnoTitulo').textContent = 'Editar turno';
                 document.getElementById('btnEliminarTurno').classList.remove('d-none');
                 mostrarNuevoCliente(false);
-                setCliente(p.client_id, p.cliente);
+                setCliente(p.client_id, p.cliente, p.cliente_telefono);
                 document.getElementById('servicioId').value = p.servicio_id || '';
                 setColor(p.color_propio || '');
                 document.getElementById('iniciaEn').value = toLocalInput(event.start);
@@ -372,6 +388,7 @@
                     client_id: document.getElementById('clientId').value,
                     servicio_id: document.getElementById('servicioId').value || null,
                     color: document.getElementById('turnoColor').value || null,
+                    telefono: telefonoInput.value.trim() || null,
                     inicia_en: document.getElementById('iniciaEn').value,
                     estado: document.getElementById('estado').value,
                     notas: document.getElementById('notas').value,

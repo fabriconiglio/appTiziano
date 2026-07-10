@@ -98,12 +98,13 @@ class ClientController extends Controller
             ->orderBy('name')
             ->orderBy('surname')
             ->limit(20)
-            ->get(['id', 'name', 'surname']);
+            ->get(['id', 'name', 'surname', 'phone']);
 
         return response()->json(
             $clientes->map(fn ($c) => [
                 'id' => $c->id,
                 'label' => trim($c->name . ' ' . $c->surname),
+                'phone' => $c->phone,
             ])
         );
     }
@@ -125,6 +126,7 @@ class ClientController extends Controller
         return response()->json([
             'id' => $client->id,
             'label' => trim($client->name . ' ' . $client->surname),
+            'phone' => $client->phone,
         ], 201);
     }
 

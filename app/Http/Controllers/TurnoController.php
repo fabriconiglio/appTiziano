@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Jobs\SincronizarTurnoGoogleCalendar;
+use App\Models\Client;
 use App\Models\Servicio;
 use App\Models\Turno;
 use Carbon\Carbon;
@@ -23,6 +24,7 @@ class TurnoController extends Controller
             'inicia_en' => 'required|date',
             'estado' => 'nullable|in:pendiente,confirmado,cancelado',
             'color' => 'nullable|string|max:20',
+            'telefono' => 'nullable|string|max:20',
             'notas' => 'nullable|string',
         ]);
 
@@ -47,6 +49,8 @@ class TurnoController extends Controller
             'notas' => $validated['notas'] ?? null,
         ]);
 
+        $this->actualizarTelefonoCliente($validated['client_id'], $validated['telefono'] ?? null);
+
         SincronizarTurnoGoogleCalendar::dispatch($turno->id, 'crear');
 
         return response()->json([
@@ -67,6 +71,7 @@ class TurnoController extends Controller
             'inicia_en' => 'required|date',
             'estado' => 'required|in:pendiente,confirmado,cancelado',
             'color' => 'nullable|string|max:20',
+            'telefono' => 'nullable|string|max:20',
             'notas' => 'nullable|string',
         ]);
 
@@ -90,6 +95,8 @@ class TurnoController extends Controller
             'color' => $validated['color'] ?? null,
             'notas' => $validated['notas'] ?? null,
         ]);
+
+        $this->actualizarTelefonoCliente($validated['client_id'], $validated['telefono'] ?? null);
 
         SincronizarTurnoGoogleCalendar::dispatch($turno->id, 'actualizar');
 
@@ -157,6 +164,24 @@ class TurnoController extends Controller
         }
 
         return response()->json(['message' => 'Turno eliminado.']);
+    }
+
+    /**
+     * Actualiza el teléfono del cliente desde el modal de turno, si lo cambiaron
+     * y difiere del que ya tiene guardado. Permite corregirlo sin ir a su ficha.
+     */
+    private function actualizarTelefonoCliente(int $clientId, ?string $telefono): void
+    {
+        if ($telefono === null) {
+            return;
+        }
+
+        $telefono = trim($telefono);
+        $client = Client::find($clientId);
+
+        if ($client && $client->phone !== $telefono) {
+            $client->update(['phone' => $telefono]);
+        }
     }
 
     /**

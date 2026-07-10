@@ -90,6 +90,7 @@ class Turno extends Model
                 'servicio' => $this->servicio?->nombre,
                 'client_id' => $this->client_id,
                 'cliente' => $this->client?->full_name,
+                'cliente_telefono' => $this->client?->phone,
                 'color_propio' => $this->color,
                 'notas' => $this->notas,
             ],

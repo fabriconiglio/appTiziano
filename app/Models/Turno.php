@@ -57,13 +57,18 @@ class Turno extends Model
             return '#adb5bd';
         }
 
-        // Turno importado desde Google sin cliente asignado: naranja de aviso.
+        // El color elegido en el sistema, o el importado del evento de Google,
+        // siempre gana (aunque el turno esté sin cliente asignado).
+        if ($this->color) {
+            return $this->color;
+        }
+
+        // Sin cliente asignado y sin color propio: naranja de aviso por defecto.
         if (! $this->client_id) {
             return '#fd7e14';
         }
 
-        return $this->color
-            ?? $this->peluquera?->color
+        return $this->peluquera?->color
             ?? $this->servicio?->color_default
             ?? '#3788d8';
     }

@@ -229,14 +229,7 @@
         <table class="info-grid">
             <tr>
                 <td style="width: 50%;">
-                    <strong>Fecha de Compra:</strong> {{ $technicalRecord->purchase_date->format('d/m/Y') }}<br>
-                    <strong>Tipo de Compra:</strong>
-                    @switch($technicalRecord->purchase_type)
-                        @case('al_por_mayor') Al por Mayor @break
-                        @case('al_por_menor') Al por Menor @break
-                        @case('especial') Compra Especial @break
-                        @default No especificado
-                    @endswitch
+                    <strong>Fecha de Compra:</strong> {{ $technicalRecord->purchase_date->format('d/m/Y') }}
                 </td>
                 <td style="width: 50%;">
                     <strong>Método de Pago:</strong>

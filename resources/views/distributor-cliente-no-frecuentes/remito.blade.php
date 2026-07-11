@@ -170,8 +170,7 @@
         <table class="info-grid">
             <tr>
                 <td style="width: 50%;">
-                    <strong>Fecha de Venta:</strong> {{ $cliente->fecha->format('d/m/Y') }}<br>
-                    <strong>Tipo de Compra:</strong> {{ $cliente->purchase_type === 'al_por_mayor' ? 'Al por Mayor' : 'Al por Menor' }}
+                    <strong>Fecha de Venta:</strong> {{ $cliente->fecha->format('d/m/Y') }}
                 </td>
                 <td style="width: 50%;">
                     <strong>Valor Total:</strong> ${{ number_format($cliente->monto, 2) }}<br>

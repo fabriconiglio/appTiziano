@@ -329,6 +329,7 @@
                 shouldSort: false,
                 placeholderValue: 'Elegí uno o más servicios...',
                 noChoicesText: 'No hay más servicios para agregar',
+                noResultsText: 'Sin resultados para esa búsqueda',
             });
 
             // --- Alta rápida de servicio ---

@@ -37,7 +37,7 @@
                     <tr>
                         <td>{{ $turno->inicia_en->format('H:i') }} - {{ $turno->termina_en->format('H:i') }}</td>
                         <td>{{ $turno->client->full_name ?? '—' }}</td>
-                        <td>{{ $turno->servicio->nombre ?? '—' }}</td>
+                        <td>{{ $turno->servicios->pluck('nombre')->implode(', ') ?: '—' }}</td>
                         <td>{{ $turno->peluquera->nombre ?? '—' }}</td>
                         <td class="estado">{{ $turno->estado }}</td>
                         <td>{{ $turno->notas }}</td>

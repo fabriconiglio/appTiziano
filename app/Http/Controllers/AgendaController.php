@@ -45,11 +45,14 @@ class AgendaController extends Controller
     public function eventos(Request $request): JsonResponse
     {
         $query = Turno::query()
-            ->with(['client', 'peluquera', 'servicio'])
+            ->with(['client', 'peluquera', 'servicios'])
             ->when($request->filled('start'), fn ($q) => $q->where('inicia_en', '>=', $request->get('start')))
             ->when($request->filled('end'), fn ($q) => $q->where('inicia_en', '<=', $request->get('end')))
             ->when($request->filled('peluquera_id'), fn ($q) => $q->where('peluquera_id', $request->get('peluquera_id')))
-            ->when($request->filled('servicio_id'), fn ($q) => $q->where('servicio_id', $request->get('servicio_id')));
+            ->when($request->filled('servicio_id'), fn ($q) => $q->whereHas(
+                'servicios',
+                fn ($sq) => $sq->where('servicios.id', $request->get('servicio_id'))
+            ));
 
         $eventos = $query->get()->map(fn (Turno $turno) => $turno->aEventoCalendario());
 
@@ -65,7 +68,7 @@ class AgendaController extends Controller
             ? Carbon::parse($request->get('fecha'))
             : Carbon::today();
 
-        $turnos = Turno::with(['client', 'peluquera', 'servicio'])
+        $turnos = Turno::with(['client', 'peluquera', 'servicios'])
             ->whereDate('inicia_en', $fecha->toDateString())
             ->where('estado', '!=', 'cancelado')
             ->orderBy('inicia_en')

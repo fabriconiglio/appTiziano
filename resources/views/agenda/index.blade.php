@@ -103,13 +103,34 @@
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Servicio</label>
-                            <select id="servicioId" class="form-select">
-                                <option value="">Sin especificar</option>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <label class="form-label mb-1">Servicios</label>
+                                <a href="#" id="toggleNuevoServicio" class="small text-decoration-none">
+                                    <i class="fas fa-plus"></i> Crear servicio
+                                </a>
+                            </div>
+                            <select id="servicioIds" class="form-select" multiple>
                                 @foreach($servicios as $s)
-                                    <option value="{{ $s->id }}">{{ $s->nombre }}</option>
+                                    <option value="{{ $s->id }}" data-duracion="{{ $s->duracion_minutos }}">{{ $s->nombre }}</option>
                                 @endforeach
                             </select>
+
+                            <!-- Alta rápida de servicio -->
+                            <div id="nuevoServicioBox" class="border rounded p-2 mt-2 bg-light d-none">
+                                <div id="nuevoServicioAlert" class="alert alert-danger py-1 px-2 small d-none"></div>
+                                <div class="row g-2">
+                                    <div class="col-8">
+                                        <input type="text" id="nsNombre" class="form-control form-control-sm" placeholder="Nombre del servicio">
+                                    </div>
+                                    <div class="col-4">
+                                        <input type="number" id="nsDuracion" class="form-control form-control-sm" placeholder="Min." min="5" max="600" value="30">
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-end gap-2 mt-2">
+                                    <button type="button" id="nsCancelar" class="btn btn-sm btn-outline-secondary">Cancelar</button>
+                                    <button type="button" id="nsGuardar" class="btn btn-sm btn-success">Crear y agregar</button>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="row">
@@ -170,6 +191,7 @@
                 base: @json(url('turnos')),
                 clienteBuscar: @json(route('clients.buscar')),
                 clienteRapido: @json(route('clients.quick-store')),
+                servicioRapido: @json(route('servicios.quick-store')),
             };
 
             const modalEl = document.getElementById('modalTurno');
@@ -300,6 +322,58 @@
                 mostrarNuevoCliente(false);
             });
 
+            // Select múltiple de servicios (Choices.js sobre un <select multiple>).
+            const servicioSelect = document.getElementById('servicioIds');
+            const servicioChoices = new Choices(servicioSelect, {
+                removeItemButton: true,
+                shouldSort: false,
+                placeholderValue: 'Elegí uno o más servicios...',
+                noChoicesText: 'No hay más servicios para agregar',
+            });
+
+            // --- Alta rápida de servicio ---
+            const nsBox = document.getElementById('nuevoServicioBox');
+            const nsAlert = document.getElementById('nuevoServicioAlert');
+
+            function mostrarNuevoServicio(mostrar) {
+                nsBox.classList.toggle('d-none', !mostrar);
+                nsAlert.classList.add('d-none');
+                if (!mostrar) {
+                    document.getElementById('nsNombre').value = '';
+                    document.getElementById('nsDuracion').value = '30';
+                }
+            }
+
+            document.getElementById('toggleNuevoServicio').addEventListener('click', function (e) {
+                e.preventDefault();
+                mostrarNuevoServicio(nsBox.classList.contains('d-none'));
+            });
+            document.getElementById('nsCancelar').addEventListener('click', () => mostrarNuevoServicio(false));
+
+            document.getElementById('nsGuardar').addEventListener('click', async function () {
+                nsAlert.classList.add('d-none');
+                const payload = {
+                    nombre: document.getElementById('nsNombre').value.trim(),
+                    duracion_minutos: document.getElementById('nsDuracion').value || 30,
+                };
+                if (!payload.nombre) {
+                    nsAlert.textContent = 'El nombre es obligatorio.';
+                    nsAlert.classList.remove('d-none');
+                    return;
+                }
+                const { ok, data } = await enviar(urls.servicioRapido, 'POST', payload);
+                if (!ok) {
+                    nsAlert.textContent = data.message || 'No se pudo crear el servicio.';
+                    nsAlert.classList.remove('d-none');
+                    return;
+                }
+                // Sumarlo a las opciones y agregarlo a la selección actual (sin
+                // reemplazar los servicios ya elegidos).
+                servicioChoices.setChoices([{ value: String(data.id), label: data.nombre }], 'value', 'label', false);
+                servicioChoices.setChoiceByValue(String(data.id));
+                mostrarNuevoServicio(false);
+            });
+
             function toLocalInput(date) {
                 const d = new Date(date);
                 d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
@@ -325,7 +399,8 @@
                 document.getElementById('modalTurnoTitulo').textContent = 'Nuevo turno';
                 document.getElementById('btnEliminarTurno').classList.add('d-none');
                 document.getElementById('estado').value = 'pendiente';
-                document.getElementById('servicioId').value = '';
+                servicioChoices.removeActiveItems();
+                mostrarNuevoServicio(false);
                 setColor('');
                 setCliente('');
                 mostrarNuevoCliente(false);
@@ -349,7 +424,11 @@
                 document.getElementById('btnEliminarTurno').classList.remove('d-none');
                 mostrarNuevoCliente(false);
                 setCliente(p.client_id, p.cliente, p.cliente_telefono);
-                document.getElementById('servicioId').value = p.servicio_id || '';
+                servicioChoices.removeActiveItems();
+                mostrarNuevoServicio(false);
+                if (p.servicio_ids && p.servicio_ids.length) {
+                    servicioChoices.setChoiceByValue(p.servicio_ids.map(String));
+                }
                 setColor(p.color_propio || '');
                 document.getElementById('iniciaEn').value = toLocalInput(event.start);
                 document.getElementById('estado').value = p.estado;
@@ -386,7 +465,7 @@
                 const id = document.getElementById('turnoId').value;
                 const payload = {
                     client_id: document.getElementById('clientId').value,
-                    servicio_id: document.getElementById('servicioId').value || null,
+                    servicio_ids: servicioChoices.getValue(true),
                     color: document.getElementById('turnoColor').value || null,
                     telefono: telefonoInput.value.trim() || null,
                     inicia_en: document.getElementById('iniciaEn').value,

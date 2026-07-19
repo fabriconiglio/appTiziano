@@ -34,7 +34,7 @@ class WhatsappService
             return false;
         }
 
-        $turno->loadMissing(['client', 'peluquera', 'servicio']);
+        $turno->loadMissing(['client', 'peluquera', 'servicios']);
 
         $destino = $this->formatearDestino($turno->client?->phone);
         if (! $destino) {

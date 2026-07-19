@@ -30,7 +30,7 @@ class EnviarRecordatorioTurno implements ShouldQueue
 
     public function handle(WhatsappService $whatsapp): void
     {
-        $turno = Turno::with(['client', 'peluquera', 'servicio'])->find($this->turnoId);
+        $turno = Turno::with(['client', 'peluquera', 'servicios'])->find($this->turnoId);
         if (! $turno || $turno->estado === 'cancelado') {
             return;
         }

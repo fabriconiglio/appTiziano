@@ -221,10 +221,10 @@ class GoogleCalendarService
 
     private function construirEvento(Turno $turno): Event
     {
-        $turno->loadMissing(['client', 'peluquera', 'servicio']);
+        $turno->loadMissing(['client', 'peluquera', 'servicios']);
 
         $cliente = $turno->client->full_name ?? 'Cliente';
-        $servicio = $turno->servicio->nombre ?? 'Servicio';
+        $servicio = $turno->servicios->pluck('nombre')->implode(', ') ?: 'Servicio';
         $peluquera = $turno->peluquera->nombre ?? '';
 
         $descripcion = "Servicio: {$servicio}\nPeluquera: {$peluquera}\nEstado: {$turno->estado}";

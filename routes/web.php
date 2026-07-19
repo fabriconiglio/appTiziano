@@ -72,6 +72,7 @@ Route::middleware(['auth', 'restrict.inventory'])->group(function () {
     Route::patch('turnos/{turno}/reagendar', [TurnoController::class, 'reagendar'])->name('turnos.reagendar');
     Route::patch('turnos/{turno}/estado', [TurnoController::class, 'cambiarEstado'])->name('turnos.estado');
     Route::delete('turnos/{turno}', [TurnoController::class, 'destroy'])->name('turnos.destroy');
+    Route::post('servicios/rapido', [ServicioController::class, 'quickStore'])->name('servicios.quick-store');
     Route::resource('servicios', ServicioController::class)->except(['show']);
     Route::resource('peluqueras', PeluqueraController::class)->except(['show']);
     

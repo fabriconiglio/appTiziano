@@ -11,7 +11,6 @@ class Turno extends Model
     protected $fillable = [
         'client_id',
         'peluquera_id',
-        'servicio_id',
         'inicia_en',
         'termina_en',
         'estado',
@@ -38,9 +37,9 @@ class Turno extends Model
         return $this->belongsTo(Peluquera::class);
     }
 
-    public function servicio()
+    public function servicios()
     {
-        return $this->belongsTo(Servicio::class);
+        return $this->belongsToMany(Servicio::class, 'turno_servicio');
     }
 
     public function recordatorios()
@@ -69,20 +68,22 @@ class Turno extends Model
         }
 
         return $this->peluquera?->color
-            ?? $this->servicio?->color_default
+            ?? $this->servicios->first()?->color_default
             ?? '#3788d8';
     }
 
     /**
-     * Representación del turno para FullCalendar. Requiere client/peluquera/servicio cargados.
+     * Representación del turno para FullCalendar. Requiere client/peluquera/servicios cargados.
      */
     public function aEventoCalendario(): array
     {
+        $nombresServicios = $this->servicios->pluck('nombre')->implode(', ');
+
         return [
             'id' => $this->id,
             'title' => $this->client_id
                 ? trim(($this->client?->full_name ?? 'Cliente')
-                    . ($this->servicio ? ' · ' . $this->servicio->nombre : ''))
+                    . ($nombresServicios ? ' · ' . $nombresServicios : ''))
                 : '⚠ Sin asignar' . ($this->notas ? ' · ' . strtok($this->notas, "\n") : ''),
             'start' => $this->inicia_en->toIso8601String(),
             'end' => $this->termina_en->toIso8601String(),
@@ -91,8 +92,8 @@ class Turno extends Model
                 'estado' => $this->estado,
                 'peluquera_id' => $this->peluquera_id,
                 'peluquera' => $this->peluquera?->nombre,
-                'servicio_id' => $this->servicio_id,
-                'servicio' => $this->servicio?->nombre,
+                'servicio_ids' => $this->servicios->pluck('id')->all(),
+                'servicio' => $nombresServicios,
                 'client_id' => $this->client_id,
                 'cliente' => $this->client?->full_name,
                 'cliente_telefono' => $this->client?->phone,

@@ -20,7 +20,8 @@ class TurnoController extends Controller
         $validated = $request->validate([
             'client_id' => 'required|exists:clients,id',
             'peluquera_id' => 'nullable|exists:peluqueras,id',
-            'servicio_id' => 'nullable|exists:servicios,id',
+            'servicio_ids' => 'nullable|array',
+            'servicio_ids.*' => 'integer|exists:servicios,id',
             'inicia_en' => 'required|date',
             'estado' => 'nullable|in:pendiente,confirmado,cancelado',
             'color' => 'nullable|string|max:20',
@@ -28,8 +29,9 @@ class TurnoController extends Controller
             'notas' => 'nullable|string',
         ]);
 
+        $servicioIds = $validated['servicio_ids'] ?? [];
         $iniciaEn = Carbon::parse($validated['inicia_en']);
-        $terminaEn = (clone $iniciaEn)->addMinutes($this->duracion($validated['servicio_id'] ?? null));
+        $terminaEn = (clone $iniciaEn)->addMinutes($this->duracion($servicioIds));
 
         if (! empty($validated['peluquera_id'])
             && Turno::haySolapamiento($validated['peluquera_id'], $iniciaEn, $terminaEn)) {
@@ -41,7 +43,6 @@ class TurnoController extends Controller
         $turno = Turno::create([
             'client_id' => $validated['client_id'],
             'peluquera_id' => $validated['peluquera_id'] ?? null,
-            'servicio_id' => $validated['servicio_id'] ?? null,
             'inicia_en' => $iniciaEn,
             'termina_en' => $terminaEn,
             'estado' => $validated['estado'] ?? 'pendiente',
@@ -49,13 +50,15 @@ class TurnoController extends Controller
             'notas' => $validated['notas'] ?? null,
         ]);
 
+        $turno->servicios()->sync($servicioIds);
+
         $this->actualizarTelefonoCliente($validated['client_id'], $validated['telefono'] ?? null);
 
         SincronizarTurnoGoogleCalendar::dispatch($turno->id, 'crear');
 
         return response()->json([
             'message' => 'Turno creado correctamente.',
-            'turno' => $turno->load(['client', 'peluquera', 'servicio'])->aEventoCalendario(),
+            'turno' => $turno->load(['client', 'peluquera', 'servicios'])->aEventoCalendario(),
         ], 201);
     }
 
@@ -67,7 +70,8 @@ class TurnoController extends Controller
         $validated = $request->validate([
             'client_id' => 'required|exists:clients,id',
             'peluquera_id' => 'nullable|exists:peluqueras,id',
-            'servicio_id' => 'nullable|exists:servicios,id',
+            'servicio_ids' => 'nullable|array',
+            'servicio_ids.*' => 'integer|exists:servicios,id',
             'inicia_en' => 'required|date',
             'estado' => 'required|in:pendiente,confirmado,cancelado',
             'color' => 'nullable|string|max:20',
@@ -75,8 +79,9 @@ class TurnoController extends Controller
             'notas' => 'nullable|string',
         ]);
 
+        $servicioIds = $validated['servicio_ids'] ?? [];
         $iniciaEn = Carbon::parse($validated['inicia_en']);
-        $terminaEn = (clone $iniciaEn)->addMinutes($this->duracion($validated['servicio_id'] ?? null));
+        $terminaEn = (clone $iniciaEn)->addMinutes($this->duracion($servicioIds));
 
         if (! empty($validated['peluquera_id'])
             && Turno::haySolapamiento($validated['peluquera_id'], $iniciaEn, $terminaEn, $turno->id)) {
@@ -88,7 +93,6 @@ class TurnoController extends Controller
         $turno->update([
             'client_id' => $validated['client_id'],
             'peluquera_id' => $validated['peluquera_id'] ?? null,
-            'servicio_id' => $validated['servicio_id'] ?? null,
             'inicia_en' => $iniciaEn,
             'termina_en' => $terminaEn,
             'estado' => $validated['estado'],
@@ -96,13 +100,15 @@ class TurnoController extends Controller
             'notas' => $validated['notas'] ?? null,
         ]);
 
+        $turno->servicios()->sync($servicioIds);
+
         $this->actualizarTelefonoCliente($validated['client_id'], $validated['telefono'] ?? null);
 
         SincronizarTurnoGoogleCalendar::dispatch($turno->id, 'actualizar');
 
         return response()->json([
             'message' => 'Turno actualizado correctamente.',
-            'turno' => $turno->load(['client', 'peluquera', 'servicio'])->aEventoCalendario(),
+            'turno' => $turno->load(['client', 'peluquera', 'servicios'])->aEventoCalendario(),
         ]);
     }
 
@@ -116,7 +122,7 @@ class TurnoController extends Controller
         ]);
 
         $iniciaEn = Carbon::parse($validated['inicia_en']);
-        $duracion = $turno->servicio?->duracion_minutos ?? $turno->inicia_en->diffInMinutes($turno->termina_en);
+        $duracion = $turno->servicios->sum('duracion_minutos') ?: $turno->inicia_en->diffInMinutes($turno->termina_en);
         $terminaEn = (clone $iniciaEn)->addMinutes($duracion ?: 30);
 
         if ($turno->peluquera_id
@@ -185,14 +191,14 @@ class TurnoController extends Controller
     }
 
     /**
-     * Duración del turno en minutos: la del servicio si hay, o 30 por defecto.
+     * Duración del turno en minutos: la suma de los servicios elegidos, o 30 por defecto.
      */
-    private function duracion(?int $servicioId): int
+    private function duracion(array $servicioIds): int
     {
-        if ($servicioId) {
-            return Servicio::find($servicioId)?->duracion_minutos ?: 30;
+        if (empty($servicioIds)) {
+            return 30;
         }
 
-        return 30;
+        return Servicio::whereIn('id', $servicioIds)->sum('duracion_minutos') ?: 30;
     }
 }

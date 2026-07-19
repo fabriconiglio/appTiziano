@@ -43,7 +43,7 @@ class SincronizarTurnoGoogleCalendar implements ShouldQueue
             return;
         }
 
-        $turno = Turno::with(['client', 'peluquera', 'servicio'])->find($this->turnoId);
+        $turno = Turno::with(['client', 'peluquera', 'servicios'])->find($this->turnoId);
         if (! $turno) {
             return;
         }

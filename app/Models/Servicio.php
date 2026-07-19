@@ -23,7 +23,7 @@ class Servicio extends Model
 
     public function turnos()
     {
-        return $this->hasMany(Turno::class);
+        return $this->belongsToMany(Turno::class, 'turno_servicio');
     }
 
     public function scopeActivos($query)

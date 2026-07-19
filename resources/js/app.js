@@ -52,9 +52,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
 document.addEventListener('DOMContentLoaded', function () {
     const element = document.querySelector('#products_used');
-    new Choices(element, {
-        removeItemButton: true, // Botón para eliminar opciones
-        placeholder: true,
-        placeholderValue: "Selecciona productos"
-    });
+    if (element) {
+        new Choices(element, {
+            removeItemButton: true, // Botón para eliminar opciones
+            placeholder: true,
+            placeholderValue: "Selecciona productos"
+        });
+    }
 });

@@ -109,11 +109,7 @@
                                     <i class="fas fa-plus"></i> Crear servicio
                                 </a>
                             </div>
-                            <select id="servicioIds" class="form-select" multiple>
-                                @foreach($servicios as $s)
-                                    <option value="{{ $s->id }}" data-duracion="{{ $s->duracion_minutos }}">{{ $s->nombre }}</option>
-                                @endforeach
-                            </select>
+                            <select id="servicioIds" class="form-select" multiple></select>
 
                             <!-- Alta rápida de servicio -->
                             <div id="nuevoServicioBox" class="border rounded p-2 mt-2 bg-light d-none">
@@ -322,9 +318,13 @@
                 mostrarNuevoCliente(false);
             });
 
-            // Select múltiple de servicios (Choices.js sobre un <select multiple>).
+            // Select múltiple de servicios (Choices.js). La lista se pasa por JS
+            // (no se parsean <option> del HTML) para no depender de que el select
+            // ya esté "visible" cuando Choices inicializa dentro del modal oculto.
+            const serviciosDisponibles = @json($servicios->map(fn ($s) => ['value' => (string) $s->id, 'label' => $s->nombre]));
             const servicioSelect = document.getElementById('servicioIds');
             const servicioChoices = new Choices(servicioSelect, {
+                choices: serviciosDisponibles,
                 removeItemButton: true,
                 shouldSort: false,
                 placeholderValue: 'Elegí uno o más servicios...',

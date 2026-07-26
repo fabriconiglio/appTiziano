@@ -18,7 +18,9 @@ class TurnoController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'client_id' => 'required|exists:clients,id',
+            'client_id' => 'nullable|exists:clients,id',
+            'cliente_nombre' => 'nullable|string|max:255|required_without:client_id',
+            'cliente_telefono' => 'nullable|string|max:30',
             'peluquera_id' => 'nullable|exists:peluqueras,id',
             'servicio_ids' => 'nullable|array',
             'servicio_ids.*' => 'integer|exists:servicios,id',
@@ -27,6 +29,8 @@ class TurnoController extends Controller
             'color' => 'nullable|string|max:20',
             'telefono' => 'nullable|string|max:20',
             'notas' => 'nullable|string',
+        ], [
+            'cliente_nombre.required_without' => 'Elegí un cliente o escribí un nombre para agendar sin registrar.',
         ]);
 
         $servicioIds = $validated['servicio_ids'] ?? [];
@@ -40,8 +44,13 @@ class TurnoController extends Controller
             ], 422);
         }
 
+        // Con cliente registrado el nombre suelto no se usa (manda la ficha).
+        $sinRegistrar = empty($validated['client_id']);
+
         $turno = Turno::create([
-            'client_id' => $validated['client_id'],
+            'client_id' => $validated['client_id'] ?? null,
+            'cliente_nombre' => $sinRegistrar ? trim($validated['cliente_nombre']) : null,
+            'cliente_telefono' => $sinRegistrar ? ($validated['cliente_telefono'] ?? null) : null,
             'peluquera_id' => $validated['peluquera_id'] ?? null,
             'inicia_en' => $iniciaEn,
             'termina_en' => $terminaEn,
@@ -52,7 +61,9 @@ class TurnoController extends Controller
 
         $turno->servicios()->sync($servicioIds);
 
-        $this->actualizarTelefonoCliente($validated['client_id'], $validated['telefono'] ?? null);
+        if (! $sinRegistrar) {
+            $this->actualizarTelefonoCliente($validated['client_id'], $validated['telefono'] ?? null);
+        }
 
         SincronizarTurnoGoogleCalendar::dispatch($turno->id, 'crear');
 
@@ -67,8 +78,12 @@ class TurnoController extends Controller
      */
     public function update(Request $request, Turno $turno): JsonResponse
     {
+        // A diferencia del alta, acá no se exige cliente: los turnos importados de
+        // Google Calendar todavía no lo tienen y hay que poder editarlos igual.
         $validated = $request->validate([
-            'client_id' => 'required|exists:clients,id',
+            'client_id' => 'nullable|exists:clients,id',
+            'cliente_nombre' => 'nullable|string|max:255',
+            'cliente_telefono' => 'nullable|string|max:30',
             'peluquera_id' => 'nullable|exists:peluqueras,id',
             'servicio_ids' => 'nullable|array',
             'servicio_ids.*' => 'integer|exists:servicios,id',
@@ -90,8 +105,14 @@ class TurnoController extends Controller
             ], 422);
         }
 
+        // Al asignarle una ficha de cliente, se limpian los datos sueltos.
+        $sinRegistrar = empty($validated['client_id']);
+        $nombreLibre = trim((string) ($validated['cliente_nombre'] ?? ''));
+
         $turno->update([
-            'client_id' => $validated['client_id'],
+            'client_id' => $validated['client_id'] ?? null,
+            'cliente_nombre' => $sinRegistrar ? ($nombreLibre ?: null) : null,
+            'cliente_telefono' => $sinRegistrar ? ($validated['cliente_telefono'] ?? null) : null,
             'peluquera_id' => $validated['peluquera_id'] ?? null,
             'inicia_en' => $iniciaEn,
             'termina_en' => $terminaEn,
@@ -102,7 +123,9 @@ class TurnoController extends Controller
 
         $turno->servicios()->sync($servicioIds);
 
-        $this->actualizarTelefonoCliente($validated['client_id'], $validated['telefono'] ?? null);
+        if (! $sinRegistrar) {
+            $this->actualizarTelefonoCliente($validated['client_id'], $validated['telefono'] ?? null);
+        }
 
         SincronizarTurnoGoogleCalendar::dispatch($turno->id, 'actualizar');
 

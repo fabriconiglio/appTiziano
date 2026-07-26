@@ -17,8 +17,10 @@ class AgendaController extends Controller
      */
     public function index()
     {
-        // Turnos importados desde Google Calendar que todavía no tienen cliente.
+        // Turnos importados desde Google Calendar que todavía no tienen ningún
+        // dato de cliente (los agendados "sin registrar" sí tienen nombre suelto).
         $sinAsignar = Turno::whereNull('client_id')
+            ->where(fn ($q) => $q->whereNull('cliente_nombre')->orWhere('cliente_nombre', ''))
             ->where('estado', '!=', 'cancelado')
             ->where('termina_en', '>=', Carbon::now())
             ->count();

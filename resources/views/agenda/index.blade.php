@@ -68,38 +68,66 @@
                         <div class="mb-3">
                             <div class="d-flex justify-content-between align-items-center">
                                 <label class="form-label mb-1">Cliente</label>
-                                <a href="#" id="toggleNuevoCliente" class="small text-decoration-none">
-                                    <i class="fas fa-user-plus"></i> Crear cliente
-                                </a>
-                            </div>
-                            <select id="clientId" class="form-select" required>
-                                <option value="">Buscar cliente...</option>
-                            </select>
-
-                            <!-- Alta rápida de cliente -->
-                            <div id="nuevoClienteBox" class="border rounded p-2 mt-2 bg-light d-none">
-                                <div id="nuevoClienteAlert" class="alert alert-danger py-1 px-2 small d-none"></div>
-                                <div class="row g-2">
-                                    <div class="col-6">
-                                        <input type="text" id="ncNombre" class="form-control form-control-sm" placeholder="Nombre">
-                                    </div>
-                                    <div class="col-6">
-                                        <input type="text" id="ncApellido" class="form-control form-control-sm" placeholder="Apellido">
-                                    </div>
-                                    <div class="col-12">
-                                        <input type="text" id="ncTelefono" class="form-control form-control-sm" placeholder="Teléfono (para WhatsApp)">
-                                    </div>
-                                </div>
-                                <div class="d-flex justify-content-end gap-2 mt-2">
-                                    <button type="button" id="ncCancelar" class="btn btn-sm btn-outline-secondary">Cancelar</button>
-                                    <button type="button" id="ncGuardar" class="btn btn-sm btn-success">Crear y seleccionar</button>
+                                <div class="small">
+                                    <a href="#" id="toggleNuevoCliente" class="text-decoration-none">
+                                        <i class="fas fa-user-plus"></i> Crear cliente
+                                    </a>
                                 </div>
                             </div>
 
-                            <!-- Teléfono del cliente elegido: editable por si está mal o cambió -->
-                            <div class="mt-2">
-                                <label class="form-label small text-muted mb-1">Teléfono del cliente</label>
-                                <input type="text" id="telefonoCliente" class="form-control form-control-sm" placeholder="Sin teléfono cargado">
+                            <!-- Modo: cliente registrado (ficha) o sin registrar (nombre suelto) -->
+                            <input type="hidden" id="clienteModo" value="registrado">
+                            <div class="btn-group btn-group-sm w-100 mb-2" role="group">
+                                <button type="button" class="btn btn-outline-secondary active" id="modoRegistrado">
+                                    Cliente registrado
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" id="modoSinRegistrar">
+                                    Sin registrar
+                                </button>
+                            </div>
+
+                            <!-- Modo registrado -->
+                            <div id="clienteRegistradoBox">
+                                <select id="clientId" class="form-select">
+                                    <option value="">Buscar cliente...</option>
+                                </select>
+
+                                <!-- Alta rápida de cliente -->
+                                <div id="nuevoClienteBox" class="border rounded p-2 mt-2 bg-light d-none">
+                                    <div id="nuevoClienteAlert" class="alert alert-danger py-1 px-2 small d-none"></div>
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <input type="text" id="ncNombre" class="form-control form-control-sm" placeholder="Nombre">
+                                        </div>
+                                        <div class="col-6">
+                                            <input type="text" id="ncApellido" class="form-control form-control-sm" placeholder="Apellido">
+                                        </div>
+                                        <div class="col-12">
+                                            <input type="text" id="ncTelefono" class="form-control form-control-sm" placeholder="Teléfono (para WhatsApp)">
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-end gap-2 mt-2">
+                                        <button type="button" id="ncCancelar" class="btn btn-sm btn-outline-secondary">Cancelar</button>
+                                        <button type="button" id="ncGuardar" class="btn btn-sm btn-success">Crear y seleccionar</button>
+                                    </div>
+                                </div>
+
+                                <!-- Teléfono del cliente elegido: editable por si está mal o cambió -->
+                                <div class="mt-2">
+                                    <label class="form-label small text-muted mb-1">Teléfono del cliente</label>
+                                    <input type="text" id="telefonoCliente" class="form-control form-control-sm" placeholder="Sin teléfono cargado">
+                                </div>
+                            </div>
+
+                            <!-- Modo sin registrar: solo nombre y teléfono, no crea ficha -->
+                            <div id="clienteLibreBox" class="d-none">
+                                <input type="text" id="clienteNombreLibre" class="form-control"
+                                       placeholder="Nombre de la persona" autocomplete="off">
+                                <input type="text" id="clienteTelefonoLibre" class="form-control form-control-sm mt-2"
+                                       placeholder="Teléfono (opcional)" autocomplete="off">
+                                <div class="form-text">
+                                    Se agenda el turno sin crear ficha de cliente. No recibe recordatorio por WhatsApp.
+                                </div>
                             </div>
                         </div>
                         <div class="mb-3">
@@ -287,6 +315,31 @@
                 }
             }
 
+            // --- Modo de cliente: registrado (ficha) vs sin registrar (nombre suelto) ---
+            const clienteModo = document.getElementById('clienteModo');
+            const clienteRegistradoBox = document.getElementById('clienteRegistradoBox');
+            const clienteLibreBox = document.getElementById('clienteLibreBox');
+            const btnModoRegistrado = document.getElementById('modoRegistrado');
+            const btnModoSinRegistrar = document.getElementById('modoSinRegistrar');
+            const nombreLibreInput = document.getElementById('clienteNombreLibre');
+            const telefonoLibreInput = document.getElementById('clienteTelefonoLibre');
+            const linkCrearCliente = document.getElementById('toggleNuevoCliente');
+
+            function setModoCliente(modo) {
+                const libre = modo === 'libre';
+                clienteModo.value = libre ? 'libre' : 'registrado';
+                clienteRegistradoBox.classList.toggle('d-none', libre);
+                clienteLibreBox.classList.toggle('d-none', !libre);
+                btnModoRegistrado.classList.toggle('active', !libre);
+                btnModoSinRegistrar.classList.toggle('active', libre);
+                // "Crear cliente" solo tiene sentido en modo registrado.
+                linkCrearCliente.classList.toggle('d-none', libre);
+                if (libre) mostrarNuevoCliente(false);
+            }
+
+            btnModoRegistrado.addEventListener('click', () => setModoCliente('registrado'));
+            btnModoSinRegistrar.addEventListener('click', () => setModoCliente('libre'));
+
             // --- Alta rápida de cliente ---
             const ncBox = document.getElementById('nuevoClienteBox');
             const ncAlert = document.getElementById('nuevoClienteAlert');
@@ -449,6 +502,9 @@
                 mostrarNuevoServicio(false);
                 setColor('');
                 setCliente('');
+                nombreLibreInput.value = '';
+                telefonoLibreInput.value = '';
+                setModoCliente('registrado');
                 mostrarNuevoCliente(false);
                 if (fecha) {
                     const f = new Date(fecha);
@@ -470,6 +526,10 @@
                 document.getElementById('btnEliminarTurno').classList.remove('d-none');
                 mostrarNuevoCliente(false);
                 setCliente(p.client_id, p.cliente, p.cliente_telefono);
+                nombreLibreInput.value = p.cliente_nombre_libre || '';
+                telefonoLibreInput.value = p.cliente_telefono_libre || '';
+                // Sin ficha pero con nombre suelto -> abrir en modo "sin registrar".
+                setModoCliente(!p.client_id && p.cliente_nombre_libre ? 'libre' : 'registrado');
                 setServicios(p.servicio_ids || []);
                 servicioFiltro.value = '';
                 filtrarServicios();
@@ -508,11 +568,24 @@
                 e.preventDefault();
                 ocultarAlert();
                 const id = document.getElementById('turnoId').value;
+                const sinRegistrar = clienteModo.value === 'libre';
+
+                if (sinRegistrar && !nombreLibreInput.value.trim()) {
+                    mostrarAlert('Escribí un nombre para agendar sin registrar al cliente.');
+                    return;
+                }
+                if (!sinRegistrar && !document.getElementById('clientId').value && !id) {
+                    mostrarAlert('Elegí un cliente o usá la opción "Sin registrar".');
+                    return;
+                }
+
                 const payload = {
-                    client_id: document.getElementById('clientId').value,
+                    client_id: sinRegistrar ? null : (document.getElementById('clientId').value || null),
+                    cliente_nombre: sinRegistrar ? nombreLibreInput.value.trim() : null,
+                    cliente_telefono: sinRegistrar ? (telefonoLibreInput.value.trim() || null) : null,
                     servicio_ids: serviciosSeleccionados(),
                     color: document.getElementById('turnoColor').value || null,
-                    telefono: telefonoInput.value.trim() || null,
+                    telefono: sinRegistrar ? null : (telefonoInput.value.trim() || null),
                     inicia_en: document.getElementById('iniciaEn').value,
                     estado: document.getElementById('estado').value,
                     notas: document.getElementById('notas').value,
@@ -520,7 +593,8 @@
                 const url = id ? `${urls.base}/${id}` : urls.store;
                 const { ok, data } = await enviar(url, id ? 'PUT' : 'POST', payload);
                 if (!ok) {
-                    mostrarAlert(data.message || 'No se pudo guardar el turno.');
+                    const detalle = data.errors ? Object.values(data.errors).flat().join(' ') : null;
+                    mostrarAlert(detalle || data.message || 'No se pudo guardar el turno.');
                     return;
                 }
                 modal.hide();

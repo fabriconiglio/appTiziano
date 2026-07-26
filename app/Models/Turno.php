@@ -10,6 +10,8 @@ class Turno extends Model
 
     protected $fillable = [
         'client_id',
+        'cliente_nombre',
+        'cliente_telefono',
         'peluquera_id',
         'inicia_en',
         'termina_en',
@@ -62,8 +64,10 @@ class Turno extends Model
             return $this->color;
         }
 
-        // Sin cliente asignado y sin color propio: naranja de aviso por defecto.
-        if (! $this->client_id) {
+        // Sin ningún dato de cliente (ni ficha ni nombre suelto) y sin color
+        // propio: naranja de aviso. Un turno con nombre suelto es deliberado,
+        // así que no se marca como incompleto.
+        if (! $this->client_id && ! $this->cliente_nombre) {
             return '#fd7e14';
         }
 
@@ -79,12 +83,16 @@ class Turno extends Model
     {
         $nombresServicios = $this->servicios->pluck('nombre')->implode(', ');
 
+        // Nombre a mostrar: la ficha del cliente, o el nombre suelto de un turno
+        // sin registrar, o el aviso de turno incompleto (importado de Google).
+        $nombreCliente = $this->client?->full_name ?: $this->cliente_nombre;
+        $titulo = $nombreCliente
+            ? trim($nombreCliente . ($nombresServicios ? ' · ' . $nombresServicios : ''))
+            : '⚠ Sin asignar' . ($this->notas ? ' · ' . strtok($this->notas, "\n") : '');
+
         return [
             'id' => $this->id,
-            'title' => $this->client_id
-                ? trim(($this->client?->full_name ?? 'Cliente')
-                    . ($nombresServicios ? ' · ' . $nombresServicios : ''))
-                : '⚠ Sin asignar' . ($this->notas ? ' · ' . strtok($this->notas, "\n") : ''),
+            'title' => $titulo,
             'start' => $this->inicia_en->toIso8601String(),
             'end' => $this->termina_en->toIso8601String(),
             'color' => $this->colorCalendario(),
@@ -97,6 +105,8 @@ class Turno extends Model
                 'client_id' => $this->client_id,
                 'cliente' => $this->client?->full_name,
                 'cliente_telefono' => $this->client?->phone,
+                'cliente_nombre_libre' => $this->cliente_nombre,
+                'cliente_telefono_libre' => $this->cliente_telefono,
                 'color_propio' => $this->color,
                 'notas' => $this->notas,
             ],

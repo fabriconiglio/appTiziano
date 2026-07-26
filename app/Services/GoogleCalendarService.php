@@ -223,13 +223,15 @@ class GoogleCalendarService
     {
         $turno->loadMissing(['client', 'peluquera', 'servicios']);
 
-        $cliente = $turno->client->full_name ?? 'Cliente';
+        // Cliente registrado, o el nombre suelto de un turno sin registrar.
+        $cliente = $turno->client?->full_name ?: ($turno->cliente_nombre ?: 'Cliente');
         $servicio = $turno->servicios->pluck('nombre')->implode(', ') ?: 'Servicio';
         $peluquera = $turno->peluquera->nombre ?? '';
 
         $descripcion = "Servicio: {$servicio}\nPeluquera: {$peluquera}\nEstado: {$turno->estado}";
-        if ($turno->client?->phone) {
-            $descripcion .= "\nTel: {$turno->client->phone}";
+        $telefono = $turno->client?->phone ?: $turno->cliente_telefono;
+        if ($telefono) {
+            $descripcion .= "\nTel: {$telefono}";
         }
         if ($turno->notas) {
             $descripcion .= "\nNotas: {$turno->notas}";

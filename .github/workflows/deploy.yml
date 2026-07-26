@@ -31,6 +31,12 @@ jobs:
             chown -R www-data:www-data storage bootstrap/cache
             chmod -R 775 storage bootstrap/cache
 
+            # --- Assets del panel admin (Vite: resources/js, resources/sass) ---
+            # Sin lockfile versionado (se limpia arriba), por eso npm install y no npm ci.
+            npm install --no-audit --no-fund
+            npm run build
+            chown -R www-data:www-data public/build
+
             # --- Next.js ---
             cd frontend
             pm2 stop tiendatiziano-next 2>/dev/null || true

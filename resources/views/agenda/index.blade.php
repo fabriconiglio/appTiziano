@@ -109,7 +109,18 @@
                                     <i class="fas fa-plus"></i> Crear servicio
                                 </a>
                             </div>
-                            <select id="servicioIds" class="form-select" multiple></select>
+                            <input type="text" id="servicioFiltro" class="form-control form-control-sm mb-1"
+                                   placeholder="Escribí para filtrar (ej: corte)" autocomplete="off">
+                            <div id="serviciosLista" class="border rounded p-2" style="max-height: 170px; overflow-y: auto;">
+                                @foreach($servicios as $s)
+                                    <div class="form-check servicio-item">
+                                        <input class="form-check-input servicio-check" type="checkbox"
+                                               value="{{ $s->id }}" id="servicioChk{{ $s->id }}">
+                                        <label class="form-check-label" for="servicioChk{{ $s->id }}">{{ $s->nombre }}</label>
+                                    </div>
+                                @endforeach
+                            </div>
+                            <div id="serviciosSinResultados" class="small text-muted mt-1 d-none">Sin resultados para esa búsqueda</div>
 
                             <!-- Alta rápida de servicio -->
                             <div id="nuevoServicioBox" class="border rounded p-2 mt-2 bg-light d-none">
@@ -318,19 +329,40 @@
                 mostrarNuevoCliente(false);
             });
 
-            // Select múltiple de servicios (Choices.js). La lista se pasa por JS
-            // (no se parsean <option> del HTML) para no depender de que el select
-            // ya esté "visible" cuando Choices inicializa dentro del modal oculto.
-            const serviciosDisponibles = @json($servicios->map(fn ($s) => ['value' => (string) $s->id, 'label' => $s->nombre]));
-            const servicioSelect = document.getElementById('servicioIds');
-            const servicioChoices = new Choices(servicioSelect, {
-                choices: serviciosDisponibles,
-                removeItemButton: true,
-                shouldSort: false,
-                placeholderValue: 'Elegí uno o más servicios...',
-                noChoicesText: 'No hay más servicios para agregar',
-                noResultsText: 'Sin resultados para esa búsqueda',
-            });
+            // Servicios: lista de checkboxes con filtro por texto. No usa Choices.js
+            // a propósito — la página carga Choices v10 por CDN pero el bundle de la
+            // app trae la v11 con su CSS, y esa mezcla rompía el desplegable.
+            const serviciosLista = document.getElementById('serviciosLista');
+            const servicioFiltro = document.getElementById('servicioFiltro');
+            const serviciosSinResultados = document.getElementById('serviciosSinResultados');
+
+            function serviciosSeleccionados() {
+                return Array.from(serviciosLista.querySelectorAll('.servicio-check:checked'))
+                    .map(chk => chk.value);
+            }
+
+            function setServicios(ids) {
+                const buscados = (ids || []).map(String);
+                serviciosLista.querySelectorAll('.servicio-check').forEach(function (chk) {
+                    chk.checked = buscados.includes(chk.value);
+                });
+            }
+
+            function filtrarServicios() {
+                const q = servicioFiltro.value.trim().toLowerCase();
+                let visibles = 0;
+                serviciosLista.querySelectorAll('.servicio-item').forEach(function (item) {
+                    const nombre = item.textContent.trim().toLowerCase();
+                    // Los ya tildados quedan siempre visibles, para no "perderlos" al filtrar.
+                    const tildado = item.querySelector('.servicio-check').checked;
+                    const coincide = !q || nombre.includes(q) || tildado;
+                    item.classList.toggle('d-none', !coincide);
+                    if (coincide) visibles++;
+                });
+                serviciosSinResultados.classList.toggle('d-none', visibles > 0);
+            }
+
+            servicioFiltro.addEventListener('input', filtrarServicios);
 
             // --- Alta rápida de servicio ---
             const nsBox = document.getElementById('nuevoServicioBox');
@@ -368,10 +400,21 @@
                     nsAlert.classList.remove('d-none');
                     return;
                 }
-                // Sumarlo a las opciones y agregarlo a la selección actual (sin
-                // reemplazar los servicios ya elegidos).
-                servicioChoices.setChoices([{ value: String(data.id), label: data.nombre }], 'value', 'label', false);
-                servicioChoices.setChoiceByValue(String(data.id));
+                // Sumarlo a la lista (si no estaba) y dejarlo tildado, sin tocar
+                // los servicios ya elegidos.
+                let chk = serviciosLista.querySelector(`.servicio-check[value="${data.id}"]`);
+                if (!chk) {
+                    const item = document.createElement('div');
+                    item.className = 'form-check servicio-item';
+                    item.innerHTML = `<input class="form-check-input servicio-check" type="checkbox" value="${data.id}" id="servicioChk${data.id}">`
+                        + `<label class="form-check-label" for="servicioChk${data.id}"></label>`;
+                    item.querySelector('label').textContent = data.nombre;
+                    serviciosLista.appendChild(item);
+                    chk = item.querySelector('.servicio-check');
+                }
+                chk.checked = true;
+                servicioFiltro.value = '';
+                filtrarServicios();
                 mostrarNuevoServicio(false);
             });
 
@@ -400,7 +443,9 @@
                 document.getElementById('modalTurnoTitulo').textContent = 'Nuevo turno';
                 document.getElementById('btnEliminarTurno').classList.add('d-none');
                 document.getElementById('estado').value = 'pendiente';
-                servicioChoices.removeActiveItems();
+                setServicios([]);
+                servicioFiltro.value = '';
+                filtrarServicios();
                 mostrarNuevoServicio(false);
                 setColor('');
                 setCliente('');
@@ -425,11 +470,10 @@
                 document.getElementById('btnEliminarTurno').classList.remove('d-none');
                 mostrarNuevoCliente(false);
                 setCliente(p.client_id, p.cliente, p.cliente_telefono);
-                servicioChoices.removeActiveItems();
+                setServicios(p.servicio_ids || []);
+                servicioFiltro.value = '';
+                filtrarServicios();
                 mostrarNuevoServicio(false);
-                if (p.servicio_ids && p.servicio_ids.length) {
-                    servicioChoices.setChoiceByValue(p.servicio_ids.map(String));
-                }
                 setColor(p.color_propio || '');
                 document.getElementById('iniciaEn').value = toLocalInput(event.start);
                 document.getElementById('estado').value = p.estado;
@@ -466,7 +510,7 @@
                 const id = document.getElementById('turnoId').value;
                 const payload = {
                     client_id: document.getElementById('clientId').value,
-                    servicio_ids: servicioChoices.getValue(true),
+                    servicio_ids: serviciosSeleccionados(),
                     color: document.getElementById('turnoColor').value || null,
                     telefono: telefonoInput.value.trim() || null,
                     inicia_en: document.getElementById('iniciaEn').value,

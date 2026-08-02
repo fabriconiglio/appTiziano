@@ -90,7 +90,8 @@
 </head>
 <body>
     <div class="barra-acciones">
-        <button class="btn btn-primary" onclick="window.print()">🖨 Imprimir</button>
+        <a class="btn btn-primary" id="btnPdf" href="#" target="_blank">📄 Descargar PDF para imprimir</a>
+        <button class="btn" onclick="window.print()">🖨 Imprimir desde el navegador</button>
         <a class="btn" href="{{ route('supplier-inventories.show', $producto) }}">Volver</a>
         <span class="cant-box">
             Cantidad de etiquetas:
@@ -99,13 +100,14 @@
     </div>
 
     <div class="ayuda">
-        <strong>En la ventana de impresión:</strong>
-        Impresora <strong>4BARCODE</strong> &nbsp;•&nbsp; Márgenes: <strong>Ninguno</strong> &nbsp;•&nbsp;
-        Escala: <strong>Tamaño real</strong> &nbsp;•&nbsp; Encabezados y pies: <strong>destildado</strong>
+        <strong>Usá el botón "Descargar PDF para imprimir"</strong> (el oscuro). El PDF ya viene con la medida
+        exacta de la etiqueta, así que la impresora no la deforma. Se abre en otra pestaña: ahí apretás el
+        ícono de imprimir, elegís la impresora <strong>4BARCODE</strong>, ponés
+        <strong>Escala: Tamaño real</strong> (o 100%) y listo.
 
         <div style="margin-top:8px">
-            <strong>¿Sale torcido o cortado?</strong> Probá estas opciones hasta encontrar la que salga bien
-            (medida actual: <code>{{ $ancho }}mm x {{ $alto }}mm{{ $rotar ? ' girado' : '' }}</code>):
+            <strong>¿Sale más chico o corrido?</strong> Es que la etiqueta mide otra cosa. Probá estas medidas
+            hasta dar con la que salga bien (medida actual: <code>{{ $ancho }}mm x {{ $alto }}mm</code>):
         </div>
         <div class="calib">
             @php
@@ -146,6 +148,11 @@
         const hoja = document.getElementById('hoja');
         const inputCant = document.getElementById('cantidad');
 
+        const btnPdf = document.getElementById('btnPdf');
+        const baseUrl = @json(route('supplier-inventories.etiqueta', $producto));
+        const anchoActual = @json($ancho);
+        const altoActual = @json($alto);
+
         function render() {
             let n = parseInt(inputCant.value, 10);
             if (isNaN(n) || n < 1) n = 1;
@@ -154,6 +161,8 @@
             for (let i = 0; i < n; i++) {
                 hoja.appendChild(tpl.content.cloneNode(true));
             }
+            // El PDF respeta la cantidad y la medida que estén elegidas.
+            btnPdf.href = `${baseUrl}?formato=pdf&cant=${n}&ancho=${anchoActual}&alto=${altoActual}`;
         }
 
         inputCant.addEventListener('input', render);

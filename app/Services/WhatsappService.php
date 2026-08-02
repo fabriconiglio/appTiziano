@@ -77,13 +77,19 @@ class WhatsappService
         }
     }
 
+    /**
+     * Variables de la plantilla aprobada por Meta (recordatorio_turno_tiziano):
+     * {{1}} nombre, {{2}} fecha, {{3}} hora. WhatsApp rechaza el envío si alguna
+     * variable va vacía, así que ninguna puede quedar sin valor.
+     */
     private function variables(Turno $turno): array
     {
+        $nombre = $turno->client?->name ?: $turno->cliente_nombre;
+
         return [
-            '1' => $turno->client?->name ?? 'cliente',
+            '1' => $nombre ?: 'cliente',
             '2' => $turno->inicia_en->locale('es')->isoFormat('D/MM'),
             '3' => $turno->inicia_en->format('H:i'),
-            '4' => $turno->peluquera?->nombre ?? '',
         ];
     }
 
@@ -97,7 +103,7 @@ class WhatsappService
 
     private function cuerpoPorDefecto(): string
     {
-        return 'Hola {{1}}, te recordamos tu turno en Tiziano el {{2}} a las {{3}} hs con {{4}}. '
+        return 'Hola {{1}}, te recordamos tu turno en Tiziano Peluquería & Spa el {{2}} a las {{3}} hs. '
             . 'Respondé SI para confirmar o NO para cancelar.';
     }
 

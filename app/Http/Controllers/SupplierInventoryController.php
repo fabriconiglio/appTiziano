@@ -793,6 +793,12 @@ class SupplierInventoryController extends Controller
         $ancho = max(20, min(120, (float) $request->get('ancho', 60)));
         $alto = max(15, min(120, (float) $request->get('alto', 30)));
         $rotar = $request->boolean('rotar');
+
+        // El PDF lleva el tamaño de página embebido, así que la impresora térmica
+        // no depende de cómo esté configurado el papel en el driver ni en Chrome.
+        if ($request->get('formato') === 'pdf') {
+            return $this->etiquetaPdf($supplierInventory, $cantidad, $ancho, $alto);
+        }
         $codigo = $supplierInventory->codigo_barra;
         $generator = new \Picqer\Barcode\BarcodeGeneratorSVG();
 
@@ -819,6 +825,43 @@ class SupplierInventoryController extends Controller
             'alto' => $alto,
             'rotar' => $rotar,
         ]);
+    }
+
+    /**
+     * Genera la etiqueta como PDF con el tamaño de página exacto en milímetros.
+     * Es la vía confiable para la impresora térmica: el tamaño va embebido en el
+     * archivo, así no depende del papel configurado en el driver ni del navegador.
+     */
+    private function etiquetaPdf(SupplierInventory $producto, int $cantidad, float $ancho, float $alto)
+    {
+        $codigo = $producto->codigo_barra;
+
+        // PNG en vez de SVG: dompdf no rasteriza SVG de forma confiable.
+        $generator = new \Picqer\Barcode\BarcodeGeneratorPNG();
+        try {
+            $tipo = preg_match('/^\d{13}$/', $codigo)
+                ? \Picqer\Barcode\BarcodeGeneratorPNG::TYPE_EAN_13
+                : \Picqer\Barcode\BarcodeGeneratorPNG::TYPE_CODE_128;
+            $png = $generator->getBarcode($codigo, $tipo, 3, 80);
+        } catch (\Throwable $e) {
+            $png = $generator->getBarcode($codigo, \Picqer\Barcode\BarcodeGeneratorPNG::TYPE_CODE_128, 3, 80);
+        }
+
+        $barcodeBase64 = 'data:image/png;base64,' . base64_encode($png);
+
+        // dompdf toma el tamaño en puntos (1mm = 2.8346pt).
+        $anchoPt = $ancho * 2.8346;
+        $altoPt = $alto * 2.8346;
+
+        $pdf = Pdf::loadView('supplier-inventories.etiqueta-pdf', [
+            'producto' => $producto,
+            'barcode' => $barcodeBase64,
+            'cantidad' => $cantidad,
+            'ancho' => $ancho,
+            'alto' => $alto,
+        ])->setPaper([0, 0, $anchoPt, $altoPt]);
+
+        return $pdf->stream('etiqueta-' . $producto->id . '.pdf');
     }
 
     /**

@@ -24,10 +24,68 @@
         .etiqueta .codigo { font-size: 10px; letter-spacing: 1px; margin-top: 2px; }
         .etiqueta svg { max-width: 100%; height: auto; }
 
+        .ayuda {
+            background: #fff8e1; border: 1px solid #f0c36d; border-radius: 6px;
+            padding: 8px 12px; font-size: 13px; color: #6b4f00; margin-bottom: 12px;
+            max-width: 640px; line-height: 1.5;
+        }
+        .ayuda strong { color: #4a3600; }
+
+        /* Tamaño físico real de la etiqueta de la impresora térmica: 6cm x 3cm */
+        @page {
+            size: 60mm 30mm;
+            margin: 0;
+        }
+
         @media print {
-            .barra-acciones { display: none; }
-            body { padding: 0; }
-            .etiqueta { border: none; }
+            html, body {
+                width: 60mm;
+                margin: 0;
+                padding: 0;
+            }
+            .barra-acciones, .ayuda { display: none !important; }
+            .hoja { display: block; gap: 0; }
+
+            .etiqueta {
+                width: 60mm;
+                height: 30mm;
+                margin: 0;
+                padding: 1.5mm;
+                border: none;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                overflow: hidden;
+                /* Cada etiqueta ocupa una etiqueta física del rollo */
+                page-break-after: always;
+                break-after: page;
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+            /* Evita que salga una etiqueta en blanco al final */
+            .etiqueta:last-child {
+                page-break-after: auto;
+                break-after: auto;
+            }
+
+            .etiqueta .nombre {
+                font-size: 6.5pt;
+                line-height: 1.1;
+                margin: 0 0 1mm;
+                max-width: 100%;
+            }
+            /* 48mm de ancho deja ~4,5mm de zona muda a cada lado (la necesita el lector) */
+            .etiqueta svg {
+                width: 48mm;
+                height: auto;
+                max-height: 15mm;
+            }
+            .etiqueta .codigo {
+                font-size: 6.5pt;
+                letter-spacing: 0.5px;
+                margin: 1mm 0 0;
+            }
         }
     </style>
 </head>
@@ -39,6 +97,13 @@
             Cantidad de etiquetas:
             <input type="number" id="cantidad" min="1" max="100" value="{{ $cantidad }}">
         </span>
+    </div>
+
+    <div class="ayuda">
+        <strong>La primera vez que imprimas en esta computadora</strong>, en la ventana de impresión revisá que esté así:<br>
+        • <strong>Destino:</strong> la impresora de etiquetas (4BARCODE)<br>
+        • <strong>Márgenes:</strong> Ninguno &nbsp;•&nbsp; <strong>Encabezados y pies de página:</strong> destildado<br>
+        Chrome lo recuerda para la próxima: después alcanza con apretar Imprimir.
     </div>
 
     <!-- Plantilla de una etiqueta -->

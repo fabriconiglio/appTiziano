@@ -798,8 +798,10 @@ class SupplierInventoryController extends Controller
             $svg = $generator->getBarcode($codigo, \Picqer\Barcode\BarcodeGeneratorSVG::TYPE_CODE_128, 2, 60);
         }
 
-        // Sacar el prólogo XML para poder incrustar el SVG inline en HTML.
+        // Sacar el prólogo XML y el DOCTYPE para poder incrustar el SVG inline en
+        // HTML (un DOCTYPE suelto en el body es inválido y afecta la impresión).
         $svg = preg_replace('/^<\?xml.*?\?>\s*/', '', $svg);
+        $svg = preg_replace('/<!DOCTYPE[^>]*>\s*/i', '', $svg);
 
         return view('supplier-inventories.etiqueta', [
             'producto' => $supplierInventory,

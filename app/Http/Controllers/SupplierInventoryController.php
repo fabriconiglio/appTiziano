@@ -774,7 +774,12 @@ class SupplierInventoryController extends Controller
 
     /**
      * Etiqueta imprimible con el código de barras del producto.
-     * ?cant=N repite la etiqueta N veces en la hoja (por defecto 1).
+     *
+     * Parámetros de calibración (para ajustar a la impresora térmica sin tocar código):
+     *   ?cant=N    cantidad de etiquetas (por defecto 1)
+     *   ?ancho=60  ancho de la etiqueta en mm
+     *   ?alto=30   alto de la etiqueta en mm
+     *   ?rotar=1   gira el contenido 90° (si el driver tiene el papel al revés)
      */
     public function etiqueta(Request $request, SupplierInventory $supplierInventory)
     {
@@ -785,6 +790,9 @@ class SupplierInventoryController extends Controller
         }
 
         $cantidad = max(1, min(100, (int) $request->get('cant', 1)));
+        $ancho = max(20, min(120, (float) $request->get('ancho', 60)));
+        $alto = max(15, min(120, (float) $request->get('alto', 30)));
+        $rotar = $request->boolean('rotar');
         $codigo = $supplierInventory->codigo_barra;
         $generator = new \Picqer\Barcode\BarcodeGeneratorSVG();
 
@@ -807,6 +815,9 @@ class SupplierInventoryController extends Controller
             'producto' => $supplierInventory,
             'svg' => $svg,
             'cantidad' => $cantidad,
+            'ancho' => $ancho,
+            'alto' => $alto,
+            'rotar' => $rotar,
         ]);
     }
 

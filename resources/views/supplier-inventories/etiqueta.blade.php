@@ -16,30 +16,39 @@
         .cant-box input { width: 70px; padding: 6px 8px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
         .hoja { display: flex; flex-wrap: wrap; gap: 8px; }
         .etiqueta {
-            width: 5cm; border: 1px dashed #bbb; padding: 6px 8px; text-align: center;
-            page-break-inside: avoid;
+            width: {{ $ancho }}mm; height: {{ $alto }}mm;
+            border: 1px dashed #bbb; padding: 1.5mm; text-align: center;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            overflow: hidden;
         }
-        .etiqueta .nombre { font-size: 11px; font-weight: bold; margin: 0 0 2px; line-height: 1.1;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .etiqueta .codigo { font-size: 10px; letter-spacing: 1px; margin-top: 2px; }
-        .etiqueta svg { max-width: 100%; height: auto; }
+        .etiqueta .nombre { font-size: 7pt; font-weight: bold; margin: 0 0 1mm; line-height: 1.1;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+        .etiqueta .codigo { font-size: 7pt; letter-spacing: 0.5px; margin: 1mm 0 0; }
+        .etiqueta svg { width: {{ $ancho - 12 }}mm; height: auto; max-height: {{ $alto / 2 }}mm; }
 
         .ayuda {
             background: #fff8e1; border: 1px solid #f0c36d; border-radius: 6px;
-            padding: 8px 12px; font-size: 13px; color: #6b4f00; margin-bottom: 12px;
-            max-width: 640px; line-height: 1.5;
+            padding: 10px 12px; font-size: 13px; color: #6b4f00; margin-bottom: 12px;
+            max-width: 720px; line-height: 1.6;
         }
         .ayuda strong { color: #4a3600; }
+        .ayuda code { background: #fff; padding: 1px 5px; border-radius: 3px; border: 1px solid #e5d5a8; }
+        .calib { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+        .calib a {
+            font-size: 12px; padding: 5px 9px; border-radius: 5px; text-decoration: none;
+            border: 1px solid #c9a227; background: #fff; color: #6b4f00;
+        }
+        .calib a.actual { background: #6b4f00; color: #fff; border-color: #6b4f00; }
 
-        /* Tamaño físico real de la etiqueta de la impresora térmica: 6cm x 3cm */
+        /* Tamaño físico de la etiqueta (configurable con ?ancho= y ?alto=) */
         @page {
-            size: 60mm 30mm;
+            size: {{ $ancho }}mm {{ $alto }}mm;
             margin: 0;
         }
 
         @media print {
             html, body {
-                width: 60mm;
+                width: {{ $ancho }}mm;
                 margin: 0;
                 padding: 0;
             }
@@ -47,45 +56,35 @@
             .hoja { display: block; gap: 0; }
 
             .etiqueta {
-                width: 60mm;
-                height: 30mm;
+                width: {{ $ancho }}mm;
+                height: {{ $alto }}mm;
                 margin: 0;
-                padding: 1.5mm;
                 border: none;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                align-items: center;
-                overflow: hidden;
                 /* Cada etiqueta ocupa una etiqueta física del rollo */
                 page-break-after: always;
                 break-after: page;
                 page-break-inside: avoid;
                 break-inside: avoid;
             }
-            /* Evita que salga una etiqueta en blanco al final */
             .etiqueta:last-child {
                 page-break-after: auto;
                 break-after: auto;
             }
 
-            .etiqueta .nombre {
-                font-size: 6.5pt;
-                line-height: 1.1;
-                margin: 0 0 1mm;
-                max-width: 100%;
+            @if($rotar)
+            /* El driver tiene el papel al revés: giramos el contenido 90° */
+            .etiqueta {
+                width: {{ $alto }}mm;
+                height: {{ $ancho }}mm;
             }
-            /* 48mm de ancho deja ~4,5mm de zona muda a cada lado (la necesita el lector) */
-            .etiqueta svg {
-                width: 48mm;
-                height: auto;
-                max-height: 15mm;
+            .etiqueta > * {
+                transform: rotate(-90deg);
+                transform-origin: center;
             }
-            .etiqueta .codigo {
-                font-size: 6.5pt;
-                letter-spacing: 0.5px;
-                margin: 1mm 0 0;
+            .etiqueta {
+                flex-direction: row;
             }
+            @endif
         }
     </style>
 </head>
@@ -100,10 +99,35 @@
     </div>
 
     <div class="ayuda">
-        <strong>La primera vez que imprimas en esta computadora</strong>, en la ventana de impresión revisá que esté así:<br>
-        • <strong>Destino:</strong> la impresora de etiquetas (4BARCODE)<br>
-        • <strong>Márgenes:</strong> Ninguno &nbsp;•&nbsp; <strong>Encabezados y pies de página:</strong> destildado<br>
-        Chrome lo recuerda para la próxima: después alcanza con apretar Imprimir.
+        <strong>En la ventana de impresión:</strong>
+        Impresora <strong>4BARCODE</strong> &nbsp;•&nbsp; Márgenes: <strong>Ninguno</strong> &nbsp;•&nbsp;
+        Escala: <strong>Tamaño real</strong> &nbsp;•&nbsp; Encabezados y pies: <strong>destildado</strong>
+
+        <div style="margin-top:8px">
+            <strong>¿Sale torcido o cortado?</strong> Probá estas opciones hasta encontrar la que salga bien
+            (medida actual: <code>{{ $ancho }}mm x {{ $alto }}mm{{ $rotar ? ' girado' : '' }}</code>):
+        </div>
+        <div class="calib">
+            @php
+                $opciones = [
+                    ['ancho' => 60, 'alto' => 30, 'rotar' => 0, 'txt' => '60 x 30'],
+                    ['ancho' => 60, 'alto' => 30, 'rotar' => 1, 'txt' => '60 x 30 girado'],
+                    ['ancho' => 50, 'alto' => 30, 'rotar' => 0, 'txt' => '50 x 30'],
+                    ['ancho' => 50, 'alto' => 25, 'rotar' => 0, 'txt' => '50 x 25'],
+                    ['ancho' => 40, 'alto' => 30, 'rotar' => 0, 'txt' => '40 x 30'],
+                    ['ancho' => 30, 'alto' => 60, 'rotar' => 0, 'txt' => '30 x 60 (vertical)'],
+                ];
+            @endphp
+            @foreach($opciones as $o)
+                @php
+                    $esActual = (int) $ancho === $o['ancho'] && (int) $alto === $o['alto'] && (int) $rotar === $o['rotar'];
+                @endphp
+                <a class="{{ $esActual ? 'actual' : '' }}"
+                   href="{{ route('supplier-inventories.etiqueta', $producto) }}?cant={{ $cantidad }}&ancho={{ $o['ancho'] }}&alto={{ $o['alto'] }}&rotar={{ $o['rotar'] }}">
+                    {{ $o['txt'] }}
+                </a>
+            @endforeach
+        </div>
     </div>
 
     <!-- Plantilla de una etiqueta -->

@@ -6,9 +6,9 @@
         @page { margin: 0; }
         body { margin: 0; padding: 0; font-family: Helvetica, Arial, sans-serif; }
 
-        /* Todas las etiquetas van en una sola página, apiladas. Nada de
-           page-break: cada salto de página hace que la térmica avance el papel
-           hasta el final de su hoja y salgan etiquetas en blanco de más. */
+        /* Una etiqueta por página: es lo que espera el driver con el papel en
+           40x30. Apiladas en una página larga, el driver la recorta al alto de su
+           papel y sale una sola por más que se pidan varias. */
         /* El espacio de arriba va como padding del contenedor, no como margen del
            primer hijo: un margin-top se escapa del bloque, estira el total y
            empuja las últimas etiquetas a una segunda página.
@@ -21,6 +21,9 @@
             text-align: center;
             overflow: hidden;
         }
+        /* dompdf no soporta :last-child, así que el salto se marca con una clase
+           solo en las que NO son la última (si no, sale una página en blanco). */
+        .salto { page-break-after: always; }
 
         .nombre {
             font-size: 6pt;
@@ -45,7 +48,7 @@
 </head>
 <body>
     @for ($i = 0; $i < $cantidad; $i++)
-        <div class="etiqueta">
+        <div class="etiqueta{{ $i < $cantidad - 1 ? ' salto' : '' }}">
             <div class="nombre">{{ $producto->product_name }}</div>
             <img class="barcode" src="{{ $barcode }}" alt="{{ $producto->codigo_barra }}">
             <div class="codigo">{{ $producto->codigo_barra }}</div>

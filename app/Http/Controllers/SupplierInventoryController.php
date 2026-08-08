@@ -777,9 +777,12 @@ class SupplierInventoryController extends Controller
      *
      * Parámetros de calibración (para ajustar a la impresora térmica sin tocar código):
      *   ?cant=N    cantidad de etiquetas (por defecto 1)
-     *   ?ancho=60  ancho de la etiqueta en mm
+     *   ?ancho=40  ancho de la etiqueta en mm
      *   ?alto=30   alto de la etiqueta en mm
      *   ?rotar=1   gira el contenido 90° (si el driver tiene el papel al revés)
+     *
+     * El default 40x30 sale del archivo .ddl del software de la 4BARCODE 4B-2054K,
+     * que declara paper w="40" h="30" a 203 dpi. Es la medida física del rollo.
      */
     public function etiqueta(Request $request, SupplierInventory $supplierInventory)
     {
@@ -790,7 +793,7 @@ class SupplierInventoryController extends Controller
         }
 
         $cantidad = max(1, min(100, (int) $request->get('cant', 1)));
-        $ancho = max(20, min(120, (float) $request->get('ancho', 60)));
+        $ancho = max(20, min(120, (float) $request->get('ancho', 40)));
         $alto = max(15, min(120, (float) $request->get('alto', 30)));
         $rotar = $request->boolean('rotar');
 
@@ -842,9 +845,9 @@ class SupplierInventoryController extends Controller
             $tipo = preg_match('/^\d{13}$/', $codigo)
                 ? \Picqer\Barcode\BarcodeGeneratorPNG::TYPE_EAN_13
                 : \Picqer\Barcode\BarcodeGeneratorPNG::TYPE_CODE_128;
-            $png = $generator->getBarcode($codigo, $tipo, 3, 80);
+            $png = $generator->getBarcode($codigo, $tipo, 3, 120);
         } catch (\Throwable $e) {
-            $png = $generator->getBarcode($codigo, \Picqer\Barcode\BarcodeGeneratorPNG::TYPE_CODE_128, 3, 80);
+            $png = $generator->getBarcode($codigo, \Picqer\Barcode\BarcodeGeneratorPNG::TYPE_CODE_128, 3, 120);
         }
 
         $barcodeBase64 = 'data:image/png;base64,' . base64_encode($png);

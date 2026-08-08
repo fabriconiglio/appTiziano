@@ -106,18 +106,20 @@
         <strong>Escala: Tamaño real</strong> (o 100%) y listo.
 
         <div style="margin-top:8px">
-            <strong>¿Sale más chico o corrido?</strong> Es que la etiqueta mide otra cosa. Probá estas medidas
-            hasta dar con la que salga bien (medida actual: <code>{{ $ancho }}mm x {{ $alto }}mm</code>):
+            Está configurado en <code>{{ $ancho }}mm x {{ $alto }}mm</code>, que es la medida del rollo
+            que usa la 4BARCODE. <strong>Si algún día comprás etiquetas de otro tamaño</strong>, elegilo acá:
         </div>
         <div class="calib">
             @php
+                // 40x30 es la medida real del rollo (sale del .ddl del software de
+                // la 4BARCODE). Las demás quedan por si algún día cambia el rollo.
                 $opciones = [
-                    ['ancho' => 60, 'alto' => 30, 'rotar' => 0, 'txt' => '60 x 30'],
-                    ['ancho' => 60, 'alto' => 30, 'rotar' => 1, 'txt' => '60 x 30 girado'],
+                    ['ancho' => 40, 'alto' => 30, 'rotar' => 0, 'txt' => '40 x 30 ✔'],
                     ['ancho' => 50, 'alto' => 30, 'rotar' => 0, 'txt' => '50 x 30'],
+                    ['ancho' => 60, 'alto' => 30, 'rotar' => 0, 'txt' => '60 x 30'],
                     ['ancho' => 50, 'alto' => 25, 'rotar' => 0, 'txt' => '50 x 25'],
-                    ['ancho' => 40, 'alto' => 30, 'rotar' => 0, 'txt' => '40 x 30'],
-                    ['ancho' => 30, 'alto' => 60, 'rotar' => 0, 'txt' => '30 x 60 (vertical)'],
+                    ['ancho' => 40, 'alto' => 25, 'rotar' => 0, 'txt' => '40 x 25'],
+                    ['ancho' => 30, 'alto' => 20, 'rotar' => 0, 'txt' => '30 x 20'],
                 ];
             @endphp
             @foreach($opciones as $o)

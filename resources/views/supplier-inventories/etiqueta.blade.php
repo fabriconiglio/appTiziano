@@ -23,8 +23,10 @@
             width: {{ $ancho }}mm; height: {{ $alto }}mm;
             border: 1px dashed #bbb; text-align: center; overflow: hidden;
         }
-        .etiqueta svg { width: {{ min($ancho - 12, 28) }}mm; height: 10mm; margin-top: 8.19mm; }
-        .etiqueta .codigo { font-size: 6pt; letter-spacing: 0.3pt; margin: 0.5mm 0 0; }
+        .etiqueta .nombre { font-size: 6pt; font-weight: bold; margin: 7.5mm 0 0.8mm; padding: 0 2mm;
+            white-space: nowrap; overflow: hidden; }
+        .etiqueta svg { width: {{ min($ancho - 15, 25) }}mm; height: 8mm; }
+        .etiqueta .codigo { font-size: 7pt; letter-spacing: 0.3pt; margin: 0.5mm 0 0; }
     </style>
 </head>
 <body>
@@ -40,6 +42,7 @@
     </div>
 
     <div class="etiqueta">
+        <div class="nombre">{{ $producto->product_name }}</div>
         {!! $svg !!}
         <div class="codigo">{{ $producto->codigo_barra }}</div>
     </div>

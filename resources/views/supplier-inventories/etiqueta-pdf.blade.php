@@ -9,27 +9,35 @@
         /* Todas las etiquetas van en una sola página, apiladas. Nada de
            page-break: cada salto de página hace que la térmica avance el papel
            hasta el final de su hoja y salgan etiquetas en blanco de más. */
+        /* El espacio de arriba va como padding del contenedor, no como margen del
+           primer hijo: un margin-top se escapa del bloque, estira el total y
+           empuja las últimas etiquetas a una segunda página.
+           height + padding suman los {{ $alto }}mm (dompdf usa content-box). */
         .etiqueta {
             width: {{ $ancho }}mm;
-            height: {{ $alto }}mm;
+            height: {{ $alto - 7.5 }}mm;
             margin: 0;
-            padding: 0;
+            padding: 7.5mm 0 0;
             text-align: center;
             overflow: hidden;
         }
 
-        /* Medidas tomadas del .ddl del software de la 4BARCODE: el código
-           arranca a 8.19mm del borde de arriba y mide 10mm de alto.
-           El ancho sí difiere: el .ddl usa 19.77mm porque lleva un Code128 de 8
-           dígitos, y un EAN-13 (95 módulos) a ese ancho da barras de 0.21mm,
-           por debajo del mínimo legible de 0.264mm. A 28mm quedan en 0.29mm. */
+        .nombre {
+            font-size: 6pt;
+            font-weight: bold;
+            margin: 0 0 0.8mm;
+            padding: 0 2mm;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+        /* 25mm es el piso: un EAN-13 son 95 módulos, y más angosto que esto las
+           barras bajan de los 0.264mm que necesita un lector para engancharlo. */
         .barcode {
-            width: {{ min($ancho - 12, 28) }}mm;
-            height: 10mm;
-            margin-top: 8.19mm;
+            width: {{ min($ancho - 15, 25) }}mm;
+            height: 8mm;
         }
         .codigo {
-            font-size: 6pt;
+            font-size: 7pt;
             margin: 0.5mm 0 0;
             letter-spacing: 0.3pt;
         }
@@ -38,6 +46,7 @@
 <body>
     @for ($i = 0; $i < $cantidad; $i++)
         <div class="etiqueta">
+            <div class="nombre">{{ $producto->product_name }}</div>
             <img class="barcode" src="{{ $barcode }}" alt="{{ $producto->codigo_barra }}">
             <div class="codigo">{{ $producto->codigo_barra }}</div>
         </div>

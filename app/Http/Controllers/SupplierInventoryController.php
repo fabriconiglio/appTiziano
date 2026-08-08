@@ -864,7 +864,22 @@ class SupplierInventoryController extends Controller
             'alto' => $alto,
         ])->setPaper([0, 0, $anchoPt, $altoPt]);
 
-        return $pdf->stream('etiqueta-' . $producto->id . '.pdf');
+        // Preferencias de impresión embebidas en el PDF: Edge las lee y arranca
+        // con "Tamaño real" en vez de "Ajustar al área de impresión", que era lo
+        // que deformaba la etiqueta si la clienta no lo cambiaba a mano.
+        $dompdf = $pdf->getDomPDF();
+        $dompdf->render();
+        $dompdf->getCanvas()->get_cpdf()->setPreferences([
+            'PrintScaling' => 'None',
+            'Duplex' => 'Simplex',
+            'NumCopies' => 1,
+            'PickTrayByPDFSize' => true,
+        ]);
+
+        return response($dompdf->output(), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="etiqueta-' . $producto->id . '.pdf"',
+        ]);
     }
 
     /**

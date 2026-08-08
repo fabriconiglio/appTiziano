@@ -39,6 +39,10 @@
             border: 1px solid #c9a227; background: #fff; color: #6b4f00;
         }
         .calib a.actual { background: #6b4f00; color: #fff; border-color: #6b4f00; }
+        .config-driver {
+            background: #fff; border: 1px solid #e5d5a8; border-radius: 5px;
+            padding: 9px 11px; margin-top: 10px; font-size: 12.5px;
+        }
 
         /* Tamaño físico de la etiqueta (configurable con ?ancho= y ?alto=) */
         @page {
@@ -100,10 +104,32 @@
     </div>
 
     <div class="ayuda">
-        <strong>Usá el botón "Descargar PDF para imprimir"</strong> (el oscuro). El PDF ya viene con la medida
-        exacta de la etiqueta, así que la impresora no la deforma. Se abre en otra pestaña: ahí apretás el
-        ícono de imprimir, elegís la impresora <strong>4BARCODE</strong>, ponés
-        <strong>Escala: Tamaño real</strong> (o 100%) y listo.
+        <strong>Usá el botón "Descargar PDF para imprimir"</strong> (el oscuro). Se abre en otra pestaña:
+        ahí apretás el ícono de imprimir, elegís la impresora <strong>4BARCODE</strong> y dale Imprimir.
+
+        <div class="config-driver">
+            <div style="font-size:14px; margin-bottom:6px">
+                ⚙️ <strong>Configurá la impresora una sola vez</strong>
+            </div>
+            Si salen <strong>etiquetas en blanco de más</strong> o tenés que cambiar a mano
+            "Vertical" y "Tamaño real" cada vez, es porque Windows tiene mal el tamaño del papel.
+            Se arregla una vez y no lo tocás nunca más:
+            <ol style="margin:6px 0 0; padding-left:20px">
+                <li>Botón de Windows → escribí <code>impresoras</code> → <em>Impresoras y escáneres</em></li>
+                <li>Clic en <strong>4BARCODE 4B-2054K</strong> → <em>Preferencias de impresión</em></li>
+                <li>En <strong>Tamaño del papel</strong> elegí (o creá con <em>Nuevo</em>) uno de
+                    <strong>{{ (int) $ancho }} mm de ancho x {{ (int) $alto }} mm de alto</strong></li>
+                <li>Orientación: <strong>Vertical</strong></li>
+                <li><em>Aplicar</em> → <em>Aceptar</em></li>
+            </ol>
+            <div style="margin-top:6px">
+                ⚠️ <strong>Sí, va en "Vertical"</strong> aunque la etiqueta sea más ancha que alta.
+                Parece al revés pero así es como sale derecha. Si ponés "Horizontal" sale girada.
+            </div>
+            <div style="margin-top:6px">
+                Después de esto, imprimir es apretar el botón y darle Imprimir, sin tocar nada más.
+            </div>
+        </div>
 
         <div style="margin-top:8px">
             Está configurado en <code>{{ $ancho }}mm x {{ $alto }}mm</code>, que es la medida del rollo

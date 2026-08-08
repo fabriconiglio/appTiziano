@@ -16,32 +16,27 @@
         /* dompdf no soporta :last-child, así que el salto se marca con una clase
            solo en las etiquetas que NO son la última (si no, imprime una de más). */
         .salto { page-break-after: always; }
-        /* 6pt es el tamaño que usa el software de la 4BARCODE en su plantilla:
-           en 40mm de ancho, 7pt ya corta los nombres largos. */
-        .nombre {
-            font-size: 6pt;
-            font-weight: bold;
-            margin: 1.5mm 0 0.5mm;
-            padding: 0 1.5mm;
-            white-space: nowrap;
-            overflow: hidden;
-        }
-        /* 3mm de quiet zone a cada lado: sin margen blanco el lector no engancha. */
+
+        /* Medidas tomadas del .ddl del software de la 4BARCODE: el código
+           arranca a 8.19mm del borde de arriba y mide 10mm de alto.
+           El ancho sí difiere: el .ddl usa 19.77mm porque lleva un Code128 de 8
+           dígitos, y un EAN-13 (95 módulos) a ese ancho da barras de 0.21mm,
+           por debajo del mínimo legible de 0.264mm. A 28mm quedan en 0.29mm. */
         .barcode {
-            width: {{ $ancho - 6 }}mm;
-            height: {{ $alto * 0.45 }}mm;
+            width: {{ min($ancho - 12, 28) }}mm;
+            height: 10mm;
+            margin-top: 8.19mm;
         }
         .codigo {
             font-size: 6pt;
             margin: 0.5mm 0 0;
-            letter-spacing: 0.5pt;
+            letter-spacing: 0.3pt;
         }
     </style>
 </head>
 <body>
     @for ($i = 0; $i < $cantidad; $i++)
         <div class="etiqueta{{ $i < $cantidad - 1 ? ' salto' : '' }}">
-            <div class="nombre">{{ $producto->product_name }}</div>
             <img class="barcode" src="{{ $barcode }}" alt="{{ $producto->codigo_barra }}">
             <div class="codigo">{{ $producto->codigo_barra }}</div>
         </div>

@@ -852,9 +852,24 @@ class SupplierInventoryController extends Controller
 
         $barcodeBase64 = 'data:image/png;base64,' . base64_encode($png);
 
-        // dompdf toma el tamaño en puntos (1mm = 2.8346pt).
+        // Una sola página con todas las etiquetas apiladas, en vez de una página
+        // por etiqueta. El driver de la térmica avanza el papel hasta el final de
+        // su hoja al cerrar cada página, así que una página por etiqueta gastaba
+        // dos etiquetas en blanco por cada una impresa.
+        $altoTotal = $alto * $cantidad;
+
+        // Edge elige la orientación mirando la forma de la página: si es más alta
+        // que ancha arranca en Vertical sin que haya que tocarlo. Con una sola
+        // etiqueta quedaría apaisada, así que se completa hasta pasar el ancho.
+        if ($altoTotal <= $ancho) {
+            $altoTotal = ceil(($ancho + 1) / $alto) * $alto;
+        }
+
+        // dompdf toma el tamaño en puntos (1mm = 2.8346pt). El punto extra de alto
+        // es para que el contenido no quede justo al borde: si llega exacto, dompdf
+        // lo desborda y abre una segunda página.
         $anchoPt = $ancho * 2.8346;
-        $altoPt = $alto * 2.8346;
+        $altoPt = $altoTotal * 2.8346 + 1;
 
         $pdf = Pdf::loadView('supplier-inventories.etiqueta-pdf', [
             'producto' => $producto,

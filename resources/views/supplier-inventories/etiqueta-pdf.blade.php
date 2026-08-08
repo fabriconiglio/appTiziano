@@ -5,17 +5,18 @@
     <style>
         @page { margin: 0; }
         body { margin: 0; padding: 0; font-family: Helvetica, Arial, sans-serif; }
-        /* Sin alto fijo: si el bloque mide lo mismo que la página, dompdf lo
-           desborda y genera una etiqueta en blanco por cada una impresa. */
+
+        /* Todas las etiquetas van en una sola página, apiladas. Nada de
+           page-break: cada salto de página hace que la térmica avance el papel
+           hasta el final de su hoja y salgan etiquetas en blanco de más. */
         .etiqueta {
             width: {{ $ancho }}mm;
+            height: {{ $alto }}mm;
             margin: 0;
             padding: 0;
             text-align: center;
+            overflow: hidden;
         }
-        /* dompdf no soporta :last-child, así que el salto se marca con una clase
-           solo en las etiquetas que NO son la última (si no, imprime una de más). */
-        .salto { page-break-after: always; }
 
         /* Medidas tomadas del .ddl del software de la 4BARCODE: el código
            arranca a 8.19mm del borde de arriba y mide 10mm de alto.
@@ -36,7 +37,7 @@
 </head>
 <body>
     @for ($i = 0; $i < $cantidad; $i++)
-        <div class="etiqueta{{ $i < $cantidad - 1 ? ' salto' : '' }}">
+        <div class="etiqueta">
             <img class="barcode" src="{{ $barcode }}" alt="{{ $producto->codigo_barra }}">
             <div class="codigo">{{ $producto->codigo_barra }}</div>
         </div>

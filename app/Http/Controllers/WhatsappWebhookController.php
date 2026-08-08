@@ -16,6 +16,9 @@ use Illuminate\Support\Facades\Log;
  */
 class WhatsappWebhookController extends Controller
 {
+    /** Teléfono de la peluquería que se le pasa al cliente en cada respuesta. */
+    private const TELEFONO_CONTACTO = '+54 9 3516 19-7836';
+
     public function __invoke(Request $request)
     {
         $from = (string) $request->input('From', '');   // whatsapp:+549...
@@ -53,6 +56,8 @@ class WhatsappWebhookController extends Controller
         $mensaje = $nuevoEstado === 'confirmado'
             ? '¡Gracias! Tu turno quedó confirmado. Te esperamos.'
             : 'Tu turno fue cancelado. ¡Esperamos verte pronto!';
+
+        $mensaje .= ' Cualquier consulta comunicate al ' . self::TELEFONO_CONTACTO . '.';
 
         return $this->twiml($mensaje);
     }

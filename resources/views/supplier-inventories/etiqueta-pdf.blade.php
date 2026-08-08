@@ -6,9 +6,9 @@
         @page { margin: 0; }
         body { margin: 0; padding: 0; font-family: Helvetica, Arial, sans-serif; }
 
-        /* Una etiqueta por página: es lo que espera el driver con el papel en
-           40x30. Apiladas en una página larga, el driver la recorta al alto de su
-           papel y sale una sola por más que se pidan varias. */
+        /* Una etiqueta por página, arriba de todo. La página es más alta que la
+           etiqueta para que Edge la tome como vertical (ver el controller); el
+           sobrante queda vacío y el driver lo recorta sin gastar etiqueta. */
         /* El espacio de arriba va como padding del contenedor, no como margen del
            primer hijo: un margin-top se escapa del bloque, estira el total y
            empuja las últimas etiquetas a una segunda página.

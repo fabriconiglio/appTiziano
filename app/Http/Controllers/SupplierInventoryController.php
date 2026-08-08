@@ -852,16 +852,20 @@ class SupplierInventoryController extends Controller
 
         $barcodeBase64 = 'data:image/png;base64,' . base64_encode($png);
 
-        // Una página por etiqueta, del tamaño exacto de la etiqueta. Con el papel
-        // del driver bien configurado (40x30) es lo que corresponde: si se manda
-        // una página larga con varias apiladas, el driver la recorta al alto de
-        // su papel e imprime solo la primera.
+        // Una página por etiqueta (si van varias apiladas en una página larga, el
+        // driver la recorta al alto de su papel e imprime solo la primera).
         //
+        // La página se hace más alta que ancha a propósito: Edge elige la
+        // orientación mirando la forma de la página, y con 40x30 arranca en
+        // "Horizontal", que imprime girado. Con 40x60 arranca en "Vertical" sola.
+        // El sobrante no gasta etiqueta: el driver recorta al alto de su papel.
+        $altoPagina = ceil(($ancho + 1) / $alto) * $alto;
+
         // dompdf toma el tamaño en puntos (1mm = 2.8346pt). El punto extra de alto
         // es para que el contenido no quede justo al borde: si llega exacto, dompdf
         // lo desborda y abre una página en blanco por cada etiqueta.
         $anchoPt = $ancho * 2.8346;
-        $altoPt = $alto * 2.8346 + 1;
+        $altoPt = $altoPagina * 2.8346 + 1;
 
         $pdf = Pdf::loadView('supplier-inventories.etiqueta-pdf', [
             'producto' => $producto,

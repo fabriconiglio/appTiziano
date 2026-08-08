@@ -20,7 +20,11 @@ Artisan::command('recordatorios:semana', function () {
     $desde = \Carbon\Carbon::now();
     $hasta = \Carbon\Carbon::now()->endOfWeek(\Carbon\Carbon::SUNDAY);
 
-    $turnos = \App\Models\Turno::where('estado', 'pendiente')
+    // Pendientes y confirmados: la peluquería carga los turnos ya confirmados
+    // (los agenda por teléfono), así que filtrar solo por "pendiente" dejaba
+    // afuera a casi todo el mundo. Al confirmado le sirve igual de aviso, y si
+    // responde NO el webhook lo cancela.
+    $turnos = \App\Models\Turno::whereIn('estado', ['pendiente', 'confirmado'])
         ->whereNotNull('client_id') // los "sin asignar" (importados de Google) no tienen a quién avisar
         ->whereBetween('inicia_en', [$desde, $hasta])
         ->get();

@@ -30,8 +30,8 @@ class WhatsappWebhookController extends Controller
         $turno = $this->turnoDeCliente($from);
 
         if (! $turno) {
-            Log::info('Whatsapp webhook: sin turno pendiente para el número', ['from' => $from]);
-            return $this->twiml('No encontramos un turno pendiente asociado a este número.');
+            Log::info('Whatsapp webhook: sin turno próximo para el número', ['from' => $from]);
+            return $this->twiml('No encontramos un turno próximo asociado a este número.');
         }
 
         $nuevoEstado = $respuesta === 'SI' ? 'confirmado' : 'cancelado';
@@ -89,8 +89,10 @@ class WhatsappWebhookController extends Controller
             return null;
         }
 
+        // Pendientes y confirmados: el recordatorio sale para los dos estados, así
+        // que el que ya estaba confirmado tiene que poder cancelar respondiendo NO.
         return Turno::whereIn('client_id', $clientIds)
-            ->where('estado', 'pendiente')
+            ->whereIn('estado', ['pendiente', 'confirmado'])
             ->where('inicia_en', '>=', Carbon::now()->startOfDay())
             ->orderBy('inicia_en')
             ->first();

@@ -31,7 +31,12 @@
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 20px;
+            /* Los anchos salen de los <th>. Sin esto dompdf mide el contenido de
+               cada celda para repartir el ancho y con ~800 filas se queda sin
+               memoria al agregar una columna más. */
+            table-layout: fixed;
         }
+        td { word-wrap: break-word; }
         th {
             background-color: #f5f5f5;
             border: 1px solid #ddd;
@@ -71,10 +76,11 @@
     <table>
         <thead>
             <tr>
-                <th style="width: 30%;">Nombre del Producto</th>
-                <th style="width: 40%;">Descripción - Marca</th>
-                <th style="width: 15%;">Precio por Mayor</th>
-                <th style="width: 15%;">Categoría</th>
+                <th style="width: 24%;">Nombre del Producto</th>
+                <th style="width: 30%;">Descripción</th>
+                <th style="width: 14%;">Marca</th>
+                <th style="width: 16%;">Precio por Mayor</th>
+                <th style="width: 16%;">Categoría</th>
             </tr>
         </thead>
         <tbody>
@@ -82,6 +88,7 @@
             <tr>
                 <td><strong>{{ $product['name'] }}</strong></td>
                 <td>{{ $product['description'] }}</td>
+                <td>{{ $product['brand'] }}</td>
                 <td class="text-right">{{ $product['precio_mayor'] }}</td>
                 <td>{{ $product['category'] }}</td>
             </tr>

@@ -997,8 +997,9 @@ class SupplierInventoryController extends Controller
      */
     public function exportListaMayorista()
     {
-        // Aumentar límite de memoria temporalmente para DomPDF
-        ini_set('memory_limit', '256M');
+        // Aumentar límite de memoria temporalmente para DomPDF. Son ~800 productos
+        // y dompdf arma un objeto por celda: con la columna de marca, 256M no alcanza.
+        ini_set('memory_limit', '512M');
         
         try {
             // Obtener todos los productos con sus relaciones (solo columnas necesarias)
@@ -1011,16 +1012,13 @@ class SupplierInventoryController extends Controller
             $mayoristaData = [];
 
             foreach ($products as $product) {
-                $description = $product->description ?: $product->product_name;
-                $brand = $product->distributorBrand ? $product->distributorBrand->name : '';
-                $displayText = !empty($brand) ? $description . ' - ' . $brand : $description;
-                $category = $product->distributorCategory ? $product->distributorCategory->name : 'Sin categoría';
-                
+                // Descripción y marca van en columnas separadas del PDF.
                 $mayoristaData[] = [
                     'name' => $product->product_name,
-                    'description' => $displayText,
+                    'description' => $product->description ?: $product->product_name,
+                    'brand' => $product->distributorBrand ? $product->distributorBrand->name : '-',
                     'precio_mayor' => $product->precio_mayor ? '$' . number_format($product->precio_mayor, 2) : 'N/A',
-                    'category' => $category
+                    'category' => $product->distributorCategory ? $product->distributorCategory->name : 'Sin categoría',
                 ];
             }
 
@@ -1044,8 +1042,9 @@ class SupplierInventoryController extends Controller
      */
     public function exportListaMinorista()
     {
-        // Aumentar límite de memoria temporalmente para DomPDF
-        ini_set('memory_limit', '256M');
+        // Aumentar límite de memoria temporalmente para DomPDF. Son ~800 productos
+        // y dompdf arma un objeto por celda: con la columna de marca, 256M no alcanza.
+        ini_set('memory_limit', '512M');
         
         try {
             // Obtener todos los productos con sus relaciones (solo columnas necesarias)
@@ -1058,16 +1057,13 @@ class SupplierInventoryController extends Controller
             $minoristaData = [];
 
             foreach ($products as $product) {
-                $description = $product->description ?: $product->product_name;
-                $brand = $product->distributorBrand ? $product->distributorBrand->name : '';
-                $displayText = !empty($brand) ? $description . ' - ' . $brand : $description;
-                $category = $product->distributorCategory ? $product->distributorCategory->name : 'Sin categoría';
-                
+                // Descripción y marca van en columnas separadas del PDF.
                 $minoristaData[] = [
                     'name' => $product->product_name,
-                    'description' => $displayText,
+                    'description' => $product->description ?: $product->product_name,
+                    'brand' => $product->distributorBrand ? $product->distributorBrand->name : '-',
                     'precio_menor' => $product->precio_menor ? '$' . number_format($product->precio_menor, 2) : 'N/A',
-                    'category' => $category
+                    'category' => $product->distributorCategory ? $product->distributorCategory->name : 'Sin categoría',
                 ];
             }
 

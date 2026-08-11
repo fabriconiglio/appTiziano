@@ -27,7 +27,10 @@ class WhatsappWebhookController extends Controller
         $respuesta = $this->interpretar($body);
 
         if ($respuesta === null) {
-            return $this->twiml('No entendimos tu respuesta. Respondé SI para confirmar o NO para cancelar.');
+            return $this->twiml(
+                'No entendimos tu respuesta. Respondé SI para confirmar o NO para cancelar. '
+                . 'Cualquier consulta comunicate al ' . self::TELEFONO_CONTACTO . '.'
+            );
         }
 
         $turno = $this->turnoDeCliente($from);
@@ -62,15 +65,37 @@ class WhatsappWebhookController extends Controller
         return $this->twiml($mensaje);
     }
 
+    /**
+     * Interpreta la respuesta del cliente.
+     *
+     * Busca la palabra dentro del mensaje en vez de exigir que sea exacta: la
+     * gente contesta "Sí", "dale" o "perdón pero voy a tener que cancelar, NO",
+     * no un SI pelado. También normaliza acentos, porque strtoupper() no toca
+     * las vocales acentuadas y "Sí" nunca llegaba a coincidir con "SÍ".
+     */
     private function interpretar(string $body): ?string
     {
-        if (in_array($body, ['SI', 'SÍ', 'S', 'CONFIRMAR', 'CONFIRMO'], true)) {
-            return 'SI';
+        $texto = mb_strtolower(trim($body), 'UTF-8');
+        $texto = strtr($texto, [
+            'á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u', 'ü' => 'u', 'ñ' => 'n',
+        ]);
+        // Fuera signos y emojis, que si no quedan pegados a la palabra.
+        $texto = preg_replace('/[^a-z0-9\s]/u', ' ', $texto);
+        $palabras = preg_split('/\s+/', trim($texto), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+
+        $afirmativas = ['si', 's', 'confirmar', 'confirmo', 'confirmado', 'dale', 'ok', 'okey', 'listo', 'perfecto', 'asisto'];
+        $negativas = ['no', 'n', 'cancelar', 'cancelo', 'cancela', 'anular', 'anulo', 'suspender'];
+
+        $diceSi = (bool) array_intersect($palabras, $afirmativas);
+        $diceNo = (bool) array_intersect($palabras, $negativas);
+
+        // Si dice las dos cosas ("no sé si puedo") o ninguna, se vuelve a
+        // preguntar: cancelar un turno por adivinar mal es peor que repreguntar.
+        if ($diceSi === $diceNo) {
+            return null;
         }
-        if (in_array($body, ['NO', 'N', 'CANCELAR', 'CANCELO'], true)) {
-            return 'NO';
-        }
-        return null;
+
+        return $diceSi ? 'SI' : 'NO';
     }
 
     /**

@@ -78,6 +78,56 @@ class WhatsappService
     }
 
     /**
+     * Avisa a la peluquería que una clienta confirmó o canceló su turno.
+     *
+     * Va como texto libre, así que WhatsApp sólo lo entrega si el número de la
+     * peluquería escribió al número del negocio en las últimas 24 hs. Para que
+     * llegue siempre hace falta una plantilla aprobada por Meta.
+     */
+    public function avisarPeluqueria(Turno $turno, string $nuevoEstado): bool
+    {
+        $destino = $this->formatearDestino(config('services.twilio.whatsapp_admin'));
+
+        if (! $this->habilitado() || ! $destino) {
+            return false;
+        }
+
+        $turno->loadMissing(['client', 'servicios']);
+
+        $nombre = $turno->client?->name ?: ($turno->cliente_nombre ?: 'Una clienta');
+        $servicios = $turno->servicios->pluck('nombre')->implode(', ');
+
+        $texto = $nuevoEstado === 'cancelado'
+            ? "❌ {$nombre} CANCELÓ su turno del {$turno->inicia_en->format('d/m')} a las {$turno->inicia_en->format('H:i')} hs."
+            : "✅ {$nombre} confirmó su turno del {$turno->inicia_en->format('d/m')} a las {$turno->inicia_en->format('H:i')} hs.";
+
+        if ($servicios) {
+            $texto .= " ({$servicios})";
+        }
+
+        try {
+            $client = new \Twilio\Rest\Client(
+                config('services.twilio.sid'),
+                config('services.twilio.token')
+            );
+
+            $client->messages->create($destino, [
+                'from' => config('services.twilio.whatsapp_from'),
+                'body' => $texto,
+            ]);
+
+            return true;
+        } catch (\Throwable $e) {
+            // No romper la respuesta a la clienta si el aviso interno falla.
+            Log::warning('Whatsapp: no se pudo avisar a la peluquería', [
+                'turno_id' => $turno->id,
+                'error' => $e->getMessage(),
+            ]);
+            return false;
+        }
+    }
+
+    /**
      * Variables de la plantilla aprobada por Meta (recordatorio_turno_tiziano):
      * {{1}} nombre, {{2}} fecha, {{3}} hora. WhatsApp rechaza el envío si alguna
      * variable va vacía, así que ninguna puede quedar sin valor.

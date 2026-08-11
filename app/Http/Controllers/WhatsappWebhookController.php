@@ -56,6 +56,11 @@ class WhatsappWebhookController extends Controller
             ->first()
             ?->update(['respuesta' => $respuesta, 'respondido_en' => now()]);
 
+        // Avisar a la peluquería, sobre todo para las cancelaciones: hasta ahora el
+        // turno se marcaba gris y desaparecía de Google Calendar sin que nadie se
+        // enterara hasta que la clienta no aparecía.
+        app(\App\Services\WhatsappService::class)->avisarPeluqueria($turno, $nuevoEstado);
+
         $mensaje = $nuevoEstado === 'confirmado'
             ? '¡Gracias! Tu turno quedó confirmado. Te esperamos.'
             : 'Tu turno fue cancelado. ¡Esperamos verte pronto!';

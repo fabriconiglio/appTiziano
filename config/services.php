@@ -56,6 +56,10 @@ return [
         'whatsapp_from' => env('TWILIO_WHATSAPP_FROM'),
         // Master switch: si está en false no se envía nada (modo dev / pre-aprobación Meta).
         'whatsapp_enabled' => env('WHATSAPP_ENABLED', false),
+        // Número de la peluquería: recibe el aviso cuando una clienta confirma o
+        // cancela por WhatsApp. Vacío = no se avisa a nadie (default a propósito,
+        // para no mandarle avisos de turnos a un número equivocado).
+        'whatsapp_admin' => env('TWILIO_WHATSAPP_ADMIN'),
     ],
 
     'andreani' => [

@@ -111,10 +111,22 @@ class WhatsappService
                 config('services.twilio.token')
             );
 
-            $client->messages->create($destino, [
-                'from' => config('services.twilio.whatsapp_from'),
-                'body' => $texto,
-            ]);
+            $opciones = ['from' => config('services.twilio.whatsapp_from')];
+
+            if ($contentSid = config('services.twilio.whatsapp_content_aviso')) {
+                // Plantilla aprobada: llega siempre, sin depender de la ventana de 24 hs.
+                $opciones['contentSid'] = $contentSid;
+                $opciones['contentVariables'] = json_encode([
+                    '1' => $nombre,
+                    '2' => $nuevoEstado === 'cancelado' ? 'CANCELADO' : 'CONFIRMADO',
+                    '3' => $turno->inicia_en->format('d/m'),
+                    '4' => $turno->inicia_en->format('H:i'),
+                ]);
+            } else {
+                $opciones['body'] = $texto;
+            }
+
+            $client->messages->create($destino, $opciones);
 
             return true;
         } catch (\Throwable $e) {

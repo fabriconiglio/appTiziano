@@ -60,6 +60,10 @@ return [
         // cancela por WhatsApp. Vacío = no se avisa a nadie (default a propósito,
         // para no mandarle avisos de turnos a un número equivocado).
         'whatsapp_admin' => env('TWILIO_WHATSAPP_ADMIN'),
+        // Content SID de la plantilla "aviso_turno_tiziano" (avisos a la
+        // peluquería). Con plantilla el aviso llega siempre; sin ella se manda
+        // texto libre, que WhatsApp sólo entrega dentro de la ventana de 24 hs.
+        'whatsapp_content_aviso' => env('TWILIO_CONTENT_AVISO'),
     ],
 
     'andreani' => [

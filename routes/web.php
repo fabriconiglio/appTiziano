@@ -94,6 +94,17 @@ Route::middleware(['auth', 'restrict.inventory'])->group(function () {
     Route::resource('distributor-clients', DistributorClientController::class);
     Route::post('distributor-clients/{id}/restore', [App\Http\Controllers\DistributorClientController::class, 'restore'])->name('distributor-clients.restore');
     
+    // Devoluciones de la distribuidora (nota de crédito interna, sin AFIP)
+    Route::get('distributor-returns', [App\Http\Controllers\DistributorReturnController::class, 'index'])->name('distributor-returns.index');
+    Route::get('distributor-returns/create', [App\Http\Controllers\DistributorReturnController::class, 'create'])->name('distributor-returns.create');
+    Route::post('distributor-returns', [App\Http\Controllers\DistributorReturnController::class, 'store'])->name('distributor-returns.store');
+    Route::get('distributor-returns/{distributorReturn}', [App\Http\Controllers\DistributorReturnController::class, 'show'])->name('distributor-returns.show');
+    Route::get('distributor-returns/{distributorReturn}/comprobante', [App\Http\Controllers\DistributorReturnController::class, 'comprobante'])->name('distributor-returns.comprobante');
+    Route::post('distributor-returns/{distributorReturn}/anular', [App\Http\Controllers\DistributorReturnController::class, 'anular'])->name('distributor-returns.anular');
+    // Endpoints del alta: cargan compras y productos sin recargar la página.
+    Route::get('distributor-returns-api/clientes/{distributorClient}/compras', [App\Http\Controllers\DistributorReturnController::class, 'comprasDeCliente'])->name('distributor-returns.compras');
+    Route::get('distributor-returns-api/compras/{distributorTechnicalRecord}/productos', [App\Http\Controllers\DistributorReturnController::class, 'productosDeCompraJson'])->name('distributor-returns.productos');
+
     // CRUD de cuentas corrientes de distribuidores
     Route::get('distributor-current-accounts', [DistributorCurrentAccountController::class, 'index'])->name('distributor-current-accounts.index');
     Route::get('distributor-clients/{distributorClient}/current-accounts', [DistributorCurrentAccountController::class, 'show'])->name('distributor-clients.current-accounts.show');

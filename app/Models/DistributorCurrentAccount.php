@@ -10,6 +10,7 @@ class DistributorCurrentAccount extends Model
         'distributor_client_id',
         'user_id',
         'distributor_technical_record_id',
+        'distributor_return_id',
         'type',
         'amount',
         'description',
@@ -38,20 +39,46 @@ class DistributorCurrentAccount extends Model
         return $this->belongsTo(DistributorTechnicalRecord::class);
     }
 
+    public function distributorReturn()
+    {
+        return $this->belongsTo(DistributorReturn::class, 'distributor_return_id');
+    }
+
     /**
-     * Obtener el saldo actual de un cliente distribuidor
+     * Obtener el saldo actual de un cliente distribuidor.
+     *
+     * Las notas de crédito por devolución restan igual que un pago. Si el cliente
+     * devolvió más de lo que debía el saldo queda negativo: es saldo a su favor.
      */
     public static function getCurrentBalance($distributorClientId)
     {
         $debts = self::where('distributor_client_id', $distributorClientId)
             ->where('type', 'debt')
             ->sum('amount');
-        
-        $payments = self::where('distributor_client_id', $distributorClientId)
-            ->where('type', 'payment')
+
+        $resta = self::where('distributor_client_id', $distributorClientId)
+            ->whereIn('type', ['payment', 'credit'])
             ->sum('amount');
-        
-        return $debts - $payments;
+
+        return $debts - $resta;
+    }
+
+    /**
+     * Devolución acumulada del cliente (sólo notas de crédito).
+     */
+    public static function getTotalCredits($distributorClientId)
+    {
+        return self::where('distributor_client_id', $distributorClientId)
+            ->where('type', 'credit')
+            ->sum('amount');
+    }
+
+    /**
+     * Saldo a favor del cliente, en positivo. 0 si debe plata.
+     */
+    public static function getSaldoAFavor($distributorClientId)
+    {
+        return max(0, -self::getCurrentBalance($distributorClientId));
     }
 
     /**

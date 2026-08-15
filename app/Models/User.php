@@ -25,6 +25,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'email',
         'password',
         'role',
+        'puede_anular_devoluciones',
     ];
 
     /**
@@ -47,6 +48,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'puede_anular_devoluciones' => 'boolean',
         ];
     }
 
@@ -58,6 +60,15 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isInventoryViewer(): bool
     {
         return $this->role === 'inventory_viewer';
+    }
+
+    /**
+     * Permiso propio, no derivado del rol: hay más usuarios con rol 'admin' que
+     * los que la peluquería quiere que puedan anular una devolución.
+     */
+    public function puedeAnularDevoluciones(): bool
+    {
+        return (bool) $this->puede_anular_devoluciones;
     }
 
     public function sendPasswordResetNotification($token)

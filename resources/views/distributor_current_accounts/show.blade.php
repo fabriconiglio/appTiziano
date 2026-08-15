@@ -146,6 +146,8 @@
                                             <td>
                                                 @if($account->type === 'debt')
                                                     <span class="badge bg-danger">Deuda</span>
+                                                @elseif($account->type === 'credit')
+                                                    <span class="badge bg-info text-dark">Devolución</span>
                                                 @else
                                                     <span class="badge bg-success">Pago</span>
                                                 @endif

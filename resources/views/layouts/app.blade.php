@@ -185,6 +185,13 @@
                                         {{ __('Cuentas Corrientes') }}
                                     </a>
                                 </li>
+                                <!-- Submenú Devoluciones -->
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item" href="{{ route('distributor-returns.index') }}">
+                                        <i class="fas fa-rotate-left me-2"></i>
+                                        {{ __('Devoluciones') }}
+                                    </a>
+                                </li>
                                 <!-- Submenú Presupuestos -->
                                 <li class="dropdown-submenu">
                                     <a class="dropdown-item" href="{{ route('distributor-quotations.index') }}">

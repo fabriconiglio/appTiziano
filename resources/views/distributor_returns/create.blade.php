@@ -25,12 +25,26 @@
         <div class="card mb-3">
             <div class="card-header bg-light"><strong>1. Cliente</strong></div>
             <div class="card-body">
-                <select id="cliente" class="form-select">
-                    <option value="">— Elegí el cliente —</option>
-                    @foreach($clientes as $cliente)
-                        <option value="{{ $cliente->id }}">{{ $cliente->name }} {{ $cliente->surname }}</option>
-                    @endforeach
-                </select>
+                {{-- Buscador escribible. No usa Choices.js a propósito: la app carga
+                     la v10 por CDN y el bundle trae la v11 con su CSS, y esa mezcla
+                     rompe el desplegable (ya pasó en el modal de la agenda). --}}
+                <div class="position-relative">
+                    <input type="text" id="clienteBuscar" class="form-control" autocomplete="off"
+                           placeholder="Escribí el nombre del cliente...">
+                    <input type="hidden" id="cliente">
+
+                    <div id="clienteOpciones" class="list-group position-absolute w-100 shadow d-none"
+                         style="z-index:1000; max-height:280px; overflow-y:auto;">
+                        @foreach($clientes as $cliente)
+                            <button type="button" class="list-group-item list-group-item-action cliente-opcion"
+                                    data-id="{{ $cliente->id }}"
+                                    data-nombre="{{ trim($cliente->name . ' ' . $cliente->surname) }}">
+                                {{ trim($cliente->name . ' ' . $cliente->surname) }}
+                            </button>
+                        @endforeach
+                    </div>
+                    <div class="form-text d-none" id="clienteElegido"></div>
+                </div>
             </div>
         </div>
 
@@ -137,6 +151,9 @@ const urlCompras = @json(route('distributor-returns.compras', ['distributorClien
 const urlProductos = @json(route('distributor-returns.productos', ['distributorTechnicalRecord' => 'COMPRA']));
 
 const $cliente = document.getElementById('cliente');
+const $clienteBuscar = document.getElementById('clienteBuscar');
+const $clienteOpciones = document.getElementById('clienteOpciones');
+const $clienteElegido = document.getElementById('clienteElegido');
 const $cardCompras = document.getElementById('cardCompras');
 const $listaCompras = document.getElementById('listaCompras');
 const $compraId = document.getElementById('compraId');
@@ -161,15 +178,52 @@ function ocultarDesdeCompras() {
     $listaProductos.innerHTML = '';
 }
 
-$cliente.addEventListener('change', async function () {
+// Filtrar la lista mientras escribe.
+$clienteBuscar.addEventListener('input', function () {
+    const q = this.value.trim().toLowerCase();
+    let visibles = 0;
+
+    document.querySelectorAll('.cliente-opcion').forEach(op => {
+        const coincide = !q || op.dataset.nombre.toLowerCase().includes(q);
+        op.classList.toggle('d-none', !coincide);
+        if (coincide) visibles++;
+    });
+
+    $clienteOpciones.classList.toggle('d-none', visibles === 0);
+});
+
+$clienteBuscar.addEventListener('focus', function () {
+    document.querySelectorAll('.cliente-opcion').forEach(op => op.classList.remove('d-none'));
+    $clienteOpciones.classList.remove('d-none');
+});
+
+// Cerrar al hacer clic afuera, pero no cuando el clic es en una opción.
+document.addEventListener('click', function (e) {
+    if (!e.target.closest('#clienteBuscar') && !e.target.closest('#clienteOpciones')) {
+        $clienteOpciones.classList.add('d-none');
+    }
+});
+
+document.querySelectorAll('.cliente-opcion').forEach(op => {
+    op.addEventListener('click', function () {
+        $cliente.value = this.dataset.id;
+        $clienteBuscar.value = this.dataset.nombre;
+        $clienteOpciones.classList.add('d-none');
+        $clienteElegido.textContent = 'Cliente elegido: ' + this.dataset.nombre;
+        $clienteElegido.classList.remove('d-none');
+        cargarCompras(this.dataset.id);
+    });
+});
+
+async function cargarCompras(clienteId) {
     ocultarDesdeCompras();
     $listaCompras.innerHTML = '';
-    if (!this.value) { $cardCompras.classList.add('d-none'); return; }
+    if (!clienteId) { $cardCompras.classList.add('d-none'); return; }
 
     $cardCompras.classList.remove('d-none');
     $listaCompras.innerHTML = '<div class="text-muted">Buscando compras...</div>';
 
-    const res = await fetch(urlCompras.replace('CLIENTE', this.value));
+    const res = await fetch(urlCompras.replace('CLIENTE', clienteId));
     const compras = await res.json();
 
     if (!compras.length) {
@@ -200,7 +254,7 @@ $cliente.addEventListener('change', async function () {
     }).join('');
 
     document.querySelectorAll('.compra-radio').forEach(r => r.addEventListener('change', elegirCompra));
-});
+}
 
 async function elegirCompra() {
     ocultarDesdeCompras();

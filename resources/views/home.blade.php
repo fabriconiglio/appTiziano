@@ -109,6 +109,12 @@
                                             Cuentas Corrientes
                                         </a>
 
+                                        <a href="{{ route('distributor-returns.index') }}"
+                                           class="btn btn-outline-success">
+                                            <i class="fas fa-rotate-left me-2"></i>
+                                            Devoluciones
+                                        </a>
+
                                         <a href="{{ route('distributor-quotations.index') }}"
                                            class="btn btn-outline-success">
                                             <i class="fas fa-file-invoice-dollar me-2"></i>

@@ -134,7 +134,7 @@
 
     @if($puedeAnular && ! $devolucion->estaAnulada())
         <div class="card border-danger mb-5">
-            <div class="card-header bg-danger text-white"><strong>Anular devolución</strong></div>
+            <div class="card-header"><strong class="text-danger">Anular devolución</strong></div>
             <div class="card-body">
                 <p class="text-muted">
                     Al anularla se resta del stock lo que se había reintegrado y se compensa la cuenta

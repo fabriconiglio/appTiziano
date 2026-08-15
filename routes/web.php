@@ -104,6 +104,7 @@ Route::middleware(['auth', 'restrict.inventory'])->group(function () {
     // Endpoints del alta: cargan compras y productos sin recargar la página.
     Route::get('distributor-returns-api/clientes/{distributorClient}/compras', [App\Http\Controllers\DistributorReturnController::class, 'comprasDeCliente'])->name('distributor-returns.compras');
     Route::get('distributor-returns-api/compras/{distributorTechnicalRecord}/productos', [App\Http\Controllers\DistributorReturnController::class, 'productosDeCompraJson'])->name('distributor-returns.productos');
+    Route::get('distributor-returns-api/ventas-sueltas/{distributorClienteNoFrecuente}/productos', [App\Http\Controllers\DistributorReturnController::class, 'productosDeVentaSuelta'])->name('distributor-returns.productos-sueltos');
 
     // CRUD de cuentas corrientes de distribuidores
     Route::get('distributor-current-accounts', [DistributorCurrentAccountController::class, 'index'])->name('distributor-current-accounts.index');

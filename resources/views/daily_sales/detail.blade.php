@@ -29,6 +29,9 @@
                             @case('cliente_no_frecuente')
                                 Clientes No Frecuentes
                                 @break
+                            @case('returns')
+                                Devoluciones
+                                @break
                             @case('forma_pago_efectivo')
                                 Pagos en Efectivo
                                 @break
@@ -611,6 +614,77 @@
                                 <i class="fas fa-calculator fa-3x text-muted mb-3"></i>
                                 <p class="text-muted">No hay movimientos de cuenta corriente en este período</p>
                             </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    @if($category === 'returns')
+        {{-- Devoluciones del período --}}
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-rotate-left text-danger"></i>
+                            Devoluciones ({{ $details->count() }})
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        @if($details->count() > 0)
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th>Número</th>
+                                            <th>Fecha</th>
+                                            <th>Cliente</th>
+                                            <th>Destino</th>
+                                            <th class="text-end">Monto</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($details as $dev)
+                                            <tr>
+                                                <td><strong>{{ $dev->return_number }}</strong></td>
+                                                <td>{{ $dev->return_date->format('d/m/Y') }}</td>
+                                                <td>{{ $dev->nombreCliente() }}</td>
+                                                <td>
+                                                    @if($dev->destino === 'efectivo')
+                                                        <span class="badge bg-success">Efectivo</span>
+                                                        <small class="text-muted">resta del total</small>
+                                                    @elseif($dev->destino === 'vale')
+                                                        <span class="badge bg-warning text-dark">Vale a favor</span>
+                                                    @else
+                                                        <span class="badge bg-info text-dark">Cuenta corriente</span>
+                                                    @endif
+                                                </td>
+                                                <td class="text-end text-danger">
+                                                    -${{ number_format($dev->total_amount, 2, ',', '.') }}
+                                                </td>
+                                                <td class="text-end">
+                                                    <a href="{{ route('distributor-returns.show', $dev) }}"
+                                                       class="btn btn-sm btn-outline-primary">Ver</a>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                    <tfoot>
+                                        <tr class="table-light">
+                                            <th colspan="4" class="text-end">Total devuelto</th>
+                                            <th class="text-end text-danger">
+                                                -${{ number_format($details->sum('total_amount'), 2, ',', '.') }}
+                                            </th>
+                                            <th></th>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        @else
+                            <p class="text-muted mb-0">No hay devoluciones en este período.</p>
                         @endif
                     </div>
                 </div>

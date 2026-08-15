@@ -217,6 +217,42 @@
         </div>
     </div>
 
+    {{-- Devoluciones. Sólo las entregadas en efectivo restan del total del día:
+         son las que sacan plata de la caja. Las que van a cuenta corriente o
+         quedan como vale se muestran igual, para que no sean invisibles. --}}
+    @if(($periodSales['count_returns'] ?? 0) > 0)
+    <div class="row mb-4">
+        <div class="col-12">
+            <a href="{{ route('daily-sales.detail', ['category' => 'returns', 'start_date' => $startDate->format('Y-m-d'), 'end_date' => $endDate->format('Y-m-d')]) }}"
+               class="text-decoration-none">
+                <div class="card border-danger" style="cursor: pointer;">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title text-danger mb-1">
+                                    <i class="fas fa-rotate-left me-2"></i>Devoluciones
+                                </h6>
+                                <h3 class="card-text text-danger">
+                                    -${{ number_format($periodSales['returns'] ?? 0, 2) }}
+                                </h3>
+                                <small class="text-muted">
+                                    {{ $periodSales['count_returns'] ?? 0 }} devolución(es) ·
+                                    <strong>${{ number_format($periodSales['returns_efectivo'] ?? 0, 2) }}</strong>
+                                    en efectivo (descontado del total) ·
+                                    ${{ number_format($periodSales['returns_cuenta'] ?? 0, 2) }} a cuenta/vale
+                                </small>
+                            </div>
+                            <div class="text-danger">
+                                <i class="fas fa-rotate-left fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+    @endif
+
     <!-- Tercera fila: Resumen GENERAL por Forma de Pago (Todas las ventas) -->
     @php
         $startOfPeriod = $startDate->copy()->startOfDay();

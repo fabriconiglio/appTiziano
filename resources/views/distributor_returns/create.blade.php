@@ -20,6 +20,8 @@
 
     <form method="POST" action="{{ route('distributor-returns.store') }}" id="formDevolucion">
         @csrf
+        <input type="hidden" name="origen" id="origen" value="technical_record">
+        <input type="hidden" name="distributor_cliente_no_frecuente_id" id="ventaSueltaId">
 
         {{-- Paso 1: cliente --}}
         <div class="card mb-3">
@@ -37,9 +39,22 @@
                          style="z-index:1000; max-height:280px; overflow-y:auto;">
                         @foreach($clientes as $cliente)
                             <button type="button" class="list-group-item list-group-item-action cliente-opcion"
-                                    data-id="{{ $cliente->id }}"
+                                    data-tipo="ficha" data-id="{{ $cliente->id }}"
                                     data-nombre="{{ trim($cliente->name . ' ' . $cliente->surname) }}">
                                 {{ trim($cliente->name . ' ' . $cliente->surname) }}
+                                <span class="badge bg-secondary float-end">Cliente</span>
+                            </button>
+                        @endforeach
+
+                        {{-- Ventas sueltas: para estas el cliente y la compra son el
+                             mismo registro, así que se elige la venta directamente. --}}
+                        @foreach($ventasSueltas as $venta)
+                            <button type="button" class="list-group-item list-group-item-action cliente-opcion"
+                                    data-tipo="suelta" data-id="{{ $venta->id }}"
+                                    data-nombre="{{ ($venta->nombre ?: 'Sin nombre') . ' — ' . $venta->fecha->format('d/m/Y') }}">
+                                {{ $venta->nombre ?: 'Sin nombre' }}
+                                <small class="text-muted">— {{ $venta->fecha->format('d/m/Y') }} — ${{ number_format($venta->monto, 2, ',', '.') }}</small>
+                                <span class="badge bg-info text-dark float-end">Venta suelta</span>
                             </button>
                         @endforeach
                     </div>
@@ -108,13 +123,44 @@
                     </div>
                     <div class="col-md-8">
                         <label class="form-label">Destino del importe</label>
-                        <input type="hidden" name="destino" value="cuenta_corriente">
-                        <div class="form-control-plaintext">
-                            <span class="badge bg-info text-dark">Cuenta corriente</span>
-                            <small class="text-muted ms-2">
-                                Le baja la deuda. Si devuelve más de lo que debía, queda a su favor.
-                            </small>
+
+                        {{-- El cliente con ficha va siempre a su cuenta corriente. --}}
+                        <div id="destinoFicha">
+                            <div class="form-control-plaintext">
+                                <span class="badge bg-info text-dark">Cuenta corriente</span>
+                                <small class="text-muted ms-2">
+                                    Le baja la deuda. Si devuelve más de lo que debía, queda a su favor.
+                                </small>
+                            </div>
                         </div>
+
+                        {{-- La venta suelta no tiene cuenta donde imputar, así que elige. --}}
+                        <div id="destinoSuelta" class="d-none">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="destino_suelta"
+                                       value="efectivo" id="destEfectivo" checked>
+                                <label class="form-check-label" for="destEfectivo">
+                                    <strong>Efectivo</strong>
+                                    <small class="text-muted">— le devolvés la plata en el momento</small>
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="destino_suelta"
+                                       value="vale" id="destVale">
+                                <label class="form-check-label" for="destVale">
+                                    <strong>Vale a favor</strong>
+                                    <small class="text-muted">— le queda saldo para la próxima compra</small>
+                                </label>
+                            </div>
+                            <div class="alert alert-warning py-2 px-3 mt-2 mb-0 d-none" id="avisoVale">
+                                <small>
+                                    Al darle un vale se le crea <strong>ficha de cliente distribuidor</strong>
+                                    con ese saldo a favor, así el crédito queda en su cuenta corriente.
+                                </small>
+                            </div>
+                        </div>
+
+                        <input type="hidden" name="destino" id="destino" value="cuenta_corriente">
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Motivo <small class="text-muted">(opcional)</small></label>
@@ -154,6 +200,13 @@ const $cliente = document.getElementById('cliente');
 const $clienteBuscar = document.getElementById('clienteBuscar');
 const $clienteOpciones = document.getElementById('clienteOpciones');
 const $clienteElegido = document.getElementById('clienteElegido');
+const $origen = document.getElementById('origen');
+const $ventaSueltaId = document.getElementById('ventaSueltaId');
+const $destino = document.getElementById('destino');
+const $destinoFicha = document.getElementById('destinoFicha');
+const $destinoSuelta = document.getElementById('destinoSuelta');
+const $avisoVale = document.getElementById('avisoVale');
+const urlProductosSueltos = @json(route('distributor-returns.productos-sueltos', ['distributorClienteNoFrecuente' => 'VENTA']));
 const $cardCompras = document.getElementById('cardCompras');
 const $listaCompras = document.getElementById('listaCompras');
 const $compraId = document.getElementById('compraId');
@@ -176,6 +229,37 @@ function ocultarDesdeCompras() {
     $autorizarPlazo.checked = false;
     $compraId.value = '';
     $listaProductos.innerHTML = '';
+}
+
+/** Pinta la tabla de productos y muestra los pasos que siguen. */
+function pintarProductos(productos) {
+    $listaProductos.innerHTML = productos.map((p, i) => `
+        <tr>
+            <td class="text-center">
+                <input class="form-check-input chk-prod" type="checkbox" data-i="${i}">
+            </td>
+            <td>
+                ${p.nombre}
+                <input type="hidden" name="productos[${i}][product_id]" value="${p.product_id}" disabled>
+            </td>
+            <td class="text-center">${p.cantidad_comprada}</td>
+            <td class="text-center">
+                <input type="number" class="form-control form-control-sm text-center cant-prod"
+                       name="productos[${i}][cantidad]" value="${p.cantidad_comprada}"
+                       min="1" max="${p.cantidad_comprada}" data-i="${i}"
+                       data-precio="${p.precio_unitario}" disabled>
+            </td>
+            <td class="text-end">${money(p.precio_unitario)}</td>
+            <td class="text-end subtotal" data-i="${i}">$0,00</td>
+        </tr>`).join('');
+
+    document.querySelectorAll('.chk-prod').forEach(c => c.addEventListener('change', tildarProducto));
+    document.querySelectorAll('.cant-prod').forEach(c => c.addEventListener('input', recalcular));
+
+    $cardProductos.classList.remove('d-none');
+    $cardDatos.classList.remove('d-none');
+    $acciones.classList.remove('d-none');
+    recalcular();
 }
 
 // Filtrar la lista mientras escribe.
@@ -209,11 +293,61 @@ document.querySelectorAll('.cliente-opcion').forEach(op => {
         $cliente.value = this.dataset.id;
         $clienteBuscar.value = this.dataset.nombre;
         $clienteOpciones.classList.add('d-none');
-        $clienteElegido.textContent = 'Cliente elegido: ' + this.dataset.nombre;
+        $clienteElegido.textContent = 'Elegido: ' + this.dataset.nombre;
         $clienteElegido.classList.remove('d-none');
-        cargarCompras(this.dataset.id);
+
+        if (this.dataset.tipo === 'suelta') {
+            // La venta suelta ya es la compra: se saltea el paso de elegirla.
+            $origen.value = 'cliente_no_frecuente';
+            $ventaSueltaId.value = this.dataset.id;
+            $compraId.value = '';
+            $cardCompras.classList.add('d-none');
+            $destinoFicha.classList.add('d-none');
+            $destinoSuelta.classList.remove('d-none');
+            $destino.value = document.querySelector('input[name="destino_suelta"]:checked').value;
+            cargarProductosSueltos(this.dataset.id);
+        } else {
+            $origen.value = 'technical_record';
+            $ventaSueltaId.value = '';
+            $destinoFicha.classList.remove('d-none');
+            $destinoSuelta.classList.add('d-none');
+            $destino.value = 'cuenta_corriente';
+            cargarCompras(this.dataset.id);
+        }
     });
 });
+
+// El destino elegido para las ventas sueltas viaja en el campo oculto.
+document.querySelectorAll('input[name="destino_suelta"]').forEach(r => {
+    r.addEventListener('change', function () {
+        $destino.value = this.value;
+        $avisoVale.classList.toggle('d-none', this.value !== 'vale');
+    });
+});
+
+async function cargarProductosSueltos(ventaId) {
+    ocultarDesdeCompras();
+    $ventaSueltaId.value = ventaId;
+
+    const res = await fetch(urlProductosSueltos.replace('VENTA', ventaId));
+    if (!res.ok) {
+        const err = await res.json();
+        alert(err.error || 'No se pudieron cargar los productos de esa venta.');
+        return;
+    }
+
+    const data = await res.json();
+
+    if (data.fuera_de_plazo) {
+        $textoPlazo.textContent = `La venta es de hace ${data.dias} días y el plazo es de ${DIAS_PLAZO}.`;
+        $avisoPlazo.classList.remove('d-none');
+        // El aviso vive en la tarjeta de compras, que acá está oculta.
+        $cardCompras.classList.remove('d-none');
+        $listaCompras.innerHTML = '';
+    }
+
+    pintarProductos(data.productos);
+}
 
 async function cargarCompras(clienteId) {
     ocultarDesdeCompras();
@@ -274,33 +408,7 @@ async function elegirCompra() {
     }
 
     const productos = await res.json();
-    $listaProductos.innerHTML = productos.map((p, i) => `
-        <tr>
-            <td class="text-center">
-                <input class="form-check-input chk-prod" type="checkbox" data-i="${i}">
-            </td>
-            <td>
-                ${p.nombre}
-                <input type="hidden" name="productos[${i}][product_id]" value="${p.product_id}" disabled>
-            </td>
-            <td class="text-center">${p.cantidad_comprada}</td>
-            <td class="text-center">
-                <input type="number" class="form-control form-control-sm text-center cant-prod"
-                       name="productos[${i}][cantidad]" value="${p.cantidad_comprada}"
-                       min="1" max="${p.cantidad_comprada}" data-i="${i}"
-                       data-precio="${p.precio_unitario}" disabled>
-            </td>
-            <td class="text-end">${money(p.precio_unitario)}</td>
-            <td class="text-end subtotal" data-i="${i}">$0,00</td>
-        </tr>`).join('');
-
-    document.querySelectorAll('.chk-prod').forEach(c => c.addEventListener('change', tildarProducto));
-    document.querySelectorAll('.cant-prod').forEach(c => c.addEventListener('input', recalcular));
-
-    $cardProductos.classList.remove('d-none');
-    $cardDatos.classList.remove('d-none');
-    $acciones.classList.remove('d-none');
-    recalcular();
+    pintarProductos(productos);
 }
 
 function tildarProducto() {

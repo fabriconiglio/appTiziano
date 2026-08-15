@@ -53,9 +53,54 @@ class DistributorReturnController extends Controller
 
     public function create()
     {
+        // Las ventas sueltas ya devueltas no se ofrecen: se admite una sola
+        // devolución por venta, igual que con las fichas.
+        $devueltas = DistributorReturn::whereNull('anulada_en')
+            ->whereNotNull('distributor_cliente_no_frecuente_id')
+            ->pluck('distributor_cliente_no_frecuente_id');
+
+        $ventasSueltas = DistributorClienteNoFrecuente::whereNotNull('products_purchased')
+            ->whereNotIn('id', $devueltas)
+            ->where('fecha', '>=', now()->subDays(90))
+            ->orderByDesc('fecha')
+            ->get(['id', 'nombre', 'fecha', 'monto']);
+
         return view('distributor_returns.create', [
             'clientes' => DistributorClient::orderBy('name')->get(['id', 'name', 'surname']),
+            'ventasSueltas' => $ventasSueltas,
             'diasPlazo' => DistributorReturn::DIAS_PLAZO,
+        ]);
+    }
+
+    /**
+     * Productos de una venta suelta (cliente no frecuente).
+     *
+     * Para estos clientes la venta y el cliente son el mismo registro, así que no
+     * hay paso intermedio de elegir compra: se va directo a los productos.
+     */
+    public function productosDeVentaSuelta(DistributorClienteNoFrecuente $distributorClienteNoFrecuente)
+    {
+        $items = $this->productosDeCompra($distributorClienteNoFrecuente);
+
+        if (empty($items)) {
+            return response()->json([
+                'error' => 'Esa venta no tiene productos cargados, así que no se puede armar la devolución.',
+            ], 422);
+        }
+
+        $dias = (int) $distributorClienteNoFrecuente->fecha->diffInDays(now());
+        $ids = collect($items)->pluck('product_id')->filter()->all();
+        $nombres = SupplierInventory::whereIn('id', $ids)->pluck('product_name', 'id');
+
+        return response()->json([
+            'dias' => $dias,
+            'fuera_de_plazo' => $dias > DistributorReturn::DIAS_PLAZO,
+            'productos' => collect($items)->map(fn ($item) => [
+                'product_id' => (int) $item['product_id'],
+                'nombre' => $nombres[(int) $item['product_id']] ?? 'Producto #' . $item['product_id'],
+                'cantidad_comprada' => (int) $item['quantity'],
+                'precio_unitario' => (float) $item['price'],
+            ])->values(),
         ]);
     }
 
@@ -116,7 +161,9 @@ class DistributorReturnController extends Controller
     public function store(Request $request)
     {
         $datos = $request->validate([
-            'distributor_technical_record_id' => 'required|exists:distributor_technical_records,id',
+            'origen' => 'required|in:technical_record,cliente_no_frecuente',
+            'distributor_technical_record_id' => 'required_if:origen,technical_record|nullable|exists:distributor_technical_records,id',
+            'distributor_cliente_no_frecuente_id' => 'required_if:origen,cliente_no_frecuente|nullable|exists:distributor_cliente_no_frecuentes,id',
             'return_date' => 'required|date',
             'destino' => 'required|in:cuenta_corriente,efectivo,vale',
             'motivo' => 'nullable|string|max:500',
@@ -127,15 +174,38 @@ class DistributorReturnController extends Controller
             'productos.*.cantidad' => 'required|integer|min:1',
         ]);
 
-        $compra = DistributorTechnicalRecord::findOrFail($datos['distributor_technical_record_id']);
+        $esFicha = $datos['origen'] === 'technical_record';
 
-        if (DistributorReturn::compraYaDevuelta($compra->id)) {
-            return back()->withInput()->with('error', 'Esa compra ya tiene una devolución. Sólo se admite una por compra.');
+        if ($esFicha) {
+            $venta = DistributorTechnicalRecord::findOrFail($datos['distributor_technical_record_id']);
+            $fechaCompra = $venta->purchase_date;
+
+            if (DistributorReturn::compraYaDevuelta($venta->id)) {
+                return back()->withInput()->with('error', 'Esa compra ya tiene una devolución. Sólo se admite una por compra.');
+            }
+        } else {
+            $venta = DistributorClienteNoFrecuente::findOrFail($datos['distributor_cliente_no_frecuente_id']);
+            $fechaCompra = $venta->fecha;
+
+            $yaDevuelta = DistributorReturn::where('distributor_cliente_no_frecuente_id', $venta->id)
+                ->whereNull('anulada_en')->exists();
+
+            if ($yaDevuelta) {
+                return back()->withInput()->with('error', 'Esa venta ya tiene una devolución. Sólo se admite una por venta.');
+            }
         }
 
-        $itemsCompra = collect($this->productosDeCompra($compra));
+        // El cliente con ficha siempre va a su cuenta: el efectivo y el vale son
+        // para las ventas sueltas, que no tienen dónde imputar el crédito.
+        $destino = $esFicha ? DistributorReturn::DESTINO_CUENTA : $datos['destino'];
+
+        if ($esFicha && $destino !== DistributorReturn::DESTINO_CUENTA) {
+            $destino = DistributorReturn::DESTINO_CUENTA;
+        }
+
+        $itemsCompra = collect($this->productosDeCompra($venta));
         if ($itemsCompra->isEmpty()) {
-            return back()->withInput()->with('error', 'Esa compra no tiene productos cargados.');
+            return back()->withInput()->with('error', 'Esa venta no tiene productos cargados.');
         }
 
         // Armar el detalle validando contra lo que realmente compró.
@@ -147,7 +217,7 @@ class DistributorReturnController extends Controller
                 ?? $itemsCompra->firstWhere('product_id', $pedido['product_id']);
 
             if (! $original) {
-                return back()->withInput()->with('error', 'Hay un producto que no pertenece a esa compra.');
+                return back()->withInput()->with('error', 'Hay un producto que no pertenece a esa venta.');
             }
 
             if ($pedido['cantidad'] > (int) $original['quantity']) {
@@ -168,7 +238,7 @@ class DistributorReturnController extends Controller
             ];
         }
 
-        $dias = (int) $compra->purchase_date->diffInDays(now());
+        $dias = (int) $fechaCompra->diffInDays(now());
         $fueraDePlazo = $dias > DistributorReturn::DIAS_PLAZO;
 
         if ($fueraDePlazo && ! $request->boolean('autorizar_fuera_plazo')) {
@@ -177,15 +247,13 @@ class DistributorReturnController extends Controller
                 . ' días. Marcá "Autorizar fuera de plazo" si querés hacerla igual.');
         }
 
-        // El cliente tiene ficha, así que el crédito siempre va a su cuenta.
-        $destino = DistributorReturn::DESTINO_CUENTA;
-
-        DB::transaction(function () use ($compra, $productos, $total, $datos, $dias, $fueraDePlazo, $destino, &$devolucion) {
+        DB::transaction(function () use ($venta, $esFicha, $productos, $total, $datos, $dias, $fueraDePlazo, $destino, &$devolucion) {
             $devolucion = DistributorReturn::create([
                 'return_number' => DistributorReturn::siguienteNumero(),
-                'distributor_client_id' => $compra->distributor_client_id,
-                'distributor_technical_record_id' => $compra->id,
-                'origen' => 'technical_record',
+                'distributor_client_id' => $esFicha ? $venta->distributor_client_id : null,
+                'distributor_cliente_no_frecuente_id' => $esFicha ? null : $venta->id,
+                'distributor_technical_record_id' => $esFicha ? $venta->id : null,
+                'origen' => $datos['origen'],
                 'return_date' => $datos['return_date'],
                 'products_returned' => $productos,
                 'total_amount' => $total,
@@ -200,22 +268,65 @@ class DistributorReturnController extends Controller
 
             $this->reintegrarStock($productos);
 
-            DistributorCurrentAccount::create([
-                'distributor_client_id' => $compra->distributor_client_id,
-                'user_id' => Auth::id(),
-                'distributor_technical_record_id' => $compra->id,
-                'distributor_return_id' => $devolucion->id,
-                'type' => 'credit',
-                'amount' => $total,
-                'description' => 'Devolución ' . $devolucion->return_number,
-                'date' => $datos['return_date'],
-                'reference' => $devolucion->return_number,
-            ]);
+            // El vale le abre ficha al cliente suelto: así el saldo a favor vive en
+            // la cuenta corriente, que ya existe, en vez de en un sistema aparte.
+            $clienteId = $esFicha ? $venta->distributor_client_id : null;
+
+            if (! $esFicha && $destino === DistributorReturn::DESTINO_VALE) {
+                $clienteId = $this->fichaParaVale($venta, $devolucion);
+                $devolucion->update(['distributor_client_id' => $clienteId]);
+            }
+
+            // El efectivo no toca la cuenta corriente: la plata sale de la caja.
+            if ($clienteId && $destino !== DistributorReturn::DESTINO_EFECTIVO) {
+                DistributorCurrentAccount::create([
+                    'distributor_client_id' => $clienteId,
+                    'user_id' => Auth::id(),
+                    'distributor_technical_record_id' => $esFicha ? $venta->id : null,
+                    'distributor_return_id' => $devolucion->id,
+                    'type' => 'credit',
+                    'amount' => $total,
+                    'description' => 'Devolución ' . $devolucion->return_number,
+                    'date' => $datos['return_date'],
+                    'reference' => $devolucion->return_number,
+                ]);
+            }
         });
+
+        $aviso = $destino === DistributorReturn::DESTINO_EFECTIVO
+            ? ' Acordate de entregarle el efectivo al cliente.'
+            : '';
 
         return redirect()
             ->route('distributor-returns.show', $devolucion)
-            ->with('success', 'Devolución ' . $devolucion->return_number . ' registrada. El stock ya volvió al inventario.');
+            ->with('success', 'Devolución ' . $devolucion->return_number . ' registrada. El stock ya volvió al inventario.' . $aviso);
+    }
+
+    /**
+     * Ficha de cliente distribuidor para darle el vale a un cliente suelto.
+     * Si ya existe una con el mismo teléfono se reutiliza, para no duplicar.
+     */
+    private function fichaParaVale(DistributorClienteNoFrecuente $venta, DistributorReturn $devolucion): int
+    {
+        $telefono = trim((string) $venta->telefono);
+
+        if ($telefono !== '') {
+            $existente = DistributorClient::where('phone', $telefono)->first();
+            if ($existente) {
+                return $existente->id;
+            }
+        }
+
+        // El cliente suelto se carga con un solo campo de nombre, pero la ficha
+        // pide nombre y apellido por separado: se parte por el primer espacio.
+        $partes = preg_split('/\s+/', trim((string) $venta->nombre), 2);
+
+        return DistributorClient::create([
+            'name' => $partes[0] ?: 'Cliente',
+            'surname' => $partes[1] ?? '-',
+            'phone' => $telefono ?: null,
+            'observations' => 'Ficha creada automáticamente por el vale de la devolución ' . $devolucion->return_number . '.',
+        ])->id;
     }
 
     public function show(DistributorReturn $distributorReturn)

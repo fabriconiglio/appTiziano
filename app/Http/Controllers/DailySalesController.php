@@ -6,6 +6,7 @@ use App\Models\DistributorQuotation;
 use App\Models\DistributorTechnicalRecord;
 use App\Models\ClientCurrentAccount;
 use App\Models\DistributorCurrentAccount;
+use App\Models\DistributorReturn;
 use App\Models\DistributorClienteNoFrecuente;
 use App\Models\AfipInvoice;
 use Illuminate\Http\Request;
@@ -99,6 +100,37 @@ class DailySalesController extends Controller
     /**
      * Obtener ventas de un rango de fechas
      */
+
+    /**
+     * Devoluciones del período.
+     *
+     * Sólo las de efectivo restan del total: son las que sacan plata de la caja.
+     * Las de cuenta corriente y las de vale quedan como saldo del cliente, igual
+     * que las deudas, que este panel tampoco cuenta.
+     */
+    private function getReturnsInPeriod($startDate, $endDate)
+    {
+        $vacio = ['total' => 0, 'efectivo' => 0, 'cuenta' => 0, 'count' => 0];
+
+        try {
+            if (! Schema::hasTable('distributor_returns')) {
+                return $vacio;
+            }
+
+            $base = DistributorReturn::whereBetween('return_date', [$startDate, $endDate])
+                ->whereNull('anulada_en');
+
+            return [
+                'total' => (clone $base)->sum('total_amount'),
+                'efectivo' => (clone $base)->where('destino', 'efectivo')->sum('total_amount'),
+                'cuenta' => (clone $base)->where('destino', '!=', 'efectivo')->sum('total_amount'),
+                'count' => (clone $base)->count(),
+            ];
+        } catch (\Exception $e) {
+            return $vacio;
+        }
+    }
+
     private function getPeriodSales($startDate, $endDate)
     {
         $startOfPeriod = $startDate->copy()->startOfDay();
@@ -186,12 +218,21 @@ class DailySalesController extends Controller
             $countClienteNoFrecuente = 0;
         }
 
+        // Devoluciones del período: las de efectivo salen de la caja y restan.
+        $returns = $this->getReturnsInPeriod($startOfPeriod, $endOfPeriod);
+
         // Total solo incluye: Fichas Técnicas + CC Pagas + Clientes No Frecuentes
         // NO incluye Presupuestos ni las deudas de CC (distributorAccountSales) porque ese dinero aún no se recibió
-        $totalSales = $technicalRecordSales + $distributorAccountPayments + $clienteNoFrecuenteSales;
+        // Se le restan las devoluciones entregadas en efectivo, que sí sacan plata.
+        $totalSales = $technicalRecordSales + $distributorAccountPayments + $clienteNoFrecuenteSales
+            - $returns['efectivo'];
 
         return [
             'total' => $totalSales,
+            'returns' => $returns['total'],
+            'returns_efectivo' => $returns['efectivo'],
+            'returns_cuenta' => $returns['cuenta'],
+            'count_returns' => $returns['count'],
             'quotations' => $quotationSales,
             'technical_records' => $technicalRecordSales,
             'client_accounts' => $clientAccountSales,
@@ -297,12 +338,21 @@ class DailySalesController extends Controller
             $countClienteNoFrecuente = 0;
         }
 
+        // Devoluciones del período: las de efectivo salen de la caja y restan.
+        $returns = $this->getReturnsInPeriod($startOfDay, $endOfDay);
+
         // Total solo incluye: Fichas Técnicas + CC Pagas + Clientes No Frecuentes
         // NO incluye Presupuestos ni las deudas de CC (distributorAccountSales) porque ese dinero aún no se recibió
-        $totalSales = $technicalRecordSales + $distributorAccountPayments + $clienteNoFrecuenteSales;
+        // Se le restan las devoluciones entregadas en efectivo, que sí sacan plata.
+        $totalSales = $technicalRecordSales + $distributorAccountPayments + $clienteNoFrecuenteSales
+            - $returns['efectivo'];
 
         return [
             'total' => $totalSales,
+            'returns' => $returns['total'],
+            'returns_efectivo' => $returns['efectivo'],
+            'returns_cuenta' => $returns['cuenta'],
+            'count_returns' => $returns['count'],
             'quotations' => $quotationSales,
             'technical_records' => $technicalRecordSales,
             'client_accounts' => $clientAccountSales,
@@ -501,6 +551,13 @@ class DailySalesController extends Controller
                     ->orderBy('created_at', 'desc')
                     ->get();
                 
+            case 'returns':
+                return DistributorReturn::whereBetween('return_date', [$startOfPeriod, $endOfPeriod])
+                    ->whereNull('anulada_en')
+                    ->with(['distributorClient', 'clienteNoFrecuente'])
+                    ->orderBy('return_date', 'desc')
+                    ->get();
+
             case 'cliente_no_frecuente':
                 return DistributorClienteNoFrecuente::whereBetween('fecha', [$startOfPeriod, $endOfPeriod])
                     ->with('user')
